@@ -46,20 +46,39 @@ class GameService:
         self.connection_manager = connection_manager
         self.board = None
         self.boards_path = Path("app/game_data")
-        self.state = GameStateManager()
+        self.state = GameStateManager()  # Legacy single-game state
         self.llm_state = LLMStateManager()  # Initialize LLM state manager
         self.current_question = None
         self.buzzer_active = False
         self.last_buzzer = None
         self.game_ready = False
         self.completed_audio_ids = set()  # Track completed audio playbacks
-        
+
+        # Reference to game manager (set in main.py)
+        self.game_manager = None
+
         # Initialize the buzzer manager
         self.buzzer_manager = BuzzerManager()
         self.buzzer_manager.set_dependencies(game_service=self)
-        
+
         # Initialize the AI host service
         self.ai_host = AIHostService(name="AI Host")
+
+    def set_game_manager(self, game_manager):
+        """Set reference to game manager for multi-game lookups."""
+        self.game_manager = game_manager
+
+    async def _get_game_context(self, game_id: Optional[str]):
+        """
+        Get game-specific state or fall back to legacy single-game state.
+
+        Returns tuple of (state, board, game_instance)
+        """
+        if game_id and self.game_manager:
+            game = await self.game_manager.get_game_by_id(game_id)
+            if game:
+                return game.state, game.board, game
+        return self.state, self.board, None
     
     async def load_board(self, board_id: str):
         """Load a board from the filesystem"""
@@ -85,34 +104,58 @@ class GameService:
             logger.error(f"Error loading board {board_id}: {e}")
             raise
     
-    async def select_board(self, board_id: str):
+    async def select_board(self, board_id: str, game_id: Optional[str] = None):
         """Load and initialize a new board"""
         try:
             board_data = await self.load_board(board_id)
+
+            # Store board in appropriate location
+            if game_id and self.game_manager:
+                game = await self.game_manager.get_game_by_id(game_id)
+                if game:
+                    game.board = board_data
+
             self.board = board_data
-            
-            # Send the board to all clients
+
+            # Send the board to appropriate clients
             await self.connection_manager.broadcast_message(
                 "com.sc2ctl.jeopardy.board_selected",
-                {"categories": board_data["categories"]}
+                {"categories": board_data["categories"]},
+                game_id=game_id
             )
         except Exception as e:
             logger.error(f"Error selecting board: {e}")
-            # You might want to send an error message to the client here
             await self.connection_manager.broadcast_message(
                 "com.sc2ctl.jeopardy.error",
-                {"message": f"Failed to load board: {str(e)}"}
+                {"message": f"Failed to load board: {str(e)}"},
+                game_id=game_id
             )
     
-    async def send_categories(self):
+    async def send_categories(self, game_id: Optional[str] = None):
         """Send all categories and questions to clients"""
+        state, board, game = await self._get_game_context(game_id)
+
+        if not board:
+            return
+
+        # Handle both dict and object formats
+        if isinstance(board, dict):
+            categories = board.get("categories", [])
+        else:
+            categories = [category.dict() for category in board.categories]
+
         await self.connection_manager.broadcast_message(
             self.BOARD_INIT_TOPIC,
-            {"categories": [category.dict() for category in self.board.categories]}
+            {"categories": categories},
+            game_id=game_id
         )
-        
+
         # Update LLM state with available categories
-        self.llm_state.update_categories([category.name for category in self.board.categories])
+        if isinstance(board, dict):
+            cat_names = [cat["name"] for cat in board.get("categories", [])]
+        else:
+            cat_names = [category.name for category in board.categories]
+        self.llm_state.update_categories(cat_names)
     
     def find_question(self, category_name: str, value: int):
         """Find a question in the current board"""
@@ -163,13 +206,17 @@ class GameService:
                         question["used"] = True
                         break
 
-    async def display_question(self, category_name: str, value: int):
+    async def display_question(self, category_name: str, value: int, game_id: Optional[str] = None):
         """Display a question to all clients"""
-        if not self.game_ready:
+        state, board, game = await self._get_game_context(game_id)
+        game_ready = game.game_ready if game else self.game_ready
+
+        if not game_ready:
             logger.warning("Cannot display question - waiting for players")
             await self.connection_manager.broadcast_message(
                 "com.sc2ctl.jeopardy.error",
-                {"message": f"Waiting for {self.REQUIRED_PLAYERS - len(self.state.contestants)} more players"}
+                {"message": f"Waiting for {self.REQUIRED_PLAYERS - len(state.contestants)} more players"},
+                game_id=game_id
             )
             return
 
@@ -235,126 +282,175 @@ class GameService:
         except Exception as e:
             logger.error(f"Error displaying question: {e}")
     
-    async def dismiss_question(self):
+    async def dismiss_question(self, game_id: Optional[str] = None):
         """Dismiss the current question and broadcast to all clients"""
         logger.info("Dismissing question")
-        
+
+        state, board, game = await self._get_game_context(game_id)
+
         # Always ensure buzzer is deactivated when dismissing a question
-        self.buzzer_active = False
+        if game:
+            game.buzzer_active = False
+        else:
+            self.buzzer_active = False
         await self.buzzer_manager.deactivate_buzzer()
-        
+
         # Notify clients
         await self.connection_manager.broadcast_message(
             self.QUESTION_DISMISS_TOPIC,
-            {}
+            {},
+            game_id=game_id
         )
-        
+
         # Update LLM state
         self.llm_state.question_dismissed()
-        
+
         # Clear question state
-        self.current_question = None
-        self.last_buzzer = None
+        if game:
+            game.current_question = None
+            game.last_buzzer = None
+        else:
+            self.current_question = None
+            self.last_buzzer = None
     
-    async def change_buzzer_status(self, active: bool):
+    async def change_buzzer_status(self, active: bool, game_id: Optional[str] = None):
         """Change buzzer status and broadcast to all clients"""
         logger.info(f"Setting buzzer status to: {active}")
-        
+
+        # Update game-specific state if applicable
+        if game_id and self.game_manager:
+            game = await self.game_manager.get_game_by_id(game_id)
+            if game:
+                game.buzzer_active = active
+
         # Use buzzer manager to handle state changes
         if active:
-            await self.buzzer_manager.activate_buzzer()
+            await self.buzzer_manager.activate_buzzer(game_id=game_id)
         else:
-            await self.buzzer_manager.deactivate_buzzer()
+            await self.buzzer_manager.deactivate_buzzer(game_id=game_id)
     
-    async def register_player(self, websocket: WebSocket, name: str, preferences: str = ''):
+    async def register_player(self, websocket: WebSocket, name: str, preferences: str = '', game_id: Optional[str] = None):
         """Register a new player with the given name and preferences"""
+        state, board, game = await self._get_game_context(game_id)
+
         websocket_id = str(id(websocket))
-        if self.state.register_contestant(websocket_id, name):
+        if state.register_contestant(websocket_id, name):
             # Store the player's preferences if provided
             if preferences:
                 logger.info(f"Adding preferences from registration: {name}: {preferences}")
-                
-                # Store directly in game state manager if available
-                if hasattr(self, 'ai_host') and self.ai_host and hasattr(self.ai_host, 'game_state_manager'):
+
+                # Store preferences in game-specific state manager
+                if game and game.ai_host and hasattr(game.ai_host, 'game_state_manager'):
+                    game.ai_host.game_state_manager.add_player_preference(name, preferences)
+                elif hasattr(self, 'ai_host') and self.ai_host and hasattr(self.ai_host, 'game_state_manager'):
                     self.ai_host.game_state_manager.add_player_preference(name, preferences)
-                    
+
             # Broadcast updated player list
-            await self.broadcast_player_list()
-            
+            await self.broadcast_player_list(game_id)
+
             # Check if we have enough players
-            if len(self.state.contestants) >= self.REQUIRED_PLAYERS:
-                self.game_ready = True
+            if len(state.contestants) >= self.REQUIRED_PLAYERS:
+                if game:
+                    game.game_ready = True
+                else:
+                    self.game_ready = True
                 await self.connection_manager.broadcast_message(
                     "com.sc2ctl.jeopardy.game_ready",
-                    {"ready": True}
+                    {"ready": True},
+                    game_id=game_id
                 )
             return True
         return False
     
-    async def broadcast_player_list(self):
+    async def broadcast_player_list(self, game_id: Optional[str] = None):
         """Send current player list to all clients"""
+        state, board, game = await self._get_game_context(game_id)
+
+        # Get preferences if available
+        player_prefs = {}
+        if game and game.ai_host and hasattr(game.ai_host, 'game_state_manager'):
+            player_prefs = game.ai_host.game_state_manager.player_preferences
+        elif hasattr(self, 'ai_host') and self.ai_host and hasattr(self.ai_host, 'game_state_manager'):
+            player_prefs = self.ai_host.game_state_manager.player_preferences
+
         players = {
-            c.name: {"score": c.score} 
-            for c in self.state.contestants.values()
+            c.name: {
+                "score": c.score,
+                "preferences": player_prefs.get(c.name, "")
+            }
+            for c in state.contestants.values()
         }
         await self.connection_manager.broadcast_message(
             "com.sc2ctl.jeopardy.player_list",
-            {"players": players}
+            {"players": players},
+            game_id=game_id
         )
     
-    async def handle_buzz(self, websocket: WebSocket, timestamp: float):
+    async def handle_buzz(self, websocket: WebSocket, timestamp: float, game_id: Optional[str] = None):
         """Handle a buzz from a contestant"""
-        websocket_id = str(id(websocket))
-        contestant = self.state.get_contestant_by_websocket(websocket_id)
-        
+        state, board, game = await self._get_game_context(game_id)
+        buzzer_active = game.buzzer_active if game else self.buzzer_active
+
+        # Get client_id from connection manager
+        client_id = self.connection_manager.get_client_id_for_websocket(websocket)
+        if not client_id:
+            client_id = str(id(websocket))
+
+        contestant = state.get_contestant_by_websocket(client_id)
+
         if not contestant:
-            logger.warning(f"Contestant not found for websocket {websocket_id}")
+            logger.warning(f"Contestant not found for websocket {client_id}")
             return
-        
+
         logger.info(f"Buzz received from {contestant.name} at {timestamp}")
-        
-        if not self.buzzer_active:
+
+        if not buzzer_active:
             logger.warning(f"Buzz from {contestant.name} ignored - buzzer not active")
             return
-        
+
         logger.info(f"Buzz accepted from {contestant.name}")
-        
+
         # Use the buzzer manager to handle the buzz event
-        await self.buzzer_manager.handle_player_buzz(contestant.name)
-        
+        await self.buzzer_manager.handle_player_buzz(contestant.name, game_id=game_id)
+
         # Notify all clients of the buzz
         await self.connection_manager.broadcast_message(
             self.BUZZER_TOPIC,
-            {"contestant": contestant.name, "timestamp": timestamp}
+            {"contestant": contestant.name, "timestamp": timestamp},
+            game_id=game_id
         )
-        
+
         # Update LLM state for player buzzed in
         self.llm_state.player_buzzed_in(contestant.name)
     
-    async def answer_question(self, correct: bool, contestant_name=None):
+    async def answer_question(self, correct: bool, contestant_name=None, game_id: Optional[str] = None):
         """Handle an answer from a contestant"""
-        if not self.current_question:
+        state, board, game = await self._get_game_context(game_id)
+        current_question = game.current_question if game else self.current_question
+        last_buzzer = game.last_buzzer if game else self.last_buzzer
+
+        if not current_question:
             logger.warning("No current question to answer")
             return
-            
+
         # If no contestant name provided, use the last person to buzz in
         if not contestant_name:
-            contestant_name = self.last_buzzer
-            
+            contestant_name = last_buzzer
+
         if not contestant_name:
             logger.warning("No contestant to score")
             return
 
         logger.info(f"Processing answer from {contestant_name}: {'correct' if correct else 'incorrect'}")
-        
-        score_delta = self.current_question["value"]
-        daily_double = self.current_question.get("daily_double", False)
-            
-        contestant = self.find_contestant(contestant_name)
+
+        score_delta = current_question["value"]
+        daily_double = current_question.get("daily_double", False)
+
+        contestant = self.find_contestant(contestant_name, state=state)
         if not contestant:
             logger.warning(f"Contestant {contestant_name} not found")
             return
-            
+
         # Broadcast the answer result
         await self.connection_manager.broadcast_message(
             self.QUESTION_ANSWER_TOPIC,
@@ -362,8 +458,9 @@ class GameService:
                 "contestant": contestant_name,
                 "correct": correct,
                 "value": score_delta,
-                "answer": self.current_question["answer"]
-            }
+                "answer": current_question["answer"]
+            },
+            game_id=game_id
         )
             
         # Handle correct answer
@@ -390,37 +487,40 @@ class GameService:
                 self.llm_state.selecting_question(contestant_name)
             
             # Broadcast score update
-            await self.send_contestant_scores()
-            
+            await self.send_contestant_scores(game_id)
+
             # Update LLM state with new score
             self.llm_state.update_player_score(contestant_name, contestant.score)
-            
+
         # Handle incorrect answer
         else:
             logger.info(f"Incorrect answer from {contestant_name}")
-            
+
             # Deduct points for incorrect answers
             contestant.score -= score_delta
-            
+
             # Use the buzzer manager to handle incorrect answer
             await self.buzzer_manager.handle_incorrect_answer(contestant_name)
-            
+
             # Broadcast score update
-            await self.send_contestant_scores()
-            
+            await self.send_contestant_scores(game_id)
+
             # Update LLM state with new score
             self.llm_state.update_player_score(contestant_name, contestant.score)
     
-    async def handle_daily_double_bet(self, contestant: str, bet: int):
+    async def handle_daily_double_bet(self, contestant: str, bet: int, game_id: Optional[str] = None):
         """Handle a daily double bet from a contestant"""
         logger.info(f"Daily double bet: {contestant} bets ${bet}")
-        
-        if not self.current_question:
+
+        state, board, game = await self._get_game_context(game_id)
+        current_question = game.current_question if game else self.current_question
+
+        if not current_question:
             logger.warning("No current question for daily double bet")
             return
-            
+
         # Validate bet is within allowed range
-        player = self.find_contestant(contestant)
+        player = self.find_contestant(contestant, state=state)
         if not player:
             logger.warning(f"Contestant {contestant} not found")
             return
@@ -603,9 +703,11 @@ class GameService:
             {"active": self.buzzer_active}
         )
 
-    def find_contestant(self, name: str):
+    def find_contestant(self, name: str, state=None):
         """Find a contestant by name"""
-        for contestant_id, contestant in self.state.contestants.items():
+        if state is None:
+            state = self.state
+        for contestant_id, contestant in state.contestants.items():
             if contestant.name == name:
                 return contestant
         return None
@@ -646,13 +748,18 @@ class GameService:
         logger.debug(f"Checking if audio {audio_id} completed: {result}")
         return result
 
-    async def handle_audio_completed(self, audio_id: str):
+    async def handle_audio_completed(self, audio_id: str, game_id: Optional[str] = None):
         """Handle notification that audio playback has completed"""
         # Mark the audio as completed
+        if game_id and self.game_manager:
+            game = await self.game_manager.get_game_by_id(game_id)
+            if game:
+                game.mark_audio_completed(audio_id)
+
         self.mark_audio_completed(audio_id)
-        
+
         # Delegate to buzzer manager to handle logic for buzzer activation
-        await self.buzzer_manager.handle_audio_completed(audio_id)
+        await self.buzzer_manager.handle_audio_completed(audio_id, game_id=game_id)
 
     async def startup(self):
         """Initialize the game service and start background tasks"""
@@ -683,13 +790,14 @@ class GameService:
         # Return success
         return True
 
-    async def handle_chat_message(self, username: str, message: str):
+    async def handle_chat_message(self, username: str, message: str, game_id: Optional[str] = None):
         """
         Handle a chat message from a player and forward it to the AI host.
-        
+
         Args:
             username: The player's username
             message: The chat message content
+            game_id: Optional game ID for multi-game support
         """
         logger.info(f"Chat message from {username}: {message}")
         
@@ -733,15 +841,17 @@ class GameService:
             {"active": self.buzzer_active}
         )
 
-    async def send_contestant_scores(self):
+    async def send_contestant_scores(self, game_id: Optional[str] = None):
         """Send current contestant scores to all clients"""
+        state, board, game = await self._get_game_context(game_id)
         scores = {
-            contestant.name: contestant.score 
-            for contestant in self.state.contestants.values()
+            contestant.name: contestant.score
+            for contestant in state.contestants.values()
         }
         await self.connection_manager.broadcast_message(
             self.CONTESTANT_SCORE_TOPIC,
-            {"scores": scores}
+            {"scores": scores},
+            game_id=game_id
         )
 
     async def play_audio(self, audio_url: str, wait_for_completion: bool = True, audio_id: str = None):

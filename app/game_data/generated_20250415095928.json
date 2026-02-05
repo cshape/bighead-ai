@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Great European Expeditions",
+      "questions": [
+        {
+          "clue": "For 200: In 1492, this explorer set sail on behalf of Spain and anchored in the New World.",
+          "answer": "Christopher Columbus",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 400: Known for his travels in China, he became famous for his book detailing his journeys, inspiring future explorers like Columbus.",
+          "answer": "Marco Polo",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 600: This Portuguese explorer was the first to reach India by sea, opening a maritime route from Europe to Asia in 1498.",
+          "answer": "Vasco da Gama",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 800: This expedition, led by Ferdinand Magellan and completed by Juan Sebasti\u00e1n Elcano, achieved the first circumnavigation of the globe.",
+          "answer": "Magellan-Elcano Expedition",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 1000: In 1648, this Russian explorer led an expedition that proved Siberia was not connected to North America.",
+          "answer": "Semyon Dezhnyov",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Hockey Hall of Fame Legends",
+      "questions": [
+        {
+          "clue": "A legendary Canadian player famous for his number 99, he joined the Hall of Fame in 1999 without the customary waiting period.",
+          "answer": "Wayne Gretzky",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This 'Russian Rocket' was inducted into the Hall of Fame in 2012, known for his stint with the Vancouver Canucks.",
+          "answer": "Pavel Bure",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Swedish defenseman was the first European-born captain to win the Stanley Cup in 1989 and joined the Hall in 1993.",
+          "answer": "Borje Salming",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Inducted in 2017, this Czech player is one of the few to win an Olympic gold, a World Championship, and a Stanley Cup.",
+          "answer": "Teemu Selanne",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The first European-trained player to be inducted into the Hall of Fame, he helped break the barrier in 1981.",
+          "answer": "Vaclav Nedomansky",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Science Fiction Worlds of the Future",
+      "questions": [
+        {
+          "clue": "In this series by Douglas Adams, the Earth is destroyed to make way for a hyperspace bypass.",
+          "answer": "The Hitchhiker's Guide to the Galaxy",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This 1968 Philip K. Dick novel, adapted into a famous film, explores a dystopian Los Angeles where androids are hunted.",
+          "answer": "Do Androids Dream of Electric Sheep?",
+          "value": 400,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "In this William Gibson novel, credited with starting the cyberpunk genre, the concept of 'cyberspace' was popularized.",
+          "answer": "Neuromancer",
+          "value": 600,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "This future-set novel by Kazuo Ishiguro imagines a British society where cloned children are raised for organ donation.",
+          "answer": "Never Let Me Go",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Stanislaw Lem's classic 1961 novel explores the mysteries of a sentient ocean on the distant planet of Solaris.",
+          "answer": "Solaris",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Culinary Delights from Across Europe",
+      "questions": [
+        {
+          "clue": "This creamy Italian dish is made with Arborio rice and often flavored with parmesan cheese.",
+          "answer": "Risotto",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Named after a city in England, this traditionally hand-raised meat pie is often served cold.",
+          "answer": "Melton Mowbray Pork Pie",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Spain is famous for this saffron-infused rice dish, traditionally cooked in a large pan.",
+          "answer": "Paella",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This French dish from Burgundy combines beef with red wine, mushrooms, and onions.",
+          "answer": "Boeuf Bourguignon",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Originating in Hungary, this stew uses paprika as a main seasoning and often includes dumplings.",
+          "answer": "Goulash",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Classic Sci-Fi Literature",
+      "questions": [
+        {
+          "clue": "This French author wrote '20,000 Leagues Under the Sea' about Captain Nemo and his submarine, the Nautilus.",
+          "answer": "Jules Verne",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "'The War of the Worlds', a novel about a Martian invasion of Earth, was written by this English scientist and author.",
+          "answer": "H.G. Wells",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 'Brave New World', this author envisions a dystopian future controlled by technology and a strict caste system.",
+          "answer": "Aldous Huxley",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "'Solaris', a novel set on a planet covered by a sentient ocean, was penned by this Polish writer.",
+          "answer": "Stanis\u0142aw Lem",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Czech writer introduced the word 'robot' to describe artificial beings in his play 'R.U.R.' (Rossum's Universal Robots).",
+          "answer": "Karel \u010capek",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "European Cities in Science Fiction",
+    "clue": "This European capital, famously divided for years, is the setting for the climax of Philip K. Dick's novel 'The Man in the High Castle'.",
+    "answer": "What is Berlin?"
+  }
+}

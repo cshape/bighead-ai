@@ -22,7 +22,7 @@ def is_same_player(username1: str, username2: str) -> bool:
             username1 in username2 or
             username2 in username1)
 
-def cleanup_audio_files(directory: str, max_files: int = 5):
+async def cleanup_audio_files(directory: str, max_files: int = 5):
     """
     Keep only the most recent audio files, deleting older ones.
     

@@ -94,15 +94,28 @@ class AIHostService:
         self.websocket_manager = websocket_manager
         logger.info("WebSocket manager set for AI Host Service")
     
-    def set_game_service(self, game_service):
-        """Set the game service for direct interaction with game state."""
+    def set_game_service(self, game_service, game_instance=None):
+        """Set the game service using the internal game state manager."""
+        self.game_instance = game_instance  # Store reference
+        self.set_dependencies(game_service, self.game_state_manager)
+
+    def set_dependencies(self, game_service, game_state_manager):
+        """
+        Set dependencies for the AI host service.
+
+        Args:
+            game_service: The game service for direct interaction
+            game_state_manager: The shared game state manager from GameInstance
+        """
+        # Use the shared game state manager instead of our own
+        self.game_state_manager = game_state_manager
         self.game_service = game_service
-        
+
         # Propagate the game service to all components that need it
         self.audio_manager.set_game_service(game_service)
         self.board_manager.set_game_service(game_service)
         self.clue_processor.set_game_service(game_service)
-        
+
         # Set up chat processor dependencies
         self.chat_processor.set_dependencies(
             game_service=game_service,
@@ -110,7 +123,7 @@ class AIHostService:
             clue_processor=self.clue_processor,
             answer_evaluator=self.answer_evaluator
         )
-        
+
         # Set up buzzer manager dependencies
         self.buzzer_manager.set_dependencies(
             game_service=game_service,
@@ -118,7 +131,7 @@ class AIHostService:
             chat_processor=self.chat_processor,
             audio_manager=self.audio_manager
         )
-        
+
         # Set up game flow manager dependencies
         self.game_flow_manager.set_dependencies(
             game_service=game_service,
@@ -128,8 +141,13 @@ class AIHostService:
             buzzer_manager=self.buzzer_manager,
             board_manager=self.board_manager
         )
-        
-        logger.info("Game service set for AI Host Service")
+
+        # Pass game_instance to game_flow_manager and board_manager
+        if hasattr(self, 'game_instance') and self.game_instance:
+            self.game_flow_manager.game_instance = self.game_instance
+            self.board_manager.game_instance = self.game_instance
+
+        logger.info("Dependencies set for AI Host Service")
     
     async def send_chat_message(self, message: str):
         """Send a chat message as the AI host."""

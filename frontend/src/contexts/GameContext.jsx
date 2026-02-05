@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useState } from 'react';
 import useWebSocket from '../hooks/useWebSocket';
+import { getLegacyWebSocketUrl, getWebSocketUrl } from '../config';
 
 const GameContext = createContext();
 
@@ -22,8 +23,13 @@ const initialState = {
   answerTimer: {
     active: false,
     player: null,
-    seconds: 0
-  }
+    seconds: 0,
+  },
+  // Multi-game state
+  gameCode: null,
+  gameId: null,
+  isHost: false,
+  gameStatus: null, // 'lobby', 'active', 'completed'
 };
 
 function gameReducer(state, action) {
@@ -365,8 +371,33 @@ function gameReducer(state, action) {
         answerTimer: {
           active: true,
           player: action.payload.player,
-          seconds: action.payload.seconds
-        }
+          seconds: action.payload.seconds,
+        },
+      };
+    case 'SET_GAME_CODE':
+      return {
+        ...state,
+        gameCode: action.payload.code,
+        gameId: action.payload.gameId || state.gameId,
+      };
+    case 'SET_GAME_STATE':
+      return {
+        ...state,
+        gameId: action.payload.game_id,
+        gameCode: action.payload.game_code,
+        gameStatus: action.payload.status,
+        board: action.payload.board,
+        currentQuestion: action.payload.current_question,
+        buzzerActive: action.payload.buzzer_active,
+        lastBuzzer: action.payload.last_buzzer,
+        gameReady: action.payload.game_ready,
+        isHost: action.payload.is_host,
+      };
+    case 'GAME_STARTED':
+      return {
+        ...state,
+        gameStatus: 'active',
+        gameReady: true,
       };
     default:
       return state;
@@ -376,9 +407,12 @@ function gameReducer(state, action) {
 export function GameProvider({ children }) {
   const [state, dispatch] = useReducer(gameReducer, {
     ...initialState,
-    registered: initialState.adminMode // Auto-register if admin mode
+    registered: initialState.adminMode, // Auto-register if admin mode
   });
-  
+
+  // Track current game code for WebSocket URL
+  const [currentGameCode, setCurrentGameCode] = useState(null);
+
   // Handle all WebSocket messages in a single callback function
   const handleWebSocketMessage = useCallback((message) => {
     console.log('Processing WebSocket message:', message);
@@ -590,19 +624,49 @@ export function GameProvider({ children }) {
           type: 'SET_ANSWER_TIMER',
           payload: {
             player: message.payload.player,
-            seconds: message.payload.seconds
-          }
+            seconds: message.payload.seconds,
+          },
         });
+        break;
+      case 'com.sc2ctl.jeopardy.game_state':
+        console.log('Received game state:', message.payload);
+        dispatch({
+          type: 'SET_GAME_STATE',
+          payload: message.payload,
+        });
+        // Also update players from the game state
+        if (message.payload.players) {
+          dispatch({
+            type: 'PLAYER_LIST',
+            payload: { players: message.payload.players },
+          });
+        }
+        break;
+      case 'com.sc2ctl.jeopardy.game_started':
+        console.log('Game started');
+        dispatch({ type: 'GAME_STARTED' });
         break;
       default:
         console.log('Unhandled message topic:', message.topic);
     }
   }, [dispatch]);
   
+  // Determine WebSocket URL based on game code
+  const wsUrl = currentGameCode
+    ? getWebSocketUrl(currentGameCode)
+    : getLegacyWebSocketUrl();
+
   // Use the refactored WebSocket hook with our message handler
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const wsUrl = `${protocol}//${window.location.host}/ws`;
-  const { sendMessage, ws } = useWebSocket(wsUrl, handleWebSocketMessage);
+  const { sendMessage, ws, isConnected } = useWebSocket(wsUrl, handleWebSocketMessage);
+
+  // Function to set the game code (called from game pages)
+  const setGameCode = useCallback((code, gameId = null) => {
+    setCurrentGameCode(code);
+    dispatch({
+      type: 'SET_GAME_CODE',
+      payload: { code, gameId },
+    });
+  }, []);
 
   // Effect to handle admin mode initialization
   useEffect(() => {
@@ -610,6 +674,17 @@ export function GameProvider({ children }) {
       console.log("Admin mode detected, auto-registering");
     }
   }, [state.adminMode]);
+
+  // Initialize playerName from sessionStorage
+  useEffect(() => {
+    const playerInfo = JSON.parse(sessionStorage.getItem('playerInfo') || '{}');
+    if (playerInfo.playerName && !state.playerName) {
+      dispatch({
+        type: 'REGISTER_PLAYER',
+        payload: { name: playerInfo.playerName }
+      });
+    }
+  }, []);
 
   // Function to send chat messages
   const sendChatMessage = (message) => {
@@ -633,7 +708,16 @@ export function GameProvider({ children }) {
   };
 
   return (
-    <GameContext.Provider value={{ state, dispatch, sendMessage, sendChatMessage }}>
+    <GameContext.Provider
+      value={{
+        state,
+        dispatch,
+        sendMessage,
+        sendChatMessage,
+        setGameCode,
+        isConnected,
+      }}
+    >
       {children}
     </GameContext.Provider>
   );

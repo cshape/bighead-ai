@@ -15,10 +15,11 @@ logger = logging.getLogger(__name__)
 
 class BoardManager:
     """Manages board generation and selection for the AI host"""
-    
+
     def __init__(self):
         """Initialize the board manager"""
         self.game_service = None
+        self.game_instance = None
     
     def set_game_service(self, game_service):
         """Set the game service reference"""
@@ -77,12 +78,14 @@ class BoardManager:
             for i, cat_data in enumerate(category_data):
                 logger.info(f"Revealing category {i+1} of {len(categories)}: {cat_data['name']}")
                 if self.game_service:
+                    game_id = self.game_instance.game_id if self.game_instance else None
                     await self.game_service.connection_manager.broadcast_message(
-                        "com.sc2ctl.jeopardy.reveal_category", 
+                        "com.sc2ctl.jeopardy.reveal_category",
                         {
                             "index": i,
                             "category": cat_data
-                        }
+                        },
+                        game_id=game_id
                     )
                 # Small delay between reveals for visual effect
                 await asyncio.sleep(1.5)

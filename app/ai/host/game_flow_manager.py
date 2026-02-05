@@ -22,6 +22,7 @@ class GameFlowManager:
         self.audio_manager = None
         self.buzzer_manager = None
         self.board_manager = None
+        self.game_instance = None  # Will be set by service.py
     
     def set_dependencies(self, game_service=None, game_state_manager=None, 
                          chat_processor=None, audio_manager=None, 
@@ -61,13 +62,14 @@ class GameFlowManager:
                 return
                 
             # Check if there's a current question
-            if self.game_service.current_question and not self.game_state_manager.game_state.current_question:
+            current_question = self.game_instance.current_question if self.game_instance else self.game_service.current_question
+            if current_question and not self.game_state_manager.game_state.current_question:
                 # We have a new question to process
                 # Cancel any existing timer when a new question appears
                 if self.buzzer_manager:
                     self.buzzer_manager.cancel_timeout()
                 
-                question_data = self.game_service.current_question
+                question_data = current_question
                 
                 # Create a question object for our state
                 self.game_state_manager.set_question(
@@ -88,7 +90,7 @@ class GameFlowManager:
                     self.game_state_manager.mark_question_read(question_data["text"])
                 
             # Check if we need to handle a player's answer - improved to detect new buzzer events
-            current_buzzer = self.game_service.last_buzzer
+            current_buzzer = self.game_instance.last_buzzer if self.game_instance else self.game_service.last_buzzer
             buzzed_player = self.game_state_manager.get_buzzed_player()
             
             # Detect if a new player has buzzed in
@@ -112,17 +114,19 @@ class GameFlowManager:
                     self.buzzer_manager.cancel_timeout()
             
             # Check if the buzzer state has changed - detect buzzer activation
-            if self.game_service.buzzer_active and not self.game_state_manager.buzzer_active:
+            buzzer_active = self.game_instance.buzzer_active if self.game_instance else self.game_service.buzzer_active
+            if buzzer_active and not self.game_state_manager.buzzer_active:
                 logger.info("Buzzer has been activated")
                 self.game_state_manager.buzzer_active = True
                 asyncio.create_task(self.buzzer_manager.activate_buzzer())
-            elif not self.game_service.buzzer_active and self.game_state_manager.buzzer_active:
+            elif not buzzer_active and self.game_state_manager.buzzer_active:
                 logger.info("Buzzer has been deactivated")
                 self.game_state_manager.buzzer_active = False
                 asyncio.create_task(self.buzzer_manager.deactivate_buzzer())
                 
             # Check if the question has been dismissed
-            if not self.game_service.current_question and self.game_state_manager.game_state.current_question:
+            current_question_check = self.game_instance.current_question if self.game_instance else self.game_service.current_question
+            if not current_question_check and self.game_state_manager.game_state.current_question:
                 # Question has been dismissed, reset our state
                 logger.info("Question was dismissed, resetting state")
                 self.game_state_manager.reset_question()
@@ -135,7 +139,7 @@ class GameFlowManager:
                     self.buzzer_manager.cancel_timeout()
                 
             # Check for clue selection if there's no active question
-            if not self.game_state_manager.game_state.current_question and not self.game_service.current_question:
+            if not self.game_state_manager.game_state.current_question and not current_question_check:
                 # No question active, make sure timer is cancelled
                 if self.buzzer_manager:
                     self.buzzer_manager.cancel_timeout()
@@ -164,10 +168,10 @@ class GameFlowManager:
                 logger.warning("Game service not available, cannot check game start conditions")
                 return
                 
-            # Get current players from game service
-            current_players = list(self.game_service.state.contestants.values())
+            # Get current players - use game_instance state if available, otherwise fall back to game_service
+            state = self.game_instance.state if self.game_instance else self.game_service.state
+            current_players = list(state.contestants.values())
             current_player_count = len(current_players)
-            logger.info(f"Current player count: {current_player_count}/{self.game_state_manager.game_state.expected_player_count}")
             
             # Update player names in game state
             for contestant in current_players:
@@ -194,7 +198,7 @@ class GameFlowManager:
             if self.game_state_manager.is_waiting_for_preferences():
                 current_time = time.time()
                 countdown_remaining = 10 - (current_time - self.game_state_manager.game_state.preference_countdown_time) if self.game_state_manager.game_state.preference_countdown_started else 10
-                logger.info(f"Preference collection state: waiting={self.game_state_manager.is_waiting_for_preferences()}, " +
+                logger.debug(f"Preference collection state: waiting={self.game_state_manager.is_waiting_for_preferences()}, " +
                            f"countdown_started={self.game_state_manager.game_state.preference_countdown_started}, " +
                            f"countdown_remaining={countdown_remaining:.1f}s")
                 
@@ -223,8 +227,11 @@ class GameFlowManager:
             # Don't reset chat message storage for preferences
             # We need to keep the registration preferences
             
-            # Format player list for welcome message
-            player_list = ", ".join(player_names)
+            # Format player list for welcome message with proper grammar
+            if len(player_names) == 3:
+                player_list = f"{player_names[0]}, {player_names[1]}, and {player_names[2]}"
+            else:
+                player_list = ", ".join(player_names)  # Fallback for other counts
             
             # Welcome message without asking for preferences since we got them at registration
             welcome_message = f"Welcome to Jeopardy! Today's contestants are {player_list}. Let's get started!"
@@ -364,7 +371,7 @@ class GameFlowManager:
             if not controlling_player:
                 return
                 
-            logger.info(f"Player with control: {controlling_player} - waiting for clue selection")
+            logger.debug(f"Player with control: {controlling_player} - waiting for clue selection")
             
             # For now, we'll just handle this in other ways (e.g., through chat events)
             

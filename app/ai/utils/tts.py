@@ -1,6 +1,6 @@
 """
 Text-to-Speech client using Inworld's TTS API.
-This module provides a class for generating speech from text.
+This module provides a class for generating speech from text with phoneme substitution support.
 """
 
 import requests
@@ -8,6 +8,7 @@ import json
 import base64
 import os
 import logging
+import re
 from pathlib import Path
 
 # Set up logging
@@ -16,10 +17,17 @@ logger.setLevel(logging.INFO)
 
 class TTSClient:
     """
-    Client for Inworld's speech-to-text service.
+    Client for Inworld's text-to-speech service.
     
-    This class provides methods to convert text to speech using Inworld's TTS API.
+    This class provides methods to convert text to speech using Inworld's TTS API
+    with support for phoneme substitution for proper pronunciation.
     """
+    
+    # Phoneme substitution dictionary - word to IPA phoneme mapping
+    PHONEME_SUBSTITUTIONS = {
+        "cale": "/keɪl/",
+        "pasta": "/ˈpæstə/"
+    }
     
     def __init__(self, api_key=None):
         """
@@ -40,8 +48,8 @@ class TTSClient:
                 "set the INWORLD_API_KEY environment variable."
             )
         
-        # Use the non-sync endpoint as in the documentation
-        self.url = 'https://api.inworld.ai/tts/v1alpha/text:synthesize-sync'
+        # Use the new API endpoint
+        self.url = 'https://api.inworld.ai/tts/v1/voice'
         
         # Make sure the Authorization header is properly formatted
         # The API key might already include "Basic " prefix or might need it added
@@ -55,35 +63,84 @@ class TTSClient:
         }
         logger.info(f"Initialized TTSClient with API URL: {self.url}")
     
-    def generate_speech(self, text, voice_name="Timothy", output_file=None):
+    def _preprocess_text_with_phonemes(self, text):
         """
-        Generate speech from text and save it to a WAV file.
+        Preprocess text by substituting words with their IPA phoneme representations.
         
         Args:
-            text (str): The text to convert to speech.
-            voice_name (str, optional): The name of the voice to use. Defaults to "Timothy".
-            output_file (str, optional): Path to save the WAV file. If not provided,
+            text (str): The original text to preprocess.
+            
+        Returns:
+            str: Text with phoneme substitutions applied.
+        """
+        processed_text = text
+        
+        for word, phoneme in self.PHONEME_SUBSTITUTIONS.items():
+            # Use word boundaries to match whole words only (case-insensitive)
+            pattern = r'\b' + re.escape(word) + r'\b'
+            processed_text = re.sub(pattern, phoneme, processed_text, flags=re.IGNORECASE)
+        
+        if processed_text != text:
+            logger.info(f"Applied phoneme substitutions. Original: '{text}' -> Processed: '{processed_text}'")
+        
+        return processed_text
+    
+    def generate_speech(self, text, voice_id="Dennis", output_file=None, model_id="inworld-tts-1-max", 
+                       audio_encoding="LINEAR16", temperature=1.1, timestamp_type=None, 
+                       sample_rate_hertz=22050, speaking_rate=1.0, pitch=0.0, voice_name=None):
+        """
+        Generate speech from text and save it to an audio file.
+        
+        Args:
+            text (str): The text to convert to speech. Maximum 2,000 characters.
+            voice_id (str, optional): The ID of the voice to use. Defaults to "Dennis".
+            output_file (str, optional): Path to save the audio file. If not provided,
                                         a temporary file will be created.
+            model_id (str, optional): The model to use. Options: "inworld-tts-1" or "inworld-tts-1-max". 
+                                     Defaults to "inworld-tts-1-max".
+            audio_encoding (str, optional): Audio format. Options: "LINEAR16", "MP3", "OGG_OPUS", 
+                                           "ALAW", "MULAW". Defaults to "LINEAR16".
+            temperature (float, optional): Randomness degree (0-2). Defaults to 1.1.
+            timestamp_type (str, optional): Timestamp alignment type. Options: "WORD", "CHARACTER", 
+                                           or None. Defaults to None.
+            sample_rate_hertz (int, optional): Sample rate (8000-48000). Defaults to 22050.
+            speaking_rate (float, optional): Speaking speed (0.5-1.5). Defaults to 1.0.
+            pitch (float, optional): Pitch modification (-5.0 to 5.0). Defaults to 0.0.
+            voice_name (str, optional): DEPRECATED. Use voice_id instead. Maintained for backward compatibility.
         
         Returns:
-            str: The path to the generated WAV file.
+            str: The path to the generated audio file.
             
         Raises:
             Exception: If the API request fails.
         """
-        logger.info(f"Generating speech for text: '{text[:50]}...' with voice: {voice_name}")
+        # Apply phoneme substitutions to the text
+        processed_text = self._preprocess_text_with_phonemes(text)
         
+        # Handle backward compatibility for voice_name parameter
+        if voice_name is not None:
+            voice_id = voice_name
+            logger.warning("voice_name parameter is deprecated. Use voice_id instead.")
+        
+        logger.info(f"Generating speech for text: '{processed_text[:50]}...' with voice: {voice_id}")
+        
+        # Build the payload according to the new API format
         payload = {
-            'input': {
-                'text': text
+            'text': processed_text,
+            'voiceId': voice_id,
+            'modelId': model_id,
+            'audioConfig': {
+                'audioEncoding': audio_encoding,
+                'sampleRateHertz': sample_rate_hertz,
+                'speakingRate': speaking_rate,
+                'pitch': pitch
             },
-            'voice': {
-                'name': voice_name
-            },
-            'audio_config': {
-                'audio_encoding': 'LINEAR16'  # Ensure we get WAV format
-            }
+            'temperature': temperature
         }
+        
+        # Add timestamp type if specified
+        if timestamp_type:
+            payload['timestampType'] = timestamp_type
         
         try:
             logger.info(f"Making API request to {self.url}")
@@ -91,7 +148,7 @@ class TTSClient:
             response = requests.post(
                 self.url,
                 headers=self.headers,
-                data=json.dumps(payload),
+                json=payload,  # Use json parameter instead of data for cleaner serialization
                 timeout=30
             )
             
@@ -105,75 +162,63 @@ class TTSClient:
             # Create a file path if not provided
             if not output_file:
                 # Create a temporary file name with the first few words of the text
-                text_preview = text[:20].replace(" ", "_").replace("/", "_")
-                output_file = f"tts_{text_preview}.wav"
+                text_preview = processed_text[:20].replace(" ", "_").replace("/", "_")
+                # Set file extension based on audio encoding
+                extension = "wav" if audio_encoding == "LINEAR16" else audio_encoding.lower()
+                if extension == "ogg_opus":
+                    extension = "ogg"
+                output_file = f"tts_{text_preview}.{extension}"
             
             # Ensure the directory exists
             output_path = Path(output_file)
             output_path.parent.mkdir(parents=True, exist_ok=True)
             
-            # Extract and process audio content
+            # Parse the JSON response
             try:
-                # Try to extract the base64 audio content using string operations
-                # This is more robust than JSON parsing if the response is malformed
-                response_text = response.text
+                response_data = response.json()
                 
-                # Look for the audioContent field
-                if '"audioContent":"' in response_text:
-                    logger.info("Found audioContent field in response")
+                # Extract audio content from the new API response format
+                if 'audioContent' in response_data:
+                    logger.info("Found audioContent in response")
+                    audio_base64 = response_data['audioContent']
                     
-                    # Find the start and end of the base64 content
-                    start_marker = '"audioContent":"'
-                    start_pos = response_text.find(start_marker) + len(start_marker)
-                    end_pos = response_text.find('"', start_pos)
+                    # Decode the base64 audio data
+                    audio_data = base64.b64decode(audio_base64)
                     
-                    if end_pos > start_pos:
-                        # Extract the base64 string
-                        audio_base64 = response_text[start_pos:end_pos]
-                        
-                        # Decode the base64 data
-                        audio_data = base64.b64decode(audio_base64)
-                        
-                        # Write to file
-                        with open(output_file, 'wb') as f:
-                            f.write(audio_data)
-                        
-                        logger.info(f"Successfully saved decoded audio to: {output_file}")
-                        return output_file
-                
-                # Fallback to using JSON parsing if the string approach didn't work
-                logger.info("Trying JSON parsing as fallback")
-                try:
-                    # Only parse the first JSON object if there are multiple
-                    json_str = response_text.split('\n')[0]
-                    data = json.loads(json_str)
+                    # Write to file
+                    with open(output_file, 'wb') as f:
+                        f.write(audio_data)
                     
-                    if 'result' in data and 'audioContent' in data['result']:
-                        audio_base64 = data['result']['audioContent']
-                        audio_data = base64.b64decode(audio_base64)
-                        
-                        with open(output_file, 'wb') as f:
-                            f.write(audio_data)
-                        
-                        logger.info(f"Successfully saved audio via JSON parsing to: {output_file}")
-                        return output_file
-                except json.JSONDecodeError:
-                    logger.warning("JSON parsing fallback also failed")
-                
-                # Last resort: save raw response
-                logger.warning("Using raw response as last resort")
+                    logger.info(f"Successfully saved audio to: {output_file}")
+                    
+                    # Log timestamp information if available
+                    if 'timestampInfo' in response_data:
+                        timestamp_info = response_data['timestampInfo']
+                        if 'wordAlignment' in timestamp_info:
+                            word_count = len(timestamp_info['wordAlignment'].get('words', []))
+                            logger.info(f"Word alignment data available for {word_count} words")
+                        if 'characterAlignment' in timestamp_info:
+                            char_count = len(timestamp_info['characterAlignment'].get('characters', []))
+                            logger.info(f"Character alignment data available for {char_count} characters")
+                    
+                    return output_file
+                else:
+                    logger.error("No audioContent found in response")
+                    raise Exception("Response missing audioContent field")
+                    
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse JSON response: {e}")
+                # Save raw response as fallback
                 with open(output_file, 'wb') as f:
                     f.write(response.content)
-                
-                logger.info(f"Saved raw response to: {output_file}")
+                logger.info(f"Saved raw response after JSON parse error: {output_file}")
                 return output_file
-                
             except Exception as e:
                 logger.error(f"Error processing response: {e}")
                 # Save raw response as fallback
                 with open(output_file, 'wb') as f:
                     f.write(response.content)
-                logger.info(f"Saved raw response after error: {output_file}")
+                logger.info(f"Saved raw response after processing error: {output_file}")
                 return output_file
             
         except requests.exceptions.RequestException as e:
@@ -183,4 +228,37 @@ class TTSClient:
             logger.error(f"Error generating speech: {str(e)}")
             import traceback
             logger.error(traceback.format_exc())
-            raise Exception(f"Failed to generate speech: {str(e)}") 
+            raise Exception(f"Failed to generate speech: {str(e)}")
+    
+    def add_phoneme_substitution(self, word, phoneme):
+        """
+        Add a new word-to-phoneme substitution to the dictionary.
+        
+        Args:
+            word (str): The word to substitute.
+            phoneme (str): The IPA phoneme representation.
+        """
+        self.PHONEME_SUBSTITUTIONS[word] = phoneme
+        logger.info(f"Added phoneme substitution: '{word}' -> '{phoneme}'")
+    
+    def remove_phoneme_substitution(self, word):
+        """
+        Remove a word-to-phoneme substitution from the dictionary.
+        
+        Args:
+            word (str): The word to remove from substitutions.
+        """
+        if word in self.PHONEME_SUBSTITUTIONS:
+            del self.PHONEME_SUBSTITUTIONS[word]
+            logger.info(f"Removed phoneme substitution for: '{word}'")
+        else:
+            logger.warning(f"Word '{word}' not found in phoneme substitutions")
+    
+    def get_phoneme_substitutions(self):
+        """
+        Get a copy of the current phoneme substitution dictionary.
+        
+        Returns:
+            dict: Copy of the phoneme substitution dictionary.
+        """
+        return self.PHONEME_SUBSTITUTIONS.copy()

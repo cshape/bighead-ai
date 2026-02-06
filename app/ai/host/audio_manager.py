@@ -41,18 +41,18 @@ class AudioManager:
         self.game_service = game_service
         if game_instance:
             self.game_instance = game_instance
-        logger.info(f"Game service set for AudioManager (game_id: {self.game_id})")
+        logger.debug(f"Game service set for AudioManager (game_id: {self.game_id})")
         
     async def start(self):
         """Start the audio queue processor"""
         self.is_playing_audio = True
         asyncio.create_task(self.process_audio_queue())
-        logger.info("Audio queue processor started")
+        logger.debug("Audio queue processor started")
         
     def shutdown(self):
         """Shut down the audio manager"""
         self.is_playing_audio = False
-        logger.info("Audio manager shutting down")
+        logger.debug("Audio manager shutting down")
         
     def is_audio_playing(self) -> bool:
         """Check if any audio is currently playing."""
@@ -61,7 +61,7 @@ class AudioManager:
     def clear_question_audio_id(self, audio_id: str):
         """Clear the question audio ID if it matches the completed audio ID."""
         if self.question_audio_id == audio_id:
-            logger.info(f"Clearing question audio ID: {audio_id}")
+            logger.debug(f"Clearing question audio ID: {audio_id}")
             self.question_audio_id = None
             return True
         return False
@@ -69,7 +69,7 @@ class AudioManager:
     def clear_incorrect_answer_audio_id(self, audio_id: str):
         """Clear the incorrect answer audio ID if it matches the completed audio ID."""
         if self.incorrect_answer_audio_id == audio_id:
-            logger.info(f"Clearing incorrect answer audio ID: {audio_id}")
+            logger.debug(f"Clearing incorrect answer audio ID: {audio_id}")
             self.incorrect_answer_audio_id = None
             return True
         return False
@@ -98,7 +98,7 @@ class AudioManager:
             is_incorrect_answer_audio: Whether this is an incorrect answer response
         """
         try:
-            logger.info(f"Converting to speech: {text}")
+            logger.debug(f"Converting to speech: {text}")
             
             # Generate unique filename with timestamp
             timestamp = int(time.time())
@@ -108,15 +108,15 @@ class AudioManager:
             if is_incorrect_answer_audio:
                 # Mark incorrect answer audio specially
                 audio_id = f"audio_incorrect_{timestamp}"
-                logger.info(f"Saved incorrect answer audio ID: {audio_id}")
+                logger.debug(f"Saved incorrect answer audio ID: {audio_id}")
             else:
                 audio_id = f"audio_{timestamp}"
-                logger.info(f"Saved audio ID: {audio_id}")
+                logger.debug(f"Saved audio ID: {audio_id}")
             
             # If this audio is for a question, track its ID
             if is_question_audio:
                 self.question_audio_id = audio_id
-                logger.info(f"Setting question audio ID to {self.question_audio_id}")
+                logger.debug(f"Setting question audio ID to {self.question_audio_id}")
             
             # If this is a duplicate speech request for the same file, skip it
             if filename in self.recent_audio_files:
@@ -148,7 +148,7 @@ class AudioManager:
             if os.path.exists(result_file) and os.path.getsize(result_file) > 0:
                 # Add to audio queue instead of playing immediately
                 public_url = f"/static/audio/{filename}"
-                logger.info(f"Adding audio to queue: {public_url} (id: {audio_id})")
+                logger.debug(f"Adding audio to queue: {public_url} (id: {audio_id})")
 
                 # Check if this audio URL is already in the queue to prevent duplicates
                 existing_urls = [item[0] for item in self.audio_queue]
@@ -189,7 +189,7 @@ class AudioManager:
                 # Use stored ID if available, otherwise generate one as fallback
                 audio_id = stored_audio_id or f"audio_{int(time.time() * 1000)}"
 
-                logger.info(f"Processing audio from queue: {audio_url} (id: {audio_id})")
+                logger.debug(f"Processing audio from queue: {audio_url} (id: {audio_id})")
 
                 # If game service is available, use it to play the audio
                 if self.game_service:
@@ -205,7 +205,7 @@ class AudioManager:
                     if self.game_instance:
                         completed = await self.game_instance.wait_for_audio_completion(audio_id, timeout=30)
                         if completed:
-                            logger.info(f"Audio playback completed: {audio_id}")
+                            logger.debug(f"Audio playback completed: {audio_id}")
                         else:
                             logger.warning(f"Timed out waiting for audio completion: {audio_id}")
                     else:
@@ -214,7 +214,7 @@ class AudioManager:
                     # No game service available - just simulate delay based on URL length
                     # This is a rough estimate based on human speech rate
                     await asyncio.sleep(5)  # Default delay
-                    logger.info("No game service - simulated audio playback")
+                    logger.debug("No game service - simulated audio playback")
                     
             except Exception as e:
                 logger.error(f"Error processing audio queue: {e}")

@@ -81,9 +81,9 @@ class LLMClient:
             # Add response format if specified
             if cfg.response_format:
                 payload["response_format"] = "RESPONSE_FORMAT_JSON"
-                logger.info("Requesting JSON response format")
+                logger.debug("Requesting JSON response format")
 
-            logger.info(f"Sending request to Inworld API with payload: {payload}")
+            logger.debug(f"Sending request to Inworld API with payload: {payload}")
 
             # Make the API request
             async with aiohttp.ClientSession() as session:
@@ -99,12 +99,12 @@ class LLMClient:
                         raise Exception(f"Inworld API error: {error_text}")
                     
                     result = await response.json()
-                    logger.info(f"Raw Inworld API response: {result}")
+                    logger.debug(f"Raw Inworld API response: {result}")
                     
                     # Extract response text from the nested structure
                     try:
                         response_text = result["result"]["choices"][0]["message"]["content"]
-                        logger.info(f"Extracted response text: {response_text}")
+                        logger.debug(f"Extracted response text: {response_text}")
                     except (KeyError, IndexError) as e:
                         logger.error(f"Failed to extract response text from structure: {result}")
                         logger.error(f"Error details: {str(e)}")
@@ -115,7 +115,7 @@ class LLMClient:
                         try:
                             import json
                             json.loads(response_text)
-                            logger.info("Successfully validated response as JSON")
+                            logger.debug("Successfully validated response as JSON")
                         except json.JSONDecodeError as e:
                             logger.error(f"Response is not valid JSON: {response_text}")
                             logger.error(f"JSON parse error: {str(e)}")

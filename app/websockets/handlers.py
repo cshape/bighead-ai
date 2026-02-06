@@ -20,6 +20,7 @@ from ..models.messages import (
     BuzzerMsg,
     AnswerMsg,
     DailyDoubleBetMsg,
+    SubmitAnswerMsg,
     ChatMessageMsg,
     AudioCompleteMsg,
     StartGameMsg,
@@ -209,8 +210,50 @@ async def handle_daily_double_bet(ws: WebSocket, client_id: str, payload: DailyD
     await game_service.handle_daily_double_bet(payload.contestant, payload.bet, game_id=game_id)
 
 
+@router.route("com.sc2ctl.jeopardy.submit_answer", SubmitAnswerMsg)
+async def handle_submit_answer(ws: WebSocket, client_id: str, payload: SubmitAnswerMsg, game_id: str, game):
+    # Cancel the answer timeout synchronously BEFORE any await
+    if game and game.ai_host and hasattr(game.ai_host, 'buzzer_manager'):
+        bm = game.ai_host.buzzer_manager
+        if bm.last_buzzer and bm.last_buzzer == payload.contestant:
+            bm.cancel_answer_timeout()
+            logger.info(f"Cancelled answer timeout for {payload.contestant} — answer submitted via modal")
+
+    # Stop the frontend answer timer
+    await connection_manager.broadcast_message(
+        "com.sc2ctl.jeopardy.answer_timer_stop",
+        {},
+        game_id=game_id
+    )
+
+    # Echo the answer to chat so all players can see it
+    await connection_manager.broadcast_message(
+        "com.sc2ctl.jeopardy.chat_message",
+        {"username": payload.contestant, "message": payload.answer, "timestamp": None},
+        game_id=game_id
+    )
+
+    # Process the answer directly, bypassing chat classification
+    await game_service.handle_player_answer(payload.contestant, payload.answer, game_id=game_id)
+
+
 @router.route("com.sc2ctl.jeopardy.chat_message", ChatMessageMsg)
 async def handle_chat_message(ws: WebSocket, client_id: str, payload: ChatMessageMsg, game_id: str, game):
+    # Cancel the answer timeout synchronously BEFORE any await.
+    # If the buzzed player sends a chat message, that IS their answer —
+    # the timeout must not fire while the AI evaluates it.
+    if game and game.ai_host and hasattr(game.ai_host, 'buzzer_manager'):
+        bm = game.ai_host.buzzer_manager
+        if bm.last_buzzer and bm.last_buzzer == payload.username:
+            bm.cancel_answer_timeout()
+            logger.info(f"Cancelled answer timeout for {payload.username} — answer received in chat")
+            # Stop the frontend answer timer visual
+            await connection_manager.broadcast_message(
+                "com.sc2ctl.jeopardy.answer_timer_stop",
+                {},
+                game_id=game_id
+            )
+
     await chat_manager.handle_message(payload.username, payload.message, game_id=game_id)
     await game_service.handle_chat_message(payload.username, payload.message, game_id=game_id)
 

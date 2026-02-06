@@ -116,13 +116,13 @@ class GameInstance:
     def add_client(self, client_id: str):
         """Add a connected client to this game."""
         self.connected_clients.add(client_id)
-        logger.info(f"Client {client_id} joined game {self.game_code}")
+        logger.debug(f"Client {client_id} joined game {self.game_code}")
 
     def remove_client(self, client_id: str):
         """Remove a connected client from this game."""
         self.connected_clients.discard(client_id)
         self.state.remove_contestant(client_id)
-        logger.info(f"Client {client_id} left game {self.game_code}")
+        logger.debug(f"Client {client_id} left game {self.game_code}")
 
     def is_client_connected(self, client_id: str) -> bool:
         """Check if a client is connected to this game."""

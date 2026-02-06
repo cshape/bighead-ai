@@ -404,4 +404,46 @@
   font-size: 18px;
   font-style: italic;
   margin-top: 20px;
+}
+
+/* Answer input styles */
+.answer-input-container {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.answer-input {
+  flex: 1;
+  max-width: 400px;
+  padding: 12px 15px;
+  font-size: 20px;
+  border: 2px solid #FFDD00;
+  border-radius: 8px;
+  background-color: #060CE9;
+  color: #fff;
+}
+
+.answer-input:focus {
+  outline: none;
+  border-color: #fff;
+}
+
+.answer-submit-btn {
+  background-color: #FFDD00 !important;
+  color: #060CE9 !important;
+  font-weight: bold;
+  font-size: 18px;
+  padding: 12px 24px !important;
+  border: none !important;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.answer-submitted-text {
+  color: #FFDD00;
+  font-size: 18px;
+  font-style: italic;
+  margin-top: 20px;
 } 

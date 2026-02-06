@@ -45,7 +45,7 @@ class ConnectionManager:
         if game_id:
             self.join_room(client_id, game_id)
 
-        logger.info(f"Client {client_id} connected" + (f" to game {game_id}" if game_id else ""))
+        logger.debug(f"Client {client_id} connected" + (f" to game {game_id}" if game_id else ""))
         return client_id
 
     def join_room(self, client_id: str, game_id: str):
@@ -112,7 +112,7 @@ class ConnectionManager:
         if to_remove:
             self.leave_room(to_remove)
             del self.active_connections[to_remove]
-            logger.info(f"Client {to_remove} disconnected")
+            logger.debug(f"Client {to_remove} disconnected")
 
         return to_remove
 

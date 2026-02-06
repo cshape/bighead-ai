@@ -25,6 +25,7 @@ const initialState = {
     player: null,
     seconds: 0,
   },
+  answerSubmitted: false,
   controllingPlayer: null, // Player who has control to select the next clue
   // Multi-game state
   gameCode: null,
@@ -102,6 +103,7 @@ function gameReducer(state, action) {
         controllingPlayer: null, // Clear controlling player when question is displayed
         buzzerActive: false,  // Keep buzzer inactive when showing question
         answerTimer: { active: false, player: null, seconds: 0 }, // Reset answer timer
+        answerSubmitted: false, // Reset for new question
         board: {
           ...state.board,
           categories: state.board.categories.map(cat => ({
@@ -150,12 +152,13 @@ function gameReducer(state, action) {
       };
     case 'DISMISS_QUESTION':
       console.log('Dismissing question and clearing dailyDouble state');
-      return { 
-        ...state, 
+      return {
+        ...state,
         currentQuestion: null,
         dailyDouble: null,
         lastBuzzer: null,  // Clear the last buzzer
-        answerTimer: { active: false, player: null, seconds: 0 } // Reset answer timer
+        answerTimer: { active: false, player: null, seconds: 0 }, // Reset answer timer
+        answerSubmitted: false
       };
     case 'UPDATE_SCORE':
       console.log('Update score action:', action.payload);
@@ -221,6 +224,11 @@ function gameReducer(state, action) {
           seconds: 0
         }
       };
+    case 'SET_ANSWER_SUBMITTED':
+      return {
+        ...state,
+        answerSubmitted: true
+      };
     case 'REGISTER_PLAYER':
       return {
         ...state,
@@ -262,6 +270,7 @@ function gameReducer(state, action) {
         buzzerActive: correct ? false : true,
         // Clear the answer timer
         answerTimer: { active: false, player: null, seconds: 0 },
+        answerSubmitted: false,
         players: {
           ...state.players,
           [contestant]: {
@@ -712,6 +721,22 @@ export function GameProvider({ children }) {
     }
   }, []);
 
+  // Function to submit an answer from the QuestionModal
+  const submitAnswer = useCallback((answer) => {
+    // state.playerName may be null (registration happens on LobbyPage's WS),
+    // so fall back to sessionStorage like other components do.
+    let name = state.playerName;
+    if (!name) {
+      const info = JSON.parse(sessionStorage.getItem('playerInfo') || '{}');
+      name = info.playerName;
+    }
+    sendMessage('com.sc2ctl.jeopardy.submit_answer', {
+      contestant: name,
+      answer: answer
+    });
+    dispatch({ type: 'SET_ANSWER_SUBMITTED' });
+  }, [sendMessage, state.playerName]);
+
   // Function to send chat messages
   const sendChatMessage = (message) => {
     if (message.trim() === '') return;
@@ -745,6 +770,7 @@ export function GameProvider({ children }) {
         dispatch,
         sendMessage,
         sendChatMessage,
+        submitAnswer,
         setGameCode,
         isConnected,
       }}

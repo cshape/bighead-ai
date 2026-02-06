@@ -87,12 +87,12 @@ class GameFlowManager:
                     value=question_data["value"]
                 )
                 
-                logger.info(f"New question detected: {question_data['text'][:30]}...")
+                logger.debug(f"New question detected: {question_data['text'][:30]}...")
                 
                 # Read the question if it hasn't been read yet
                 if not self.game_state_manager.has_question_been_read(question_data["text"]):
                     speech_text = f"For {question_data['category']}, ${question_data['value']}. {question_data['text']}"
-                    logger.info(f"Synthesizing speech: {speech_text}")
+                    logger.debug(f"Synthesizing speech: {speech_text}")
                     
                     await self.audio_manager.synthesize_and_play_speech(speech_text, is_question_audio=True)
                     self.game_state_manager.mark_question_read(question_data["text"])
@@ -106,7 +106,7 @@ class GameFlowManager:
                 (not buzzed_player or current_buzzer != self.buzzer_manager.last_buzzer)):
                 
                 player_name = current_buzzer
-                logger.info(f"Player buzzed in: {player_name}")
+                logger.debug(f"Player buzzed in: {player_name}")
                 
                 # Update our tracking
                 self.buzzer_manager.last_buzzer = player_name
@@ -124,11 +124,11 @@ class GameFlowManager:
             # Check if the buzzer state has changed - detect buzzer activation
             buzzer_active = self.game_instance.buzzer_active if self.game_instance else False
             if buzzer_active and not self.game_state_manager.buzzer_active:
-                logger.info("Buzzer has been activated")
+                logger.debug("Buzzer has been activated")
                 self.game_state_manager.buzzer_active = True
                 asyncio.create_task(self.buzzer_manager.activate_buzzer(game_id=self._get_game_id()))
             elif not buzzer_active and self.game_state_manager.buzzer_active:
-                logger.info("Buzzer has been deactivated")
+                logger.debug("Buzzer has been deactivated")
                 self.game_state_manager.buzzer_active = False
                 asyncio.create_task(self.buzzer_manager.deactivate_buzzer(game_id=self._get_game_id()))
                 
@@ -139,7 +139,7 @@ class GameFlowManager:
 
             if not current_question_check and self.game_state_manager.game_state.current_question:
                 # Question has been dismissed, reset our state
-                logger.info("Question was dismissed, resetting state")
+                logger.debug("Question was dismissed, resetting state")
                 self.game_state_manager.reset_question()
                 self.buzzer_manager.last_buzzer = None
                 asyncio.create_task(self.buzzer_manager.deactivate_buzzer(game_id=self._get_game_id()))
@@ -219,10 +219,10 @@ class GameFlowManager:
                 
                 # If countdown is active and time is up, generate board
                 if self.game_state_manager.game_state.preference_countdown_started and countdown_remaining <= 0:
-                    logger.info("Preference collection time up, generating board from preferences")
+                    logger.debug("Preference collection time up, generating board from preferences")
                     # Stop gathering preferences before generating board
                     self.game_state_manager.gathering_preferences = False
-                    logger.info(f"Stopped gathering preferences. Collected {len(self.game_state_manager.recent_chat_messages)} messages")
+                    logger.debug(f"Stopped gathering preferences. Collected {len(self.game_state_manager.recent_chat_messages)} messages")
                     await self.generate_board_from_preferences()
                 
         except Exception as e:
@@ -264,7 +264,7 @@ class GameFlowManager:
             self.game_state_manager.set_waiting_for_preferences(False)
             
             # Directly generate the board
-            logger.info("Generating board from preferences collected during registration")
+            logger.debug("Generating board from preferences collected during registration")
             await self.generate_board_from_preferences()
             
         except Exception as e:
@@ -276,26 +276,26 @@ class GameFlowManager:
         """Generate a game board based on player preferences from chat."""
         try:
             # Log the count of messages before we stop gathering
-            logger.info(f"Before stopping gathering: {len(self.game_state_manager.recent_chat_messages)} chat messages collected")
+            logger.debug(f"Before stopping gathering: {len(self.game_state_manager.recent_chat_messages)} chat messages collected")
             
             # Stop gathering new messages for preferences (in case this wasn't done earlier)
             self.game_state_manager.gathering_preferences = False
             
             # Get preference messages from the game state manager
             preference_messages = self.game_state_manager.get_preference_messages()
-            logger.info(f"Retrieved {len(preference_messages)} preference messages for board generation")
+            logger.debug(f"Retrieved {len(preference_messages)} preference messages for board generation")
             
             # Force inclusion of user messages that might have been missed
             if len(preference_messages) == 0 and len(self.game_state_manager.recent_chat_messages) > 0:
-                logger.info("Preference messages collection failed - forcing use of recent_chat_messages")
+                logger.debug("Preference messages collection failed - forcing use of recent_chat_messages")
                 preference_messages = self.game_state_manager.recent_chat_messages
-                logger.info(f"Forced preference messages: {len(preference_messages)}")
+                logger.debug(f"Forced preference messages: {len(preference_messages)}")
             
             # Log a sample of the messages for debugging
             pref_summary = []
             for i, msg in enumerate(preference_messages[:3]):
                 pref_text = f"{msg.get('username', 'Unknown')}: {msg.get('message', '')}"
-                logger.info(f"Preference message {i+1}: {pref_text}")
+                logger.debug(f"Preference message {i+1}: {pref_text}")
                 pref_summary.append(pref_text)
             
             # Signal frontend to show placeholder board with question marks

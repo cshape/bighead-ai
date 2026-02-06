@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Cinematic Cuisine: Food in Movies",
+      "questions": [
+        {
+          "clue": "In 'Forrest Gump,' this titular character says his momma always makes this comfort food the best.",
+          "answer": "chocolate",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 'Ratatouille,' the critic Anton Ego has his heart won over by this traditional French vegetable dish.",
+          "answer": "ratatouille",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 'The Godfather,' this Italian dish is used as a metaphor during a family meeting to 'leave the gun, take the...' part.",
+          "answer": "cannoli",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 'Julie & Julia,' this French recipe is Julie's first attempt from Julia Child's cookbook.",
+          "answer": "beef bourguignon",
+          "value": 800,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "In 'Pulp Fiction,' Vincent explains that in France, a Quarter Pounder is called this because of the metric system.",
+          "answer": "Royale with Cheese",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Innovations of the 21st Century",
+      "questions": [
+        {
+          "clue": "Launched in 2004, this social media platform significantly changed how people interact online.",
+          "answer": "Facebook",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "First released in 2007, this Apple product revolutionized smartphones with its multi-touch interface.",
+          "answer": "iPhone",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This online video platform was purchased by Google in 2006 and has become a major site for content creators.",
+          "answer": "YouTube",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Developed by SpaceX, this rocket series became the first to carry astronauts to the ISS on a commercially built spacecraft.",
+          "answer": "Falcon 9",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This AI language model developed by OpenAI, released in 2020, is capable of generating human-like text based on input.",
+          "answer": "GPT-3",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Ancient Civilizations: Beyond Egypt and Greece",
+      "questions": [
+        {
+          "clue": "This ancient civilization, known for its ziggurat structures, developed the first known form of writing called cuneiform.",
+          "answer": "Sumerians",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The Indus Valley Civilization, one of the world's earliest urban cultures, was located in present-day Pakistan and northwest India.",
+          "answer": "Harappan Civilization",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Mesoamerican civilization is known for its calendar system and the colossal stone heads it left behind.",
+          "answer": "Olmecs",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Renowned for their bronze work and oracle bones, this dynasty is the first historically confirmed Chinese dynasty.",
+          "answer": "Shang Dynasty",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Located in the Andes, this civilization built the city of Tiwanaku near Lake Titicaca and significantly influenced the Inca.",
+          "answer": "Tiwanaku Empire",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Literary Maps: Places that Don\u2019t Exist",
+      "questions": [
+        {
+          "clue": "This Shire is a peaceful region of Middle-earth, home to Hobbits and created by J.R.R. Tolkien.",
+          "answer": "The Shire",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Developed by Lewis Carroll, this world takes you through a rabbit hole to encounter the Queen of Hearts.",
+          "answer": "Wonderland",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "C.S. Lewis created this land of talking animals and White Witches, accessed through a wardrobe.",
+          "answer": "Narnia",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "It's the capital of Oceania in George Orwell's dystopian novel, known for its ever-watchful Big Brother.",
+          "answer": "Airstrip One",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In Lyman Frank Baum's classic, this city rules over a magical land and is noted for its distinctive emerald color.",
+          "answer": "The Emerald City",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Cryptic Elements: The Periodic Table\u2019s Mysteries",
+      "questions": [
+        {
+          "clue": "This element traditionally gave the name to a certain type of age and is symbolized by the letter 'F'.",
+          "answer": "Iron",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Used in batteries, this soft, silvery metal is represented by the symbol 'Li'.",
+          "answer": "Lithium",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This element's symbol 'Au' originated from the Latin word 'aurum'.",
+          "answer": "Gold",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Named after Stockholm, this element has the atomic number 62 and is a rare earth metal.",
+          "answer": "Samarium",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This radioactive element was named after the homeland of Marie Curie and has the symbol 'Po'.",
+          "answer": "Polonium",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "World Literature",
+    "clue": "This novel, published in 1932 and set in a dystopian future, introduced the phrase 'World State' and is known for its critique of a technologically advanced society.",
+    "answer": "What is 'Brave New World'?"
+  }
+}

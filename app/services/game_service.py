@@ -8,7 +8,6 @@ import json
 from pathlib import Path
 import re
 
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 class GameService:
@@ -132,7 +131,7 @@ class GameService:
     
     async def change_buzzer_status(self, active: bool, game_id: str):
         """Change buzzer status and broadcast to all clients"""
-        logger.info(f"Setting buzzer status to: {active}")
+        logger.debug(f"Setting buzzer status to: {active}")
 
         game = await self._get_game(game_id)
         game.buzzer_active = active
@@ -195,17 +194,17 @@ class GameService:
     
     async def handle_buzz(self, websocket: WebSocket, timestamp: float, game_id: str):
         """Handle a buzz from a contestant"""
-        logger.info(f"handle_buzz called with game_id: {game_id}")
+        logger.debug(f"handle_buzz called with game_id: {game_id}")
         game = await self._get_game(game_id)
         state = game.state
-        logger.info(f"handle_buzz: game obj_id={id(game)}, game.buzzer_active={game.buzzer_active}")
+        logger.debug(f"handle_buzz: game.buzzer_active={game.buzzer_active}")
 
         # Get client_id from connection manager
         client_id = self.connection_manager.get_client_id_for_websocket(websocket)
-        logger.info(f"handle_buzz: client_id from connection_manager: {client_id}")
+        logger.debug(f"handle_buzz: client_id from connection_manager: {client_id}")
         if not client_id:
             client_id = str(id(websocket))
-            logger.info(f"handle_buzz: fell back to object id: {client_id}")
+            logger.debug(f"handle_buzz: fell back to object id: {client_id}")
 
         contestant = state.get_contestant_by_websocket(client_id)
 
@@ -378,8 +377,17 @@ class GameService:
         game.mark_audio_completed(audio_id)
 
         # Delegate to buzzer manager
-        logger.info(f"Delegating audio_completed to buzzer_manager for game {game.game_code}")
+        logger.debug(f"Delegating audio_completed to buzzer_manager for game {game.game_code}")
         await self._get_buzzer_manager(game).handle_audio_completed(audio_id)
+
+    async def handle_player_answer(self, contestant: str, answer: str, game_id: str):
+        """Process a player's answer directly, bypassing chat classification."""
+        game = await self._get_game(game_id)
+        ai_host = game.ai_host
+        if ai_host is None:
+            logger.warning("AI host not available, cannot process player answer")
+            return
+        await ai_host.chat_processor.process_player_answer(contestant, answer)
 
     async def handle_chat_message(self, username: str, message: str, game_id: str):
         """
@@ -401,7 +409,7 @@ class GameService:
 
         # Store chat messages for preferences if in initial game phase
         if not game.game_ready and hasattr(ai_host, 'game_state_manager'):
-            logger.info(f"Directly storing chat message for preferences: {username}: {message}")
+            logger.debug(f"Directly storing chat message for preferences: {username}: {message}")
             ai_host.game_state_manager.recent_chat_messages.append({
                 "username": username,
                 "message": message
@@ -444,7 +452,7 @@ class GameService:
                 # Fallback to generating a new ID
                 audio_id = f"audio_{int(time.time() * 1000)}"
 
-        logger.info(f"🔊 Broadcasting audio playback: {audio_url} (ID: {audio_id}, wait: {wait_for_completion}, game: {game_id})")
+        logger.debug(f"Broadcasting audio playback: {audio_url} (ID: {audio_id})")
 
         await self.connection_manager.broadcast_message(
             self.AUDIO_PLAY_TOPIC,

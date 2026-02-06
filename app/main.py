@@ -4,6 +4,10 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+# Centralized logging — must come before other app imports
+from .utils.logging_config import setup_logging
+setup_logging()
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -13,7 +17,6 @@ import logging
 from pathlib import Path
 from fastapi.responses import FileResponse
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 from .utils.file_loader import BoardFactory
@@ -254,7 +257,7 @@ async def play_audio(request: dict):
     if not game_id:
         raise HTTPException(status_code=400, detail="game_id is required")
 
-    logger.info(f"Broadcasting audio playback request: {audio_url}")
+    logger.debug(f"Broadcasting audio playback request: {audio_url}")
 
     await connection_manager.broadcast_message(
         "com.sc2ctl.jeopardy.play_audio",

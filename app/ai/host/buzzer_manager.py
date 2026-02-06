@@ -53,7 +53,7 @@ class BuzzerManager:
             self.audio_manager = audio_manager
         if game_instance:
             self.game_instance = game_instance
-            logger.info(f"BuzzerManager: game_instance set (game_id: {game_instance.game_id}, obj_id: {id(game_instance)})")
+            logger.debug(f"BuzzerManager: game_instance set (game_id: {game_instance.game_id})")
 
     def _get_game_id(self) -> Optional[str]:
         """Get the game_id from game_instance if available."""
@@ -74,13 +74,13 @@ class BuzzerManager:
     async def activate_buzzer(self, game_id: str):
         """Activate the buzzer and broadcast state to all clients."""
         if not self.buzzer_active:
-            logger.info("Activating buzzer")
+            logger.debug("Activating buzzer")
             self.buzzer_active = True
 
             # Update game instance state if available
             if self.game_instance:
                 self.game_instance.buzzer_active = True
-                logger.info(f"Set game_instance.buzzer_active=True (game_id: {self.game_instance.game_id}, obj_id: {id(self.game_instance)})")
+                logger.debug(f"Set game_instance.buzzer_active=True (game_id: {self.game_instance.game_id})")
             else:
                 logger.warning("No game_instance available in buzzer_manager!")
 
@@ -102,7 +102,7 @@ class BuzzerManager:
     async def deactivate_buzzer(self, game_id: str):
         """Deactivate the buzzer and broadcast state to all clients."""
         if self.buzzer_active:
-            logger.info("Deactivating buzzer")
+            logger.debug("Deactivating buzzer")
             self.buzzer_active = False
 
             # Update game instance state if available
@@ -126,7 +126,7 @@ class BuzzerManager:
     
     async def handle_question_display(self):
         """Handle when a question is displayed, making sure buzzer is disabled."""
-        logger.info("Question displayed, ensuring buzzer is disabled")
+        logger.debug("Question displayed, ensuring buzzer is disabled")
         await self.deactivate_buzzer(game_id=self._get_game_id())
 
         # Reset state for new question
@@ -142,12 +142,12 @@ class BuzzerManager:
             audio_id: The ID of the audio that finished playing
         """
         try:
-            logger.info(f"Audio completed notification: {audio_id}")
-            
+            logger.debug(f"Audio completed notification: {audio_id}")
+
             # Track already processed audio IDs to prevent duplicate handling
             if hasattr(self, '_processed_audio_ids'):
                 if audio_id in self._processed_audio_ids:
-                    logger.info(f"Already processed audio completion for {audio_id}, skipping")
+                    logger.debug(f"Already processed audio completion for {audio_id}, skipping")
                     return
                 self._processed_audio_ids.add(audio_id)
             else:
@@ -164,11 +164,11 @@ class BuzzerManager:
             was_incorrect_audio = False
             if self.audio_manager:
                 was_question_audio, was_incorrect_audio = self.audio_manager.check_and_clear_audio_ids(audio_id)
-                logger.info(f"Audio type check - was_question: {was_question_audio}, was_incorrect: {was_incorrect_audio}")
+                logger.debug(f"Audio type check - was_question: {was_question_audio}, was_incorrect: {was_incorrect_audio}")
 
             # Check if this is an incorrect answer audio completion
             if "incorrect" in audio_id and self.expecting_reactivation:
-                logger.info("Incorrect answer audio completed, now reactivating buzzer for other players")
+                logger.debug("Incorrect answer audio completed, now reactivating buzzer for other players")
 
                 # Reset flag
                 self.expecting_reactivation = False
@@ -182,8 +182,8 @@ class BuzzerManager:
                         all_players = set(self.game_state_manager.get_player_names())
                     
                     if len(self.incorrect_players) < len(all_players):
-                        logger.info(f"Not all players have attempted, reactivating buzzer. "
-                                    f"Incorrect: {len(self.incorrect_players)}, Total: {len(all_players)}")
+                        logger.debug(f"Not all players have attempted, reactivating buzzer. "
+                                     f"Incorrect: {len(self.incorrect_players)}, Total: {len(all_players)}")
 
                         # Activate the buzzer for other players
                         await self.activate_buzzer(game_id=self._get_game_id())
@@ -193,7 +193,7 @@ class BuzzerManager:
                             self.game_state_manager.buzzer_active = True
                     else:
                         # All players have attempted, dismiss the question
-                        logger.info("All players have attempted, dismissing question")
+                        logger.debug("All players have attempted, dismissing question")
                         if self.game_service:
                             await self.game_service.dismiss_question(game_id=self._get_game_id())
 
@@ -201,7 +201,7 @@ class BuzzerManager:
 
             # Check if we're expecting to reactivate the buzzer after regular audio
             elif self.expecting_reactivation and self._get_current_question():
-                logger.info("Regular audio completed with reactivation flag set, activating buzzer")
+                logger.debug("Regular audio completed with reactivation flag set, activating buzzer")
 
                 # Reset flag
                 self.expecting_reactivation = False
@@ -221,7 +221,7 @@ class BuzzerManager:
             last_buzzer = self._get_last_buzzer()
 
             if was_question_audio and current_question and not last_buzzer:
-                logger.info("Question audio completed, activating buzzer")
+                logger.debug("Question audio completed, activating buzzer")
 
                 # Clear any existing incorrect player tracking
                 self.incorrect_players.clear()
@@ -236,13 +236,13 @@ class BuzzerManager:
                     self.game_state_manager.buzzer_active = True
             else:
                 if not was_question_audio:
-                    logger.info("Not activating buzzer - not a question audio")
+                    logger.debug("Not activating buzzer - not a question audio")
                 elif not current_question:
-                    logger.info("Not activating buzzer - no active question")
+                    logger.debug("Not activating buzzer - no active question")
                 elif last_buzzer:
-                    logger.info(f"Not activating buzzer - player {last_buzzer} already buzzed")
+                    logger.debug(f"Not activating buzzer - player {last_buzzer} already buzzed")
                 else:
-                    logger.info("Not activating buzzer - unknown reason")
+                    logger.debug("Not activating buzzer - unknown reason")
                 
         except Exception as e:
             logger.error(f"Error handling audio completion: {e}")
@@ -253,25 +253,26 @@ class BuzzerManager:
         """Handle when a player buzzes in."""
         logger.info(f"Player {player_name} buzzed in")
 
-        # Record the player who buzzed in
+        # CRITICAL: Set last_buzzer and cancel timeout SYNCHRONOUSLY before any
+        # await.  During an await the event loop may resume the buzzer-timeout
+        # task; if game_instance.last_buzzer is still None at that point, the
+        # timeout handler will dismiss the question out from under the player.
         self.last_buzzer = player_name
+        self.cancel_timeout()
+        if self.game_instance:
+            self.game_instance.last_buzzer = player_name
 
-        # Always deactivate the buzzer when someone buzzes in
+        # Now safe to await — the timeout task is cancelled and last_buzzer is
+        # visible to any code that checks it.
         await self.deactivate_buzzer(game_id=self._get_game_id())
 
-        # Cancel any active timeout
-        self.cancel_timeout()
-        
         # Update game state manager
         if self.game_state_manager:
             self.game_state_manager.set_buzzed_player(player_name, self.incorrect_players)
             self.game_state_manager.buzzer_active = False
-        
-        # Update game instance last_buzzer
+
+        # Start answer timeout and notify frontend
         if self.game_instance:
-            self.game_instance.last_buzzer = player_name
-            
-            # Start answer timeout and notify frontend
             self.start_answer_timeout(player_name)
             await self.game_service.connection_manager.broadcast_message(
                 "com.sc2ctl.jeopardy.answer_timer_start",
@@ -299,7 +300,7 @@ class BuzzerManager:
         # Don't activate buzzer yet - audio will play first
         # Instead, set flag so audio completion will activate it
         self.expecting_reactivation = True
-        logger.info("Set expecting_reactivation=True - buzzer will activate after audio completes")
+        logger.debug("Set expecting_reactivation=True - buzzer will activate after audio completes")
         
         # Check if all players have attempted (this logic still needed for edge cases)
         if self.game_state_manager:
@@ -308,7 +309,7 @@ class BuzzerManager:
             
             if len(incorrect_players) >= len(all_players):
                 # All players have attempted, keep buzzer disabled and dismiss
-                logger.info("All players have attempted, dismissing question")
+                logger.debug("All players have attempted, dismissing question")
                 self.expecting_reactivation = False  # Cancel reactivation expectation
 
                 # Reset game_state_manager
@@ -369,7 +370,7 @@ class BuzzerManager:
         
         # Create new timeout task and set flag
         expiry_time = time.time() + self.buzzer_timeout_seconds
-        logger.info(f"Starting buzzer timeout task ({self.buzzer_timeout_seconds} seconds) - timer will expire at {expiry_time:.1f}")
+        logger.debug(f"Starting buzzer timeout task ({self.buzzer_timeout_seconds}s)")
         
         self.buzzer_timeout_task = asyncio.create_task(self.handle_timeout())
         self.is_timeout_active = True
@@ -378,10 +379,10 @@ class BuzzerManager:
         """Cancel the buzzer timeout task if it exists."""
         if self.buzzer_timeout_task:
             if not self.buzzer_timeout_task.done():
-                logger.info("Cancelling active buzzer timeout task")
+                logger.debug("Cancelling active buzzer timeout task")
                 self.buzzer_timeout_task.cancel()
             else:
-                logger.info("Buzzer timeout task already done, clearing reference")
+                logger.debug("Buzzer timeout task already done, clearing reference")
             
             self.buzzer_timeout_task = None
             self.is_timeout_active = False
@@ -393,7 +394,7 @@ class BuzzerManager:
         
         # Create new timeout task and set flag
         expiry_time = time.time() + self.answer_timeout_seconds
-        logger.info(f"Starting answer timeout task for {player_name} ({self.answer_timeout_seconds} seconds) - timer will expire at {expiry_time:.1f}")
+        logger.debug(f"Starting answer timeout task for {player_name} ({self.answer_timeout_seconds}s)")
         
         self.answer_timeout_task = asyncio.create_task(self.handle_answer_timeout(player_name))
         self.answer_timeout_active = True
@@ -402,10 +403,10 @@ class BuzzerManager:
         """Cancel the answer timeout task if it exists."""
         if self.answer_timeout_task:
             if not self.answer_timeout_task.done():
-                logger.info("Cancelling active answer timeout task")
+                logger.debug("Cancelling active answer timeout task")
                 self.answer_timeout_task.cancel()
             else:
-                logger.info("Answer timeout task already done, clearing reference")
+                logger.debug("Answer timeout task already done, clearing reference")
             
             self.answer_timeout_task = None
             self.answer_timeout_active = False
@@ -413,19 +414,19 @@ class BuzzerManager:
     async def handle_timeout(self):
         """Handle the case when buzzer timeout expires with no one answering."""
         try:
-            logger.info(f"Buzzer timeout starting - waiting {self.buzzer_timeout_seconds} seconds...")
+            logger.debug(f"Buzzer timeout starting - waiting {self.buzzer_timeout_seconds}s...")
             
             # Wait for the timeout period
             await asyncio.sleep(self.buzzer_timeout_seconds)
             
-            logger.info("Buzzer timeout expired - checking if we need to handle it...")
+            logger.debug("Buzzer timeout expired - checking if we need to handle it...")
 
             # Check if there's still an active question and no one has buzzed in
             current_question = self._get_current_question()
             last_buzzer = self._get_last_buzzer()
 
             if current_question and not last_buzzer:
-                logger.info("No one buzzed in - handling timeout...")
+                logger.info("No one buzzed in")
 
                 # Get the current question data
                 question = current_question
@@ -443,11 +444,11 @@ class BuzzerManager:
                         timeout_msg = f"Time's up! The correct answer was: {answer}. {controlling_player}, you still have control of the board. Please select the next clue."
                     else:
                         timeout_msg = f"Time's up! The correct answer was: {answer}"
-                logger.info(f"Revealing answer: {timeout_msg}")
+                logger.debug(f"Revealing answer: {timeout_msg}")
 
                 # Dismiss the question in the UI immediately (before TTS)
                 if self.game_service:
-                    logger.info("Dismissing question after timeout")
+                    logger.debug("Dismissing question after timeout")
                     await self.game_service.dismiss_question(game_id=self._get_game_id())
 
                 # Restore board control for the controlling player
@@ -486,7 +487,7 @@ class BuzzerManager:
                 if self.audio_manager:
                     await self.audio_manager.synthesize_and_play_speech(timeout_msg)
             else:
-                logger.info("Buzzer timeout not handled - no active question or someone already buzzed in")
+                logger.debug("Buzzer timeout not handled - no active question or someone already buzzed in")
                 
         except asyncio.CancelledError:
             # Task was cancelled, which is expected behavior
@@ -499,12 +500,12 @@ class BuzzerManager:
     async def handle_answer_timeout(self, player_name: str):
         """Handle the case when a player doesn't answer within the time limit."""
         try:
-            logger.info(f"Answer timeout starting for {player_name} - waiting {self.answer_timeout_seconds} seconds...")
+            logger.debug(f"Answer timeout starting for {player_name} - waiting {self.answer_timeout_seconds}s...")
             
             # Wait for the timeout period
             await asyncio.sleep(self.answer_timeout_seconds)
             
-            logger.info(f"Answer timeout expired for {player_name} - checking if we need to handle it...")
+            logger.debug(f"Answer timeout expired for {player_name} - checking if we need to handle it...")
 
             # Check if there's still an active question and the same player still has the buzzer
             current_question = self._get_current_question()
@@ -514,7 +515,7 @@ class BuzzerManager:
                 and last_buzzer == player_name
                 and self.last_buzzer == player_name):
 
-                logger.info(f"Player {player_name} didn't answer in time - marking as incorrect...")
+                logger.info(f"Player {player_name} didn't answer in time")
 
                 # Get the current question data
                 question = current_question
@@ -524,7 +525,7 @@ class BuzzerManager:
                 
                 # Announce that time is up for this player
                 timeout_msg = f"Time's up, {player_name}! You didn't answer in time."
-                logger.info(f"Sending timeout message: {timeout_msg}")
+                logger.debug(f"Sending timeout message: {timeout_msg}")
 
                 # Deduct points as if they answered incorrectly
                 value = question.get("value", 0)
@@ -553,7 +554,7 @@ class BuzzerManager:
                     await self.audio_manager.synthesize_and_play_speech(timeout_msg)
                 
             else:
-                logger.info(f"Answer timeout not handled - no active question, or player {player_name} no longer has control")
+                logger.debug(f"Answer timeout not handled - no active question, or player {player_name} no longer has control")
                 
         except asyncio.CancelledError:
             # Task was cancelled, which is expected behavior

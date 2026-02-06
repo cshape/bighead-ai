@@ -1,0 +1,3 @@
+-fix so that user preferences actually pass into the prompt
+-add waiting room chat and ability to choose topics and see other players' topics
+-fix color and styling so that it's less vibey

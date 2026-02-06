@@ -52,6 +52,11 @@ class DailyDoubleBetMsg(BaseModel):
     bet: int
 
 
+class SubmitAnswerMsg(BaseModel):
+    contestant: str
+    answer: str
+
+
 class ChatMessageMsg(BaseModel):
     username: str = "Anonymous"
     message: str = ""

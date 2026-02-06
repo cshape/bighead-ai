@@ -55,7 +55,7 @@ class QuestionManager:
         # Case-insensitive
         for category in board["categories"]:
             if category["name"].lower() == category_name.lower():
-                logger.info(f"Found case-insensitive match for category: {category['name']}")
+                logger.debug(f"Found case-insensitive match for category: {category['name']}")
                 for question in category["questions"]:
                     if question["value"] == value:
                         return question
@@ -64,7 +64,7 @@ class QuestionManager:
         for category in board["categories"]:
             if (category_name.lower() in category["name"].lower() or
                     category["name"].lower() in category_name.lower()):
-                logger.info(f"Found partial match for category: '{category_name}' -> '{category['name']}'")
+                logger.debug(f"Found partial match for category: '{category_name}' -> '{category['name']}'")
                 for question in category["questions"]:
                     if question["value"] == value:
                         return question
@@ -130,7 +130,7 @@ class QuestionManager:
             game.buzzer_active = False
 
             is_daily_double = question.get("daily_double", False)
-            logger.info(f"Question is daily double: {is_daily_double}")
+            logger.debug(f"Question is daily double: {is_daily_double}")
 
             question_data = {
                 "category": category_name,
@@ -154,7 +154,7 @@ class QuestionManager:
                     game_id=game_id
                 )
             else:
-                logger.info(f"Broadcasting regular question: {category_name} ${value}")
+                logger.debug(f"Broadcasting regular question: {category_name} ${value}")
 
                 bm = self.buzzer_manager or self.game_service._get_buzzer_manager(game)
                 await bm.handle_question_display()

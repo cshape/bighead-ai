@@ -82,7 +82,7 @@ class ChatProcessor:
             username: The player's username
             message: The content of the chat message
         """
-        logger.info(f"Processing chat message from {username}: {message}")
+        logger.debug(f"Processing chat message from {username}: {message}")
 
         # Skip processing messages from the host itself
         if is_same_player(username, self.host_name):
@@ -91,7 +91,7 @@ class ChatProcessor:
 
         # Check if we're in the preference collection phase
         if self.game_state_manager.is_waiting_for_preferences():
-            logger.info(f"Adding message from {username} to preference collection")
+            logger.debug(f"Adding message from {username} to preference collection")
             self.game_state_manager.add_chat_message(username, message)
             return
 
@@ -99,10 +99,10 @@ class ChatProcessor:
         buzzed_player = self.game_state_manager.get_buzzed_player()
         controlling_player = self.game_state_manager.get_player_with_control()
 
-        logger.info(f"Game state - buzzed_player: {buzzed_player}, controlling_player: {controlling_player}")
-        logger.info(f"Current question in game state: {self.game_state_manager.game_state.current_question is not None}")
-        logger.info(f"Game instance - current_question: {self.game_instance.current_question is not None}")
-        logger.info(f"Game instance - last_buzzer: {self.game_instance.last_buzzer}")
+        logger.debug(f"Game state - buzzed_player: {buzzed_player}, controlling_player: {controlling_player}")
+        logger.debug(f"Current question in game state: {self.game_state_manager.game_state.current_question is not None}")
+        logger.debug(f"Game instance - current_question: {self.game_instance.current_question is not None}")
+        logger.debug(f"Game instance - last_buzzer: {self.game_instance.last_buzzer}")
 
         # Determine if there's currently an active question
         has_active_question = (
@@ -110,11 +110,11 @@ class ChatProcessor:
             or self.game_instance.current_question is not None
         )
 
-        logger.info(f"Final active question determination: {has_active_question}")
+        logger.debug(f"Final active question determination: {has_active_question}")
 
         # Check if this player has buzzed in and if there's an active question
         if has_active_question and buzzed_player and is_same_player(username, buzzed_player):
-            logger.info(f"Processing as answer from buzzed player: {username}")
+            logger.debug(f"Processing as answer from buzzed player: {username}")
             await self.process_player_answer(username, message)
             return
 
@@ -123,7 +123,7 @@ class ChatProcessor:
             is_same_player(username, controlling_player) and
             not has_active_question):
 
-            logger.info(f"Processing as clue selection from controlling player: {username}")
+            logger.debug(f"Processing as clue selection from controlling player: {username}")
             await self.process_clue_selection(username, message)
             return
 
@@ -137,7 +137,7 @@ class ChatProcessor:
             username: The player who buzzed in
             message: The player's answer
         """
-        logger.info(f"Processing answer from {username}: {message}")
+        logger.debug(f"Processing answer from {username}: {message}")
 
         try:
             # Cancel the answer timeout immediately — the player has submitted an answer,
@@ -145,7 +145,7 @@ class ChatProcessor:
             if (self.game_instance and self.game_instance.ai_host
                     and self.game_instance.ai_host.buzzer_manager):
                 self.game_instance.ai_host.buzzer_manager.cancel_answer_timeout()
-                logger.info("Cancelled answer timeout — player submitted answer")
+                logger.debug("Cancelled answer timeout — player submitted answer")
 
             # Notify frontend to stop the answer timer visual
             if self.game_service:
@@ -202,24 +202,24 @@ class ChatProcessor:
                         logger.error(f"Error synthesizing speech: {e}")
 
             # Notify the game service to update scores and UI
-            logger.info(f"Notifying game service about answer: player={username}, correct={is_correct}, game_id={self._game_id}")
+            logger.debug(f"Notifying game service about answer: player={username}, correct={is_correct}, game_id={self._game_id}")
             await self.game_service.answer_question(is_correct, username, game_id=self._game_id)
 
             # For correct answers, explicitly dismiss the question to ensure clean state
             if is_correct:
-                logger.info("Explicitly dismissing question after correct answer")
+                logger.debug("Explicitly dismissing question after correct answer")
                 await self.game_service.dismiss_question(game_id=self._game_id)
 
             # Reset our state
             if is_correct:
                 self.game_state_manager.reset_buzzed_player()
-                logger.info(f"Reset buzzed player state after correct answer from {username}")
+                logger.debug(f"Reset buzzed player state after correct answer from {username}")
 
                 self.game_state_manager.reset_question()
 
                 # Give control to the player who answered correctly
                 self.game_state_manager.set_player_with_control(username, set())
-                logger.info(f"Player {username} gets control of the board")
+                logger.debug(f"Player {username} gets control of the board")
 
                 # Small delay to allow UI to update before prompting for next selection
                 await asyncio.sleep(0.5)
@@ -234,15 +234,15 @@ class ChatProcessor:
 
                 # Reset buzzer state to allow others to buzz in
                 self.game_instance.last_buzzer = None
-                logger.info("Reset game instance buzzer state after incorrect answer")
+                logger.debug("Reset game instance buzzer state after incorrect answer")
 
                 # Don't activate buzzer yet - wait for audio to complete first
                 if self.game_instance.current_question:
-                    logger.info("Will reactivate buzzer AFTER incorrect answer audio plays")
+                    logger.debug("Will reactivate buzzer AFTER incorrect answer audio plays")
 
                     if self.game_instance and self.game_instance.ai_host and self.game_instance.ai_host.buzzer_manager:
                         self.game_instance.ai_host.buzzer_manager.expecting_reactivation = True
-                        logger.info("Setting buzzer_manager.expecting_reactivation = True")
+                        logger.debug("Setting buzzer_manager.expecting_reactivation = True")
 
         except Exception as e:
             logger.error(f"Error processing player answer: {e}")
@@ -257,7 +257,7 @@ class ChatProcessor:
             username: The player with control
             message: The player's message containing potential clue selection
         """
-        logger.info(f"Processing potential clue selection from {username}: {message}")
+        logger.debug(f"Processing potential clue selection from {username}: {message}")
 
         try:
             # Use the clue processor to handle the selection

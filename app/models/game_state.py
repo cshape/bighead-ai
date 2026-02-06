@@ -35,7 +35,7 @@ class PlayerRegistry:
         from ..models.contestant import Contestant
         self.contestants[websocket_id] = Contestant(name=name, score=0)
         logger.info(f"Registered contestant '{name}' with key '{websocket_id}' (game: {self.game_code})")
-        logger.info(f"Current contestants keys: {list(self.contestants.keys())}")
+        logger.debug(f"Current contestants keys: {list(self.contestants.keys())}")
         return True
 
     def get_contestant_by_websocket(self, websocket_id: str) -> Optional['Contestant']:
@@ -66,7 +66,7 @@ class PlayerRegistry:
         # Re-key the contestant
         del self.contestants[old_key]
         self.contestants[new_websocket_id] = contestant
-        logger.info(f"Updated contestant '{name}' key from '{old_key}' to '{new_websocket_id}' (game: {self.game_code})")
+        logger.debug(f"Updated contestant '{name}' key from '{old_key}' to '{new_websocket_id}' (game: {self.game_code})")
         return True
 
     def get_contestant_by_name(self, name: str) -> Optional['Contestant']:

@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Unsung Women in History",
+      "questions": [
+        {
+          "clue": "This pioneering aviator became the first woman to fly solo across the Atlantic Ocean in 1932.",
+          "answer": "Amelia Earhart",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "As the first female computer programmer, she developed an algorithm for Charles Babbage's proposed mechanical computer.",
+          "answer": "Ada Lovelace",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Known for her work as a World War II spy, this woman helped organize resistance efforts in France.",
+          "answer": "Virginia Hall",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In the 1950s, this African American mathematician helped calculate trajectories on the first manned NASA spaceflights.",
+          "answer": "Katherine Johnson",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Chinese empress, ruling during the Tang Dynasty, was known for expanding China's territory and enhancing its influence.",
+          "answer": "Wu Zetian",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "The Physics of Everyday Objects",
+      "questions": [
+        {
+          "clue": "This force keeps your feet firmly planted on the ground.",
+          "answer": "Gravity",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "A flashlight beam demonstrates this principle by showing light travels in straight lines.",
+          "answer": "Rectilinear propagation of light",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "When you rub a balloon on your hair and it sticks to a wall, it's due to this static phenomenon.",
+          "answer": "Static electricity",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The heat transfer used by a microwave oven to warm up your leftovers occurs via this process.",
+          "answer": "Radiation",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "A bike leaning into a turn utilizes this force to counteract gravity, allowing the rider to remain upright.",
+          "answer": "Centripetal force",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Cuisine Cultures: More Than Just a Meal",
+      "questions": [
+        {
+          "clue": "With its roots in Naples, this Italian dish typically features a thin crust topped with tomato sauce and mozzarella.",
+          "answer": "What is pizza?",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Japanese dish composed of vinegared rice, combined with ingredients like raw fish and vegetables, is known worldwide.",
+          "answer": "What is sushi?",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Korean dish of fermented vegetables, often including cabbage and radishes, plays a key role in Korean cuisine.",
+          "answer": "What is kimchi?",
+          "value": 600,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "Named for the clay oven it is cooked in, this Indian bread is often served with curry dishes.",
+          "answer": "What is naan?",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Originating from the Peruvian Andes, this grain known as the 'mother of all grains' by the Incas, is high in protein.",
+          "answer": "What is quinoa?",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Literary First Lines",
+      "questions": [
+        {
+          "clue": "For 200: 'Call me Ishmael.' opens this epic novel by Herman Melville.",
+          "answer": "What is Moby-Dick?",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 400: This Jane Austen novel begins with the line, 'It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.'",
+          "answer": "What is Pride and Prejudice?",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 600: 'It was the best of times, it was the worst of times' begins which Charles Dickens novel?",
+          "answer": "What is A Tale of Two Cities?",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 800: The novel that begins with 'All happy families are alike; each unhappy family is unhappy in its own way.' was written by this Russian author.",
+          "answer": "Who is Leo Tolstoy?",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 1000: Identify the novel that begins, 'In my younger and more vulnerable years my father gave me some advice that I've been turning over in my mind ever since.'",
+          "answer": "What is The Great Gatsby?",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Tech Inventions of the 21st Century",
+      "questions": [
+        {
+          "clue": "For $299, this digital music player revolutionized how we listen to songs on the go in 2001.",
+          "answer": "iPod",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Launched in 2010, this device brought tablet computing to the masses.",
+          "answer": "iPad",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This intelligent voice assistant, first appearing on smartphones in 2011, answers questions and performs tasks.",
+          "answer": "Siri",
+          "value": 600,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "In 2004, this social networking platform was launched from a Harvard dormitory and is now a global phenomenon.",
+          "answer": "Facebook",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Elon Musk company, founded in 2002, aims to reduce space transportation costs with the ultimate goal of enabling Mars colonization.",
+          "answer": "SpaceX",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "19th Century Literature",
+    "clue": "Published in 1865, this book by Lewis Carroll introduced readers to phrases like \"mad as a hatter\" and \"down the rabbit hole.\"",
+    "answer": "What is 'Alice's Adventures in Wonderland'?"
+  }
+}

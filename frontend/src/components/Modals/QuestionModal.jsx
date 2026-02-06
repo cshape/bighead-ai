@@ -3,13 +3,23 @@ import { useGame } from '../../contexts/GameContext';
 import './Modal.css';
 
 export default function QuestionModal() {
-  const { state, sendMessage } = useGame();
-  const { currentQuestion, buzzerActive, lastBuzzer, playerName, answerTimer, players } = state;
+  const { state, sendMessage, submitAnswer } = useGame();
+  const { currentQuestion, buzzerActive, lastBuzzer, answerTimer, answerSubmitted, players } = state;
+
+  // Get playerName from state OR sessionStorage as fallback (registration
+  // happens on LobbyPage's WebSocket, so state.playerName may still be null)
+  let playerName = state.playerName;
+  if (!playerName) {
+    const info = JSON.parse(sessionStorage.getItem('playerInfo') || '{}');
+    playerName = info.playerName;
+  }
   const [showDailyDoubleQuestion, setShowDailyDoubleQuestion] = useState(false);
   const [timerProgress, setTimerProgress] = useState(0);
   const [answerTimerProgress, setAnswerTimerProgress] = useState(0);
   const [betAmount, setBetAmount] = useState(5);
-  
+  const [answerText, setAnswerText] = useState('');
+  const answerInputRef = useRef(null);
+
   // Reference to track if this is the first time we're seeing this question
   const questionRef = useRef(null);
   // Track if we've received at least one true buzzerActive state for this question
@@ -186,6 +196,17 @@ export default function QuestionModal() {
     }
   }, [currentQuestion]);
 
+  // Auto-focus answer input when this player buzzes in
+  useEffect(() => {
+    if (lastBuzzer && lastBuzzer === playerName && !answerSubmitted) {
+      setAnswerText('');
+      // Small delay to let the DOM render the input
+      setTimeout(() => {
+        answerInputRef.current?.focus();
+      }, 50);
+    }
+  }, [lastBuzzer, playerName, answerSubmitted]);
+
   // Log state for debugging
   useEffect(() => {
     console.log("Modal state:", { 
@@ -222,6 +243,12 @@ export default function QuestionModal() {
         bet: betAmount
       });
     }
+  };
+
+  // Handle answer submission from modal input
+  const handleAnswerSubmit = () => {
+    if (answerText.trim() === '') return;
+    submitAnswer(answerText.trim());
   };
 
   // Calculate max bet for the selecting player
@@ -316,6 +343,30 @@ export default function QuestionModal() {
               style={{ width: `${100 - answerTimerProgress}%` }}
             ></div>
           </div>
+        )}
+
+        {lastBuzzer && lastBuzzer === playerName && !answerSubmitted && (
+          <div className="answer-input-container">
+            <input
+              ref={answerInputRef}
+              type="text"
+              className="answer-input"
+              placeholder="Type your answer..."
+              value={answerText}
+              onChange={(e) => setAnswerText(e.target.value)}
+              onKeyDown={(e) => {
+                e.stopPropagation();
+                if (e.key === 'Enter') handleAnswerSubmit();
+              }}
+            />
+            <button className="answer-submit-btn" onClick={handleAnswerSubmit}>
+              Submit
+            </button>
+          </div>
+        )}
+
+        {lastBuzzer && lastBuzzer === playerName && answerSubmitted && (
+          <p className="answer-submitted-text">Answer submitted...</p>
         )}
         
         {/* Buzzer timer - only show when buzzer is active */}

@@ -9,11 +9,9 @@ import logging
 from datetime import datetime
 
 from app.ai.board_generation.generator import BoardGenerator
+from app.utils.logging_config import setup_logging
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+setup_logging()
 
 async def main():
     """Run the board generation CLI."""

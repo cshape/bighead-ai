@@ -11,9 +11,7 @@ import logging
 import re
 from pathlib import Path
 
-# Set up logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 class TTSClient:
     """
@@ -61,7 +59,7 @@ class TTSClient:
             'Authorization': auth_value,
             'Content-Type': 'application/json'
         }
-        logger.info(f"Initialized TTSClient with API URL: {self.url}")
+        logger.debug(f"Initialized TTSClient with API URL: {self.url}")
     
     def _preprocess_text_with_phonemes(self, text):
         """
@@ -81,7 +79,7 @@ class TTSClient:
             processed_text = re.sub(pattern, phoneme, processed_text, flags=re.IGNORECASE)
         
         if processed_text != text:
-            logger.info(f"Applied phoneme substitutions. Original: '{text}' -> Processed: '{processed_text}'")
+            logger.debug(f"Applied phoneme substitutions. Original: '{text}' -> Processed: '{processed_text}'")
         
         return processed_text
     
@@ -122,7 +120,7 @@ class TTSClient:
             voice_id = voice_name
             logger.warning("voice_name parameter is deprecated. Use voice_id instead.")
         
-        logger.info(f"Generating speech for text: '{processed_text[:50]}...' with voice: {voice_id}")
+        logger.debug(f"Generating speech for text: '{processed_text[:50]}...' with voice: {voice_id}")
         
         # Build the payload according to the new API format
         payload = {
@@ -143,7 +141,7 @@ class TTSClient:
             payload['timestampType'] = timestamp_type
         
         try:
-            logger.info(f"Making API request to {self.url}")
+            logger.debug(f"Making API request to {self.url}")
             
             response = requests.post(
                 self.url,
@@ -152,7 +150,7 @@ class TTSClient:
                 timeout=30
             )
             
-            logger.info(f"API response status code: {response.status_code}")
+            logger.debug(f"API response status code: {response.status_code}")
             
             # Check if the response is successful
             if response.status_code != 200:
@@ -179,7 +177,7 @@ class TTSClient:
                 
                 # Extract audio content from the new API response format
                 if 'audioContent' in response_data:
-                    logger.info("Found audioContent in response")
+                    logger.debug("Found audioContent in response")
                     audio_base64 = response_data['audioContent']
                     
                     # Decode the base64 audio data
@@ -189,17 +187,17 @@ class TTSClient:
                     with open(output_file, 'wb') as f:
                         f.write(audio_data)
                     
-                    logger.info(f"Successfully saved audio to: {output_file}")
+                    logger.debug(f"Successfully saved audio to: {output_file}")
                     
                     # Log timestamp information if available
                     if 'timestampInfo' in response_data:
                         timestamp_info = response_data['timestampInfo']
                         if 'wordAlignment' in timestamp_info:
                             word_count = len(timestamp_info['wordAlignment'].get('words', []))
-                            logger.info(f"Word alignment data available for {word_count} words")
+                            logger.debug(f"Word alignment data available for {word_count} words")
                         if 'characterAlignment' in timestamp_info:
                             char_count = len(timestamp_info['characterAlignment'].get('characters', []))
-                            logger.info(f"Character alignment data available for {char_count} characters")
+                            logger.debug(f"Character alignment data available for {char_count} characters")
                     
                     return output_file
                 else:
@@ -211,14 +209,14 @@ class TTSClient:
                 # Save raw response as fallback
                 with open(output_file, 'wb') as f:
                     f.write(response.content)
-                logger.info(f"Saved raw response after JSON parse error: {output_file}")
+                logger.debug(f"Saved raw response after JSON parse error: {output_file}")
                 return output_file
             except Exception as e:
                 logger.error(f"Error processing response: {e}")
                 # Save raw response as fallback
                 with open(output_file, 'wb') as f:
                     f.write(response.content)
-                logger.info(f"Saved raw response after processing error: {output_file}")
+                logger.debug(f"Saved raw response after processing error: {output_file}")
                 return output_file
             
         except requests.exceptions.RequestException as e:
@@ -239,7 +237,7 @@ class TTSClient:
             phoneme (str): The IPA phoneme representation.
         """
         self.PHONEME_SUBSTITUTIONS[word] = phoneme
-        logger.info(f"Added phoneme substitution: '{word}' -> '{phoneme}'")
+        logger.debug(f"Added phoneme substitution: '{word}' -> '{phoneme}'")
     
     def remove_phoneme_substitution(self, word):
         """
@@ -250,7 +248,7 @@ class TTSClient:
         """
         if word in self.PHONEME_SUBSTITUTIONS:
             del self.PHONEME_SUBSTITUTIONS[word]
-            logger.info(f"Removed phoneme substitution for: '{word}'")
+            logger.debug(f"Removed phoneme substitution for: '{word}'")
         else:
             logger.warning(f"Word '{word}' not found in phoneme substitutions")
     

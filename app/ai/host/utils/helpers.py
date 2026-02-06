@@ -45,7 +45,7 @@ async def cleanup_audio_files(directory: str, max_files: int = 5):
         for file_path, _ in audio_files[max_files:]:
             try:
                 os.remove(file_path)
-                logger.info(f"Removed old audio file: {file_path}")
+                logger.debug(f"Removed old audio file: {file_path}")
             except Exception as e:
                 logger.error(f"Failed to remove audio file {file_path}: {e}")
         

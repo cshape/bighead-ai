@@ -168,21 +168,21 @@ class ChatProcessor:
                 await self.send_chat_message(correct_msg)
 
                 # If possible, provide audio feedback
-                if hasattr(self.game_service, "ai_host") and hasattr(self.game_service.ai_host, "synthesize_and_play_speech"):
-                    await self.game_service.ai_host.synthesize_and_play_speech(correct_msg)
+                if self.game_instance and self.game_instance.ai_host and hasattr(self.game_instance.ai_host, "audio_manager"):
+                    await self.game_instance.ai_host.audio_manager.synthesize_and_play_speech(correct_msg)
             else:
                 incorrect_msg = f"I'm sorry, {username}, that's incorrect. {explanation}"
                 logger.info(f"Player {username} answered incorrectly")
                 await self.send_chat_message(incorrect_msg)
 
                 # If possible, provide audio feedback
-                if hasattr(self.game_service, "ai_host") and hasattr(self.game_service.ai_host, "synthesize_and_play_speech"):
+                if self.game_instance and self.game_instance.ai_host and hasattr(self.game_instance.ai_host, "audio_manager"):
                     try:
-                        await self.game_service.ai_host.synthesize_and_play_speech(incorrect_msg, is_incorrect_answer_audio=True)
+                        await self.game_instance.ai_host.audio_manager.synthesize_and_play_speech(incorrect_msg, is_incorrect_answer_audio=True)
                     except TypeError as e:
                         logger.error(f"Error synthesizing incorrect answer speech: {e}")
                         logger.info("Falling back to regular speech synthesis without incorrect answer flag")
-                        await self.game_service.ai_host.synthesize_and_play_speech(incorrect_msg)
+                        await self.game_instance.ai_host.audio_manager.synthesize_and_play_speech(incorrect_msg)
                     except Exception as e:
                         logger.error(f"Error synthesizing speech: {e}")
 
@@ -225,8 +225,8 @@ class ChatProcessor:
                 if self.game_instance.current_question:
                     logger.info("Will reactivate buzzer AFTER incorrect answer audio plays")
 
-                    if hasattr(self.game_service, 'buzzer_manager') and self.game_service.buzzer_manager:
-                        self.game_service.buzzer_manager.expecting_reactivation = True
+                    if self.game_instance and self.game_instance.ai_host and self.game_instance.ai_host.buzzer_manager:
+                        self.game_instance.ai_host.buzzer_manager.expecting_reactivation = True
                         logger.info("Setting buzzer_manager.expecting_reactivation = True")
 
         except Exception as e:

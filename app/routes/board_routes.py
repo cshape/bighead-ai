@@ -65,84 +65,57 @@ async def select_question(request: Request, data: Dict[str, Any]):
     """
     API endpoint to select a question on the board by coordinates.
     This is used by the AI host to select questions.
+    Requires game_id to identify the game.
     """
     category_index = data.get("categoryIndex")
     value_index = data.get("valueIndex")
-    board_id = data.get("boardId", None)
-    
+    game_id = data.get("game_id")
+
     if category_index is None or value_index is None:
         raise HTTPException(status_code=400, detail="categoryIndex and valueIndex are required")
-    
-    # Access the game service from app state
+
+    if not game_id:
+        raise HTTPException(status_code=400, detail="game_id is required")
+
+    # Access services from app state
     game_service = request.app.state.game_service
-    
-    # Check if a board is loaded, if not, try to load it
-    if not game_service.board or "categories" not in game_service.board:
-        logger.info("No board loaded. Attempting to load board.")
-        
-        try:
-            # If a board ID was specified, use that
-            if board_id:
-                logger.info(f"Loading specified board: {board_id}")
-                board_data = await game_service.load_board(board_id)
-                game_service.board = board_data
-            else:
-                # Otherwise, look for the most recent generated board
-                import os
-                import glob
-                from pathlib import Path
-                
-                # Look for generated board files
-                board_files = glob.glob(str(Path("app/game_data/generated_*.json")))
-                if not board_files:
-                    raise HTTPException(status_code=404, detail="No generated board files found")
-                
-                # Get the most recent file
-                latest_board = max(board_files, key=os.path.getctime)
-                board_id = Path(latest_board).stem
-                
-                logger.info(f"Loading most recent board: {board_id}")
-                board_data = await game_service.load_board(board_id)
-                game_service.board = board_data
-                
-            # Tell clients about the loaded board
-            await game_service.connection_manager.broadcast_message(
-                "com.sc2ctl.jeopardy.board_selected",
-                {"categories": game_service.board["categories"]}
-            )
-            
-            logger.info(f"Board {board_id} loaded successfully")
-        except Exception as e:
-            logger.error(f"Error loading board: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to load board: {str(e)}")
-    
+    game_manager = request.app.state.game_manager
+
+    # Get the game instance
+    game = await game_manager.get_game_by_id(game_id)
+    if not game:
+        raise HTTPException(status_code=404, detail=f"Game {game_id} not found")
+
+    # Check if a board is loaded
+    if not game.board or "categories" not in game.board:
+        raise HTTPException(status_code=400, detail="No board loaded for this game")
+
     # Find the category name based on index
     try:
-        # Get category name from index
-        categories = game_service.board["categories"]
+        categories = game.board["categories"]
         if category_index < 0 or category_index >= len(categories):
             raise HTTPException(status_code=400, detail=f"Invalid category index: {category_index}")
-        
+
         category = categories[category_index]
         category_name = category["name"]
-        
+
         # Get question value based on index
         questions = category["questions"]
         if value_index < 0 or value_index >= len(questions):
             raise HTTPException(status_code=400, detail=f"Invalid value index: {value_index}")
-        
+
         value = questions[value_index]["value"]
-        
+
         logger.info(f"API selecting question: {category_name} for ${value} (index: {category_index}, {value_index})")
-        
+
         # Display the question
-        await game_service.display_question(category_name, value)
-        
+        await game_service.display_question(category_name, value, game_id=game_id)
+
         return {
-            "status": "success", 
+            "status": "success",
             "message": f"Selected question: {category_name} - ${value}"
         }
-            
+
     except HTTPException as e:
         raise e
     except Exception as e:
@@ -216,66 +189,88 @@ async def audio_complete(request: Request, data: Dict[str, Any]):
     """
     API endpoint to signal that audio playback has completed.
     This is called by the frontend when audio finishes playing.
+    Requires game_id to identify which game the audio belongs to.
     """
     audio_id = data.get("audio_id")
-    
+    game_id = data.get("game_id")
+
     if not audio_id:
         logger.warning("Audio completion notification received without audio_id")
         raise HTTPException(status_code=400, detail="audio_id is required")
-    
-    logger.info(f"🔊 Audio playback complete notification received: {audio_id}")
-    
-    # Access the game service from app state
+
+    if not game_id:
+        logger.warning("Audio completion notification received without game_id")
+        raise HTTPException(status_code=400, detail="game_id is required")
+
+    logger.info(f"🔊 Audio playback complete notification received: {audio_id} for game {game_id}")
+
+    # Access the game manager from app state
+    game_manager = request.app.state.game_manager
+    game = await game_manager.get_game_by_id(game_id)
+
+    if not game:
+        raise HTTPException(status_code=404, detail=f"Game {game_id} not found")
+
+    # Store completion status in the game instance
+    game.mark_audio_completed(audio_id)
+
+    # Broadcast completion event to all clients in the game
     game_service = request.app.state.game_service
-    
-    # Store completion status in the game service
-    game_service.mark_audio_completed(audio_id)
-    
-    # Broadcast completion event to all clients
     await game_service.connection_manager.broadcast_message(
         game_service.AUDIO_COMPLETE_TOPIC,
-        {"audio_id": audio_id}
+        {"audio_id": audio_id},
+        game_id=game_id
     )
-    
+
     return {"status": "success", "audio_id": audio_id}
 
-@router.get("/audio-status/{audio_id}")
-async def get_audio_status(request: Request, audio_id: str):
+@router.get("/audio-status/{game_id}/{audio_id}")
+async def get_audio_status(request: Request, game_id: str, audio_id: str):
     """
     API endpoint to check if audio has completed playing.
     This is used by the AI host to poll for completion status.
     """
-    # Access the game service from app state
-    game_service = request.app.state.game_service
-    
+    # Access the game manager from app state
+    game_manager = request.app.state.game_manager
+    game = await game_manager.get_game_by_id(game_id)
+
+    if not game:
+        raise HTTPException(status_code=404, detail=f"Game {game_id} not found")
+
     # Check if this audio ID has been marked as completed
-    completed = game_service.check_audio_completed(audio_id)
-    
-    logger.debug(f"Audio status check for {audio_id}: completed={completed}")
-    
+    completed = game.check_audio_completed(audio_id)
+
+    logger.debug(f"Audio status check for {audio_id} in game {game_id}: completed={completed}")
+
     return {
         "audio_id": audio_id,
+        "game_id": game_id,
         "completed": completed
     }
 
-@router.get("/audio-debug")
-async def get_audio_debug(request: Request):
+@router.get("/audio-debug/{game_id}")
+async def get_audio_debug(request: Request, game_id: str):
     """
-    Debug endpoint to list all completed audio IDs.
+    Debug endpoint to list all completed audio IDs for a game.
     """
-    # Access the game service from app state
-    game_service = request.app.state.game_service
-    
+    # Access the game manager from app state
+    game_manager = request.app.state.game_manager
+    game = await game_manager.get_game_by_id(game_id)
+
+    if not game:
+        raise HTTPException(status_code=404, detail=f"Game {game_id} not found")
+
     # Get the list of completed audio IDs
-    completed_ids = list(game_service.completed_audio_ids)
+    completed_ids = list(game.completed_audio_ids)
     completed_count = len(completed_ids)
-    
+
     # Only return the most recent 20 for readability
     recent_ids = completed_ids[-20:] if len(completed_ids) > 20 else completed_ids
-    
-    logger.info(f"Audio debug request: {completed_count} completed IDs")
-    
+
+    logger.info(f"Audio debug request for game {game_id}: {completed_count} completed IDs")
+
     return {
+        "game_id": game_id,
         "total_completed": completed_count,
         "recent_completed_ids": recent_ids
     }

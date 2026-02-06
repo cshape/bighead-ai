@@ -343,4 +343,65 @@
   font-weight: bold;
   font-size: 1.3em !important;
   animation: pulse 1.5s infinite;
+}
+
+/* Daily Double bet input styles */
+.bet-input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.bet-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bet-input {
+  width: 150px;
+  padding: 12px 15px;
+  font-size: 24px;
+  text-align: center;
+  border: 2px solid #FFDD00;
+  border-radius: 8px;
+  background-color: #060CE9;
+  color: #FFDD00;
+  font-weight: bold;
+}
+
+.bet-input:focus {
+  outline: none;
+  border-color: #fff;
+}
+
+.bet-range {
+  color: #ccc;
+  font-size: 14px;
+}
+
+.bet-submit-btn {
+  background-color: #FFDD00 !important;
+  color: #060CE9 !important;
+  font-weight: bold;
+  font-size: 18px;
+  padding: 15px 40px !important;
+  border: none !important;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bet-submit-btn:hover {
+  background-color: #fff !important;
+  transform: scale(1.05);
+}
+
+.waiting-message {
+  color: #ccc;
+  font-size: 18px;
+  font-style: italic;
+  margin-top: 20px;
 } 

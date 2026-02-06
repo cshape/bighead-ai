@@ -119,12 +119,15 @@ function gameReducer(state, action) {
       console.log('Setting dailyDouble state:', action.payload);
       return {
         ...state,
-        dailyDouble: action.payload,
+        dailyDouble: {
+          ...action.payload,
+          selectingPlayer: action.payload.selecting_player
+        },
         board: {
           ...state.board,
           categories: state.board.categories.map(cat => ({
             ...cat,
-            questions: cat.questions.map(q => 
+            questions: cat.questions.map(q =>
               q.value === action.payload.value && cat.name === action.payload.category
                 ? { ...q, used: true }
                 : q

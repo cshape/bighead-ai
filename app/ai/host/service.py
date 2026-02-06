@@ -149,6 +149,7 @@ class AIHostService:
             self.game_flow_manager.game_instance = self.game_instance
             self.board_manager.game_instance = self.game_instance
             self.audio_manager.game_instance = self.game_instance
+            self.clue_processor.set_game_instance(self.game_instance)
 
         logger.info("Dependencies set for AI Host Service")
     

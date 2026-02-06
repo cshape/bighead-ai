@@ -263,28 +263,15 @@ class ConnectionManager:
             logging.error(f"Error handling message: {e}")
             
     async def handle_audio_complete(self, websocket: WebSocket, payload: Dict):
-        """Handle audio completion notifications from clients"""
-        try:
-            audio_id = payload.get("audio_id")
-            if not audio_id:
-                logging.warning("Audio completion message missing audio_id")
-                return
-                
-            logging.info(f"🔊 WebSocket audio completion for: {audio_id}")
-            
-            # Get the game service from the application state
-            if hasattr(websocket.app, "state") and hasattr(websocket.app.state, "game_service"):
-                game_service = websocket.app.state.game_service
-                
-                # Mark the audio as completed
-                game_service.mark_audio_completed(audio_id)
-                
-                # Forward the completion message to all clients
-                await self.broadcast_message(
-                    "com.sc2ctl.jeopardy.audio_complete",
-                    {"audio_id": audio_id}
-                )
-            else:
-                logging.error("Game service not available in application state")
-        except Exception as e:
-            logging.error(f"Error handling audio completion: {e}") 
+        """Handle audio completion notifications from clients.
+
+        Note: Audio completion is now handled through the WebSocket handler in main.py
+        which has proper game context. This method is kept for backwards compatibility
+        but simply logs the event.
+        """
+        audio_id = payload.get("audio_id")
+        if not audio_id:
+            logging.warning("Audio completion message missing audio_id")
+            return
+
+        logging.info(f"🔊 WebSocket audio completion received: {audio_id} (handled by main.py)") 

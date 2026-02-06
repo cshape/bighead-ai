@@ -111,8 +111,10 @@ class BoardManager:
                 json.dump(board_data, f, indent=2)
             
             # Set the board in the game service
-            if self.game_service:
-                await self.game_service.select_board(board_name)
+            if self.game_service and self.game_instance:
+                await self.game_service.select_board(board_name, game_id=self.game_instance.game_id)
+            elif not self.game_instance:
+                logger.error("Cannot select board - game_instance not set on BoardManager")
             
             return board_name
             
@@ -124,10 +126,12 @@ class BoardManager:
         """Load the default board as a fallback"""
         try:
             logger.info("Attempting to load default board")
-            
-            if self.game_service:
-                await self.game_service.select_board("default")
+
+            if self.game_service and self.game_instance:
+                await self.game_service.select_board("default", game_id=self.game_instance.game_id)
                 return "default"
+            elif not self.game_instance:
+                logger.error("Cannot load default board - game_instance not set on BoardManager")
             else:
                 logger.error("Cannot load default board - game service not available")
                 return None

@@ -201,28 +201,15 @@ class AudioManager:
                         game_id=self.game_id
                     )
 
-                    # Wait for the audio to complete - timeout after 30 seconds
-                    max_wait_time = 30
-                    wait_time = 0
-                    while wait_time < max_wait_time:
-                        # Check if audio playback has completed
-                        # Use game_instance if available (multi-game mode), fallback to game_service
-                        audio_completed = False
-                        if self.game_instance:
-                            audio_completed = self.game_instance.is_audio_completed(audio_id)
-                        else:
-                            audio_completed = self.game_service.check_audio_completed(audio_id)
-
-                        if audio_completed:
+                    # Wait for the audio to complete using event-based signaling (no polling)
+                    if self.game_instance:
+                        completed = await self.game_instance.wait_for_audio_completion(audio_id, timeout=30)
+                        if completed:
                             logger.info(f"Audio playback completed: {audio_id}")
-                            break
-
-                        # Wait a bit before checking again
-                        await asyncio.sleep(0.5)
-                        wait_time += 0.5
-
-                    if wait_time >= max_wait_time:
-                        logger.warning(f"Timed out waiting for audio completion: {audio_id}")
+                        else:
+                            logger.warning(f"Timed out waiting for audio completion: {audio_id}")
+                    else:
+                        logger.warning(f"No game_instance available to wait for audio completion: {audio_id}")
                 else:
                     # No game service available - just simulate delay based on URL length
                     # This is a rough estimate based on human speech rate

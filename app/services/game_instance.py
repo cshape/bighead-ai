@@ -66,6 +66,7 @@ class GameInstance:
         self.last_buzzer = None
         self.game_ready = False
         self.completed_audio_ids: Set[str] = set()
+        self.audio_events: Dict[str, asyncio.Event] = {}  # For event-based completion signaling
 
         # Connected clients for this game (websocket_id -> websocket)
         self.connected_clients: Set[str] = set()
@@ -150,12 +151,44 @@ class GameInstance:
             logger.info(f"AI host stopped for game {self.game_code}")
 
     def mark_audio_completed(self, audio_id: str):
-        """Mark an audio playback as completed."""
+        """Mark an audio playback as completed and signal any waiting tasks."""
         self.completed_audio_ids.add(audio_id)
+        # Signal the event if anyone is waiting
+        if audio_id in self.audio_events:
+            self.audio_events[audio_id].set()
 
     def is_audio_completed(self, audio_id: str) -> bool:
         """Check if an audio has been completed."""
         return audio_id in self.completed_audio_ids
+
+    def check_audio_completed(self, audio_id: str) -> bool:
+        """Check if an audio has been completed (alias for is_audio_completed)."""
+        return self.is_audio_completed(audio_id)
+
+    async def wait_for_audio_completion(self, audio_id: str, timeout: float = 30.0) -> bool:
+        """Wait for audio completion using asyncio.Event instead of polling.
+
+        Returns True if completed, False if timed out.
+        """
+        # Check if already completed
+        if audio_id in self.completed_audio_ids:
+            return True
+
+        # Create event if not exists
+        if audio_id not in self.audio_events:
+            self.audio_events[audio_id] = asyncio.Event()
+
+        try:
+            await asyncio.wait_for(
+                self.audio_events[audio_id].wait(),
+                timeout=timeout
+            )
+            return True
+        except asyncio.TimeoutError:
+            return False
+        finally:
+            # Cleanup event
+            self.audio_events.pop(audio_id, None)
 
     def get_state_for_client(self) -> Dict[str, Any]:
         """Get the game state to send to a new client."""

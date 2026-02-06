@@ -4,10 +4,11 @@ import './Modal.css';
 
 export default function QuestionModal() {
   const { state, sendMessage } = useGame();
-  const { currentQuestion, buzzerActive, lastBuzzer, playerName, answerTimer } = state;
+  const { currentQuestion, buzzerActive, lastBuzzer, playerName, answerTimer, players } = state;
   const [showDailyDoubleQuestion, setShowDailyDoubleQuestion] = useState(false);
   const [timerProgress, setTimerProgress] = useState(0);
   const [answerTimerProgress, setAnswerTimerProgress] = useState(0);
+  const [betAmount, setBetAmount] = useState(5);
   
   // Reference to track if this is the first time we're seeing this question
   const questionRef = useRef(null);
@@ -213,15 +214,59 @@ export default function QuestionModal() {
     }
   };
 
+  // Handle bet submission
+  const handleBetSubmit = () => {
+    if (state.dailyDouble && playerName === state.dailyDouble.selectingPlayer) {
+      sendMessage('com.sc2ctl.jeopardy.daily_double_bet', {
+        contestant: playerName,
+        bet: betAmount
+      });
+    }
+  };
+
+  // Calculate max bet for the selecting player
+  const getMaxBet = () => {
+    if (!state.dailyDouble?.selectingPlayer || !players) return 1000;
+    const playerScore = players[state.dailyDouble.selectingPlayer]?.score || 0;
+    return Math.max(1000, playerScore);
+  };
+
   // If we have a daily double but not yet the question
   if (state.dailyDouble) {
-    console.log("Showing daily double selection screen");
+    const selectingPlayer = state.dailyDouble.selectingPlayer;
+    const isSelectingPlayer = playerName === selectingPlayer;
+    const maxBet = getMaxBet();
+
+    console.log("Showing daily double selection screen", { selectingPlayer, isSelectingPlayer, playerName });
     return (
       <div className="modal-overlay">
         <div className="modal-content daily-double">
           <h2>Daily Double!</h2>
           <p>{state.dailyDouble.category} - ${state.dailyDouble.value}</p>
-          <p>The host is selecting a player for this Daily Double...</p>
+
+          {isSelectingPlayer ? (
+            <div className="bet-input-container">
+              <p>Enter your wager:</p>
+              <div className="bet-controls">
+                <input
+                  type="number"
+                  min="5"
+                  max={maxBet}
+                  value={betAmount}
+                  onChange={(e) => setBetAmount(Math.max(5, Math.min(maxBet, parseInt(e.target.value) || 5)))}
+                  className="bet-input"
+                />
+                <span className="bet-range">(${5} - ${maxBet})</span>
+              </div>
+              <button onClick={handleBetSubmit} className="bet-submit-btn">
+                Place Wager
+              </button>
+            </div>
+          ) : (
+            <p className="waiting-message">
+              {selectingPlayer ? `${selectingPlayer} is placing their wager...` : 'Waiting for wager...'}
+            </p>
+          )}
         </div>
       </div>
     );

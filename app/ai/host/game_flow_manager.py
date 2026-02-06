@@ -67,12 +67,9 @@ class GameFlowManager:
                 return
                 
             # Check if there's a current question
-            # Check both game_instance and game_service since display_question() may set on either
             current_question = None
             if self.game_instance and self.game_instance.current_question:
                 current_question = self.game_instance.current_question
-            elif self.game_service and self.game_service.current_question:
-                current_question = self.game_service.current_question
 
             if current_question and not self.game_state_manager.game_state.current_question:
                 # We have a new question to process
@@ -101,7 +98,7 @@ class GameFlowManager:
                     self.game_state_manager.mark_question_read(question_data["text"])
                 
             # Check if we need to handle a player's answer - improved to detect new buzzer events
-            current_buzzer = self.game_instance.last_buzzer if self.game_instance else self.game_service.last_buzzer
+            current_buzzer = self.game_instance.last_buzzer if self.game_instance else None
             buzzed_player = self.game_state_manager.get_buzzed_player()
             
             # Detect if a new player has buzzed in
@@ -125,7 +122,7 @@ class GameFlowManager:
                     self.buzzer_manager.cancel_timeout()
             
             # Check if the buzzer state has changed - detect buzzer activation
-            buzzer_active = self.game_instance.buzzer_active if self.game_instance else self.game_service.buzzer_active
+            buzzer_active = self.game_instance.buzzer_active if self.game_instance else False
             if buzzer_active and not self.game_state_manager.buzzer_active:
                 logger.info("Buzzer has been activated")
                 self.game_state_manager.buzzer_active = True
@@ -136,12 +133,9 @@ class GameFlowManager:
                 asyncio.create_task(self.buzzer_manager.deactivate_buzzer(game_id=self._get_game_id()))
                 
             # Check if the question has been dismissed
-            # Check both game_instance and game_service since display_question() may set on either
             current_question_check = None
             if self.game_instance and self.game_instance.current_question:
                 current_question_check = self.game_instance.current_question
-            elif self.game_service and self.game_service.current_question:
-                current_question_check = self.game_service.current_question
 
             if not current_question_check and self.game_state_manager.game_state.current_question:
                 # Question has been dismissed, reset our state
@@ -185,8 +179,11 @@ class GameFlowManager:
                 logger.warning("Game service not available, cannot check game start conditions")
                 return
                 
-            # Get current players - use game_instance state if available, otherwise fall back to game_service
-            state = self.game_instance.state if self.game_instance else self.game_service.state
+            # Get current players - use game_instance state
+            if not self.game_instance:
+                logger.warning("No game_instance available in check_game_start_conditions")
+                return
+            state = self.game_instance.state
             current_players = list(state.contestants.values())
             current_player_count = len(current_players)
             

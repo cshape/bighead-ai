@@ -60,19 +60,15 @@ class BuzzerManager:
         return self.game_instance.game_id if self.game_instance else None
 
     def _get_current_question(self):
-        """Get current_question from game_instance or game_service."""
-        if self.game_instance and self.game_instance.current_question:
+        """Get current_question from game_instance."""
+        if self.game_instance:
             return self.game_instance.current_question
-        if self.game_service and self.game_service.current_question:
-            return self.game_service.current_question
         return None
 
     def _get_last_buzzer(self):
-        """Get last_buzzer from game_instance or game_service."""
+        """Get last_buzzer from game_instance."""
         if self.game_instance:
             return self.game_instance.last_buzzer
-        if self.game_service:
-            return self.game_service.last_buzzer
         return None
 
     async def activate_buzzer(self, game_id: Optional[str] = None):
@@ -92,9 +88,8 @@ class BuzzerManager:
             if self.game_state_manager:
                 self.game_state_manager.buzzer_active = True
 
-            # Update game service state if available
+            # Broadcast status via game service if available
             if self.game_service:
-                self.game_service.buzzer_active = True
                 await self.game_service.connection_manager.broadcast_message(
                     "com.sc2ctl.jeopardy.buzzer_status",
                     {"active": True},
@@ -118,9 +113,8 @@ class BuzzerManager:
             if self.game_state_manager:
                 self.game_state_manager.buzzer_active = False
 
-            # Update game service state if available
+            # Broadcast status via game service if available
             if self.game_service:
-                self.game_service.buzzer_active = False
                 await self.game_service.connection_manager.broadcast_message(
                     "com.sc2ctl.jeopardy.buzzer_status",
                     {"active": False},
@@ -273,9 +267,9 @@ class BuzzerManager:
             self.game_state_manager.set_buzzed_player(player_name, self.incorrect_players)
             self.game_state_manager.buzzer_active = False
         
-        # Update game service if available
-        if self.game_service:
-            self.game_service.last_buzzer = player_name
+        # Update game instance last_buzzer
+        if self.game_instance:
+            self.game_instance.last_buzzer = player_name
             
             # Start answer timeout and notify frontend
             self.start_answer_timeout(player_name)
@@ -316,7 +310,11 @@ class BuzzerManager:
                 # All players have attempted, keep buzzer disabled and dismiss
                 logger.info("All players have attempted, dismissing question")
                 self.expecting_reactivation = False  # Cancel reactivation expectation
-                
+
+                # Reset game_state_manager
+                if self.game_state_manager:
+                    self.game_state_manager.reset_question()
+
                 if self.game_service:
                     await self.game_service.dismiss_question(game_id=self._get_game_id())
 
@@ -326,7 +324,7 @@ class BuzzerManager:
                         if controlling_player:
                             # Small delay for UI update
                             await asyncio.sleep(0.5)
-                            
+
                             # Inform the player with control
                             control_msg = f"{controlling_player}, you still have control of the board. Please select the next clue."
                             if self.chat_processor:
@@ -352,12 +350,13 @@ class BuzzerManager:
         # Update player with control in game state
         if self.game_state_manager:
             used_questions = set()
-            if self.game_service and self.game_service.current_question:
-                category = self.game_service.current_question["category"]
-                value = self.game_service.current_question["value"]
+            current_question = self._get_current_question()
+            if current_question:
+                category = current_question["category"]
+                value = current_question["value"]
                 question_key = f"{category}:{value}"
                 used_questions.add(question_key)
-            
+
             self.game_state_manager.set_player_with_control(player_name, used_questions)
     
     def start_timeout(self):
@@ -468,22 +467,22 @@ class BuzzerManager:
                             await self.chat_processor.send_chat_message(next_clue_msg)
                     else:
                         # If no player has control, find the player with the highest score
-                        if self.game_service and hasattr(self.game_service, "state") and hasattr(self.game_service.state, "contestants"):
+                        if self.game_instance and self.game_instance.state:
                             best_player = None
                             best_score = float('-inf')
-                            
-                            for contestant_id, contestant in self.game_service.state.contestants.items():
+
+                            for contestant_id, contestant in self.game_instance.state.contestants.items():
                                 if contestant.score > best_score:
                                     best_score = contestant.score
                                     best_player = contestant.name
-                            
+
                             if best_player:
                                 # Set player with control in game state
                                 self.game_state_manager.set_player_with_control(best_player, set())
-                                
+
                                 # Small delay for UI update
                                 await asyncio.sleep(0.5)
-                                
+
                                 # Prompt the player with highest score to select the next clue
                                 next_clue_msg = f"{best_player}, you have the highest score and control of the board. Please select the next clue."
                                 if self.chat_processor:

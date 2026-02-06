@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class ClueProcessor:
     """Processes clue selections from players"""
-    
+
     def __init__(self):
         """Initialize the clue processor"""
         self.llm_client = LLMClient()
@@ -21,37 +21,44 @@ class ClueProcessor:
             response_format={"type": "json_object"}
         )
         self.game_service = None
-    
+        self.game_instance = None
+
     def set_game_service(self, game_service):
         """Set the game service reference"""
         self.game_service = game_service
         logger.info("Game service set for ClueProcessor")
-    
+
+    def set_game_instance(self, game_instance):
+        """Set the game instance reference"""
+        self.game_instance = game_instance
+        logger.info("Game instance set for ClueProcessor")
+
     async def process_clue_selection(self, username: str, message: str) -> Dict[str, Any]:
         """
         Process a clue selection message from the player with control.
-        
+
         Args:
             username: The player's username
             message: The chat message potentially containing a clue selection
-            
+
         Returns:
             Dictionary with results of the processing, including success status
         """
         try:
-            # Skip if game service is not available
-            if not self.game_service:
-                logger.error("Cannot process clue selection - no game service reference")
-                return {"success": False, "error": "Game service not available"}
-                
-            # Get available categories and clues from the game service
-            if not self.game_service.board or "categories" not in self.game_service.board:
-                logger.warning("No board loaded in game service")
+            # Skip if game instance is not available
+            if not self.game_instance:
+                logger.error("Cannot process clue selection - no game instance reference")
+                return {"success": False, "error": "Game instance not available"}
+
+            # Get available categories and clues from the game instance
+            board = self.game_instance.board
+            if not board or "categories" not in board:
+                logger.warning("No board loaded in game instance")
                 return {"success": False, "error": "No board loaded"}
-                
+
             # Extract available categories
             available_categories = []
-            for category in self.game_service.board["categories"]:
+            for category in board["categories"]:
                 category_name = category["name"]
                 
                 # Get available values
@@ -110,9 +117,10 @@ class ClueProcessor:
                     return {"success": False, "error": "Missing category or value"}
                     
                 logger.info(f"Valid clue selection: {category_name} for ${value}")
-                
+
                 # Use the game service to display the question
-                await self.game_service.display_question(category_name, value)
+                game_id = self.game_instance.game_id if self.game_instance else None
+                await self.game_service.display_question(category_name, value, game_id=game_id)
                 return {"success": True, "category": category_name, "value": value}
                 
             except json.JSONDecodeError:

@@ -236,24 +236,22 @@ async def handle_websocket_message(
                         {"ready": True}
                     )
         else:
-            # Legacy: single-game mode
-            success = await game_service.register_player(websocket, name, preferences)
-            if success:
-                await game_service.connection_manager.send_personal_message(
-                    websocket,
-                    "com.sc2ctl.jeopardy.register_player_response",
-                    {"success": True, "name": name}
-                )
+            # Legacy mode not supported - game_id required
+            logger.warning("register_player requires game_id")
+            await connection_manager.send_personal_message(
+                websocket,
+                "com.sc2ctl.jeopardy.register_player_response",
+                {"success": False, "error": "game_id is required"}
+            )
 
     elif topic == 'com.sc2ctl.jeopardy.select_board':
         board_id = payload.get('boardId') or payload.get('board_id')
         logger.info(f"Selecting board: {board_id}")
 
-        if game:
-            # Load board for specific game
+        if game_id:
             await game_service.select_board(board_id, game_id=game_id)
         else:
-            await game_service.select_board(board_id)
+            logger.warning("select_board requires game_id")
 
     elif topic == game_service.QUESTION_DISPLAY_TOPIC:
         category = payload.get('category')
@@ -293,20 +291,22 @@ async def handle_websocket_message(
         username = payload.get('username', 'Anonymous')
         message_text = payload.get('message', '')
 
-        if game_id:
-            await chat_manager.handle_message(username, message_text, game_id=game_id)
-        else:
-            await chat_manager.handle_message(username, message_text)
+        await chat_manager.handle_message(username, message_text, game_id=game_id)
 
-        await game_service.handle_chat_message(username, message_text, game_id=game_id)
+        if game_id:
+            await game_service.handle_chat_message(username, message_text, game_id=game_id)
+        else:
+            logger.warning("handle_chat_message requires game_id for AI host processing")
 
     elif topic == 'com.sc2ctl.jeopardy.audio_complete':
         audio_id = payload.get('audio_id')
-        if audio_id:
+        if audio_id and game_id:
             logger.info(f"Received audio completion via WebSocket: {audio_id}")
             await game_service.handle_audio_completed(audio_id, game_id=game_id)
-        else:
+        elif not audio_id:
             logger.warning("Received audio completion message without audio_id")
+        else:
+            logger.warning("handle_audio_completed requires game_id")
 
     elif topic == 'com.sc2ctl.jeopardy.start_ai_game':
         logger.info("Starting AI game...")
@@ -465,11 +465,10 @@ async def websocket_game_endpoint(websocket: WebSocket, game_code: str, player_n
 # Legacy WebSocket endpoint (for backward compatibility)
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    """Legacy WebSocket endpoint without game code."""
-    logger.debug("New WebSocket connection request (legacy)")
+    """Legacy WebSocket endpoint without game code - deprecated, use /ws/{game_code} instead."""
+    logger.warning("Legacy WebSocket endpoint /ws is deprecated - use /ws/{game_code} instead")
     try:
         client_id = await connection_manager.connect(websocket)
-        await game_service.send_game_state(websocket)
         await chat_manager.send_chat_history(websocket)
 
         while True:
@@ -478,6 +477,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 data = json.loads(message)
                 logger.debug(f"Received WebSocket message from {client_id}: {data}")
 
+                # Most operations now require game_id
                 await handle_websocket_message(websocket, client_id, data, game_id=None)
 
             except json.JSONDecodeError as e:
@@ -539,15 +539,27 @@ async def get_available_boards():
 
 @app.post("/api/load-board")
 async def load_board(board_request: dict):
+    """Load a board for a specific game. Requires game_id."""
     board_name = board_request.get("board")
+    game_id = board_request.get("game_id")
+
     if not board_name:
         raise HTTPException(status_code=400, detail="Board name is required")
 
+    if not game_id:
+        raise HTTPException(status_code=400, detail="game_id is required")
+
     try:
+        game = await game_manager.get_game_by_id(game_id)
+        if not game:
+            raise HTTPException(status_code=404, detail=f"Game {game_id} not found")
+
         new_board = board_factory.load_board(board_name)
-        game_service.board = new_board
-        await game_service.send_categories()
+        game.board = new_board
+        await game_service.send_categories(game_id)
         return {"status": "success"}
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error loading board: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -592,9 +604,6 @@ async def startup_event():
 
     # Start the game manager
     await game_manager.start()
-
-    # Initialize the legacy game service and start the AI host
-    await game_service.startup()
 
     logger.info("Application startup completed")
 

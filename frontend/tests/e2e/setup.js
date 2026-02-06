@@ -3,6 +3,7 @@ const http = require('http');
 const path = require('path');
 
 let backendProcess = null;
+let backendLogs = [];
 
 function waitForServer(url, maxRetries = 30, interval = 1000) {
   return new Promise((resolve, reject) => {
@@ -39,11 +40,12 @@ async function startServers() {
     stdio: ['pipe', 'pipe', 'pipe'],
   });
 
+  // Collect backend logs silently — only dump on failure
   backendProcess.stdout.on('data', (data) => {
-    console.log(`[backend] ${data.toString().trim()}`);
+    backendLogs.push(data.toString().trim());
   });
   backendProcess.stderr.on('data', (data) => {
-    console.log(`[backend] ${data.toString().trim()}`);
+    backendLogs.push(data.toString().trim());
   });
 
   console.log('Waiting for backend to be ready...');
@@ -52,11 +54,37 @@ async function startServers() {
 }
 
 function stopServers() {
-  if (backendProcess) {
+  return new Promise((resolve) => {
+    if (!backendProcess) {
+      resolve();
+      return;
+    }
     console.log('Stopping backend server...');
+
+    // Remove listeners first to prevent "Cannot log after tests" warnings
+    backendProcess.stdout.removeAllListeners('data');
+    backendProcess.stderr.removeAllListeners('data');
+
+    backendProcess.on('close', () => {
+      backendProcess = null;
+      resolve();
+    });
+
     backendProcess.kill('SIGTERM');
-    backendProcess = null;
-  }
+
+    // Safety timeout in case process doesn't exit cleanly
+    setTimeout(() => {
+      if (backendProcess) {
+        backendProcess.kill('SIGKILL');
+        backendProcess = null;
+      }
+      resolve();
+    }, 5000);
+  });
 }
 
-module.exports = { startServers, stopServers };
+function getBackendLogs() {
+  return backendLogs.join('\n');
+}
+
+module.exports = { startServers, stopServers, getBackendLogs };

@@ -1,3 +1,4 @@
--fix so that user preferences actually pass into the prompt
--add waiting room chat and ability to choose topics and see other players' topics
--fix color and styling so that it's less vibey
+-add end of game screen to share to social or smth and then ask to replay
+-improve latency for TTS so that we use streaming
+-improve prompts and LLM usage
+-investigate deploying to render and/or discord

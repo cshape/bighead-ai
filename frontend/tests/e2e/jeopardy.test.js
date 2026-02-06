@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer');
-const { startServers, stopServers } = require('./setup');
+const { startServers, stopServers, getBackendLogs } = require('./setup');
 
 const BASE_URL = 'http://localhost:8000';
 
@@ -21,7 +21,7 @@ describe('Jeopardy E2E Tests', () => {
 
   afterAll(async () => {
     if (browser) await browser.close();
-    stopServers();
+    await stopServers();
   });
 
   // Helper: wait for selector with longer timeout

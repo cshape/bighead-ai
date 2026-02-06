@@ -276,7 +276,11 @@ if has_game_routes:
 # Add favicon route to prevent 404 errors
 @app.get("/favicon.ico")
 async def favicon():
-    return FileResponse("frontend/dist/favicon.ico", media_type="image/x-icon")
+    favicon_path = Path("frontend/dist/favicon.ico")
+    if favicon_path.exists():
+        return FileResponse(str(favicon_path), media_type="image/x-icon")
+    from starlette.responses import Response
+    return Response(status_code=204)
 
 # Startup event
 @app.on_event("startup")

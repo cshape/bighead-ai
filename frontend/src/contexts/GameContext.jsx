@@ -145,6 +145,7 @@ function gameReducer(state, action) {
       return {
         ...state,
         dailyDouble: null, // Clear the dailyDouble state since we're moving to currentQuestion
+        lastBuzzer: action.payload.contestant, // Set lastBuzzer so answer input shows for the contestant
         currentQuestion: {
           ...action.payload.question,
           bet: action.payload.bet,

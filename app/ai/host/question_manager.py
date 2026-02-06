@@ -149,7 +149,11 @@ class QuestionManager:
                     {
                         "category": category_name,
                         "value": value,
-                        "selecting_player": game.state.get_player_with_control() if hasattr(game.state, 'get_player_with_control') else None
+                        "selecting_player": (
+                            game.ai_host.game_state_manager.get_player_with_control()
+                            if game.ai_host and game.ai_host.game_state_manager
+                            else None
+                        )
                     },
                     game_id=game_id
                 )

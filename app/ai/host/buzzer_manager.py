@@ -334,8 +334,11 @@ class BuzzerManager:
             all_players = set(self.game_state_manager.get_player_names())
             incorrect_players = self.incorrect_players
             
-            if len(incorrect_players) >= len(all_players):
-                # All players have attempted, keep buzzer disabled and dismiss
+            current_question = self._get_current_question()
+            is_daily_double = current_question.get("daily_double", False) if current_question else False
+
+            if len(incorrect_players) >= len(all_players) or is_daily_double:
+                # All players have attempted (or daily double — only one player answers), dismiss
                 logger.debug("All players have attempted, dismissing question")
                 self.expecting_reactivation = False  # Cancel reactivation expectation
 

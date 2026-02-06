@@ -170,6 +170,18 @@ describe('Jeopardy E2E Tests', () => {
     console.log('Test 1 passed: Game created, joined, and started');
   });
 
+  // Helper: get a player's score from the scoreboard
+  const getPlayerScore = (page, playerName) =>
+    page.evaluate((name) => {
+      const els = document.querySelectorAll('.player-score');
+      for (const el of els) {
+        if (el.querySelector('.player-name')?.textContent === name) {
+          return el.querySelector('.score')?.textContent;
+        }
+      }
+      return null;
+    }, playerName);
+
   test('Controlling player picks a clue, player buzzes in with correct answer', async () => {
     const pages = { Host: hostPage, Alice: alicePage, Bob: bobPage };
 
@@ -307,5 +319,187 @@ describe('Jeopardy E2E Tests', () => {
     expect(wrongScore).toMatch(/^(\$-|-\$)/);
     console.log(`${wrongPlayerName} score: ${wrongScore}`);
     console.log('Test 3 passed: Incorrect answer deducted points');
+  });
+
+  test('All three players give incorrect answers to the same clue', async () => {
+    const pages = { Host: hostPage, Alice: alicePage, Bob: bobPage };
+    const allNames = ['Host', 'Alice', 'Bob'];
+
+    // After test 3: HELLO, SUCKER! $400 is still active. One player answered wrong,
+    // buzzer is reactivated for the other two. We need to find which two haven't answered.
+    // We'll have them buzz in and answer wrong one at a time.
+
+    for (let round = 0; round < 2; round++) {
+      // Find a player whose buzzer is active (hasn't answered yet)
+      let buzzerPlayer = null;
+      let buzzerPage = null;
+
+      for (const name of allNames) {
+        const isActive = await pages[name].evaluate(() => {
+          const buzzer = document.querySelector('.player-buzzer.active');
+          return !!buzzer;
+        });
+        if (isActive) {
+          buzzerPlayer = name;
+          buzzerPage = pages[name];
+          break;
+        }
+      }
+
+      if (!buzzerPlayer) {
+        // Buzzer may not be active yet — wait for it on any page
+        for (const name of allNames) {
+          try {
+            await pages[name].waitForSelector('.player-buzzer.active', { timeout: 10000 });
+            buzzerPlayer = name;
+            buzzerPage = pages[name];
+            break;
+          } catch (e) {
+            // This player's buzzer didn't activate, try next
+          }
+        }
+      }
+
+      expect(buzzerPlayer).toBeTruthy();
+      console.log(`Round ${round + 1}: ${buzzerPlayer} buzzing in with wrong answer`);
+
+      await buzzerPage.click('.player-buzzer.active');
+      await waitFor(buzzerPage, '.answer-input', { timeout: 10000 });
+      await buzzerPage.type('.answer-input', 'What is zombie');
+      await buzzerPage.click('.answer-submit-btn');
+      console.log(`${buzzerPlayer} submitted incorrect answer`);
+
+      // Wait a moment for the backend to process and potentially reactivate buzzer
+      await delay(2000);
+    }
+
+    // All three players have now answered incorrectly.
+    // Wait for question to be dismissed (modal closes)
+    await hostPage.waitForSelector('.modal-overlay', { hidden: true, timeout: 15000 });
+    console.log('Modal dismissed after all players answered wrong');
+
+    // Wait for chat to contain the "Nobody got it" message
+    await hostPage.waitForFunction(
+      () => {
+        const msgs = [...document.querySelectorAll('.message-text')];
+        return msgs.some((m) => m.textContent.includes('Nobody got it'));
+      },
+      { timeout: 10000 }
+    );
+
+    // Verify the correct answer was revealed
+    const revealMsg = await hostPage.evaluate(() => {
+      const msgs = [...document.querySelectorAll('.message-text')];
+      const msg = msgs.find((m) => m.textContent.includes('Nobody got it'));
+      return msg?.textContent || '';
+    });
+    expect(revealMsg).toContain('vampire');
+    console.log(`Reveal message: ${revealMsg}`);
+
+    // Wait for board control to be restored
+    const controlPlayer = await waitForControllingPlayer(hostPage);
+    expect(controlPlayer).toBeTruthy();
+    console.log(`Board control restored to: ${controlPlayer}`);
+
+    console.log('Test 4 passed: All three players answered incorrectly');
+  });
+
+  test('Daily double: player places wager and answers incorrectly', async () => {
+    const pages = { Host: hostPage, Alice: alicePage, Bob: bobPage };
+
+    // Wait for the controlling player (restored after test 4)
+    await delay(1000);
+    const controllingPlayer = await waitForControllingPlayer(hostPage);
+    console.log(`Controlling player for test 5: ${controllingPlayer}`);
+    expect(controllingPlayer).toBeTruthy();
+
+    const controlPage = pages[controllingPlayer];
+
+    // Click the TOYS & GAMES $800 question (the daily double).
+    // Find the 4th category (TOYS & GAMES) and click its 4th question ($800).
+    const clicked = await controlPage.evaluate(() => {
+      const titles = [...document.querySelectorAll('.category-title')];
+      const toysIdx = titles.findIndex((t) => t.textContent.includes('TOYS'));
+      if (toysIdx === -1) return false;
+      const categories = document.querySelectorAll('.category');
+      const toysCat = categories[toysIdx];
+      if (!toysCat) return false;
+      // Questions are in order $200, $400, $600, $800, $1000
+      const questions = toysCat.querySelectorAll('.question:not(.used)');
+      // Find the $800 question
+      for (const q of questions) {
+        if (q.textContent.includes('800')) {
+          q.click();
+          return true;
+        }
+      }
+      return false;
+    });
+    expect(clicked).toBe(true);
+    console.log(`${controllingPlayer} clicked TOYS & GAMES $800 (Daily Double)`);
+
+    // Wait for daily double modal to appear on the controlling player's page
+    await waitFor(controlPage, '.modal-content.daily-double', { timeout: 15000 });
+    console.log('Daily double modal visible');
+
+    // Only the selecting player sees the bet input
+    await waitFor(controlPage, '.bet-input', { timeout: 10000 });
+
+    // Set the wager value via React's input handler
+    await controlPage.evaluate(() => {
+      const input = document.querySelector('.bet-input');
+      if (input) {
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+          window.HTMLInputElement.prototype, 'value'
+        ).set;
+        nativeInputValueSetter.call(input, '500');
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+    await delay(200);
+
+    // Submit the wager
+    await controlPage.click('.bet-submit-btn');
+    console.log(`${controllingPlayer} placed $500 wager`);
+
+    // Wait for the question text to appear (after bet, question is revealed)
+    await waitFor(controlPage, '.question-text', { timeout: 15000 });
+    console.log('Question text revealed after bet');
+
+    // Wait for the answer input to appear (last_buzzer is set to the selecting player)
+    await waitFor(controlPage, '.answer-input', { timeout: 10000 });
+
+    // Type incorrect answer and submit
+    await controlPage.type('.answer-input', 'What is Monopoly');
+    await controlPage.click('.answer-submit-btn');
+    console.log(`${controllingPlayer} submitted incorrect daily double answer`);
+
+    // Wait for modal to dismiss
+    await controlPage.waitForSelector('.modal-overlay', { hidden: true, timeout: 15000 });
+    console.log('Modal dismissed after wrong daily double answer');
+
+    // Wait for the correct answer to be revealed in chat
+    await hostPage.waitForFunction(
+      () => {
+        const msgs = [...document.querySelectorAll('.message-text')];
+        return msgs.some((m) => m.textContent.includes('incorrect'));
+      },
+      { timeout: 10000 }
+    );
+
+    // Verify score was deducted by $500
+    await delay(1000);
+    const score = await getPlayerScore(hostPage, controllingPlayer);
+    console.log(`${controllingPlayer} score after daily double: ${score}`);
+    // Alice: $200 (test 2) - $400 (test 4) - $500 (DD wager) = -$700
+    expect(score).toBe('$-700');
+
+    // Verify controlling player retains board control
+    const newControl = await waitForControllingPlayer(hostPage);
+    expect(newControl).toBe(controllingPlayer);
+    console.log(`${controllingPlayer} retains board control after daily double`);
+
+    console.log('Test 5 passed: Daily double incorrect answer handled correctly');
   });
 });

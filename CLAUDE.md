@@ -9,3 +9,4 @@ Run the end-to-end tests to make sure nothing is broken:
 ```bash
 cd frontend && npm run test:e2e
 ```
+Check TODOs.md and update if necessary.

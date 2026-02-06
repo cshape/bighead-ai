@@ -14,5 +14,4 @@
 - Remove `app/ai/initialize_templates.py` — not imported anywhere
 - Audit `app/ai/utils/` subdirs (`chat/`, `game/`, `audio/`) — may be unused
 - Clean up `app/game_data/` — 100+ generated board JSON files, consider pruning or gitignoring
-- Fix `.env.example` — says `OPENAI_API_KEY` but code expects `INWORLD_API_KEY`
 - Add `concurrently` as a root devDependency (the `dev` script references it but it's not installed)

@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Mysteries of the Human Brain",
+      "questions": [
+        {
+          "clue": "This largest part of the brain is responsible for higher brain functions like thinking and voluntary movements.",
+          "answer": "Cerebrum",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This small, almond-shaped set of neurons plays a key role in processing emotions.",
+          "answer": "Amygdala",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This mysterious syndrome results in the perception of a phantom limb's existence after amputation.",
+          "answer": "Phantom Limb Syndrome",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This term describes the brain's ability to change and adapt as a result of experience or damage.",
+          "answer": "Neuroplasticity",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Name this rare inability to recognize faces, despite intact vision and cognition; sometimes referred to as 'face blindness'.",
+          "answer": "Prosopagnosia",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Lost Cities of the Ancient World",
+      "questions": [
+        {
+          "clue": "This ancient city, buried by a volcanic eruption in 79 A.D., was discovered in the 18th century.",
+          "answer": "Pompeii",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Once a vibrant center of the Maya civilization, this city was mysteriously abandoned by the 10th century.",
+          "answer": "Tikal",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This lost city, home to the legendary Hanging Gardens, was a center of learning and culture in the ancient world.",
+          "answer": "Babylon",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "An archaeological site in Chile, this city is considered the oldest known settlement in the Americas.",
+          "answer": "Caral",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Believed to be the capital of a powerful empire, this ancient city in Anatolia was discovered in the mid-19th century by Heinrich Schliemann.",
+          "answer": "Troy",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Nobel Prize in Literature Laureates",
+      "questions": [
+        {
+          "clue": "In 1962, he was awarded the Nobel Prize for his realistic and imaginative writings, combining as they do sympathetic humor and keen social perception.",
+          "answer": "John Steinbeck",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This author of 'One Hundred Years of Solitude' won the prize in 1982 for his novels that interweave fantasy and realism.",
+          "answer": "Gabriel Garc\u00eda M\u00e1rquez",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The 1993 laureate, she became the first African American woman to receive the Nobel Prize in Literature.",
+          "answer": "Toni Morrison",
+          "value": 600,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "This Peruvian writer and Nobel laureate in 2010 is also known for his political career as a former presidential candidate.",
+          "answer": "Mario Vargas Llosa",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Awarded the Nobel Prize in 1953, this British prime minister was honored more for his historical and biographical writing than his political career.",
+          "answer": "Winston Churchill",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Innovations in Green Technology",
+      "questions": [
+        {
+          "clue": "This technology uses photovoltaic cells to convert sunlight directly into electricity.",
+          "answer": "Solar Power",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Used in transportation, this type of vehicle can run on electricity alone or a combination of electricity and gasoline.",
+          "answer": "Electric and Hybrid Cars",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Deployed in wind farms, these structures convert wind into renewable energy.",
+          "answer": "Wind Turbines",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This process captures carbon dioxide emissions from sources like power plants and stores it underground to mitigate climate change.",
+          "answer": "Carbon Capture and Storage",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Named after a shape, this zero-energy building design uses angles to maximize sunlight and air circulation.",
+          "answer": "Geodesic Dome",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Fascinating Fungi Facts",
+      "questions": [
+        {
+          "clue": "These organisms are more closely related to animals than to plants.",
+          "answer": "What is fungi?",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This famous fungi is responsible for the discovery of the antibiotic penicillin.",
+          "answer": "What is Penicillium?",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The largest organism on Earth is a species of fungi known by this 'honey' of a common name.",
+          "answer": "What is Armillaria (or Honey Fungus)?",
+          "value": 600,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "These underground networks of fungi help trees communicate and share nutrients.",
+          "answer": "What are mycorrhizal networks (or mycorrhizae)?",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Some fungi possess this bioluminescent quality, causing them to glow in the dark.",
+          "answer": "What is foxfire?",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Famous Authors",
+    "clue": "This 20th-century author and Nobel Laureate wrote under the pen name Eric Arthur Blair.",
+    "answer": "George Orwell"
+  }
+}

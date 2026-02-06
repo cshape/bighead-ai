@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class AudioManager:
     """Manages audio queue and playback for the AI host"""
-    
+
     def __init__(self, api_key=None, voice="Timothy"):
         """Initialize the audio manager"""
         self.tts_client = TTSClient(api_key=api_key)
@@ -25,26 +25,37 @@ class AudioManager:
         self.audio_queue = []
         self.is_playing_audio = False
         self.game_service = None
+        self.game_instance = None
         self.question_audio_id = None
         self.incorrect_answer_audio_id = None
         self.recent_audio_files = set()
         self.max_recent_files = 10
-        
-    def set_game_service(self, game_service):
-        """Set the game service reference"""
+
+    @property
+    def game_id(self):
+        """Get the game_id from game_instance if available."""
+        return self.game_instance.game_id if self.game_instance else None
+
+    def set_game_service(self, game_service, game_instance=None):
+        """Set the game service and optional game instance reference"""
         self.game_service = game_service
-        logger.info("Game service set for AudioManager")
+        if game_instance:
+            self.game_instance = game_instance
+        logger.debug(f"Game service set for AudioManager (game_id: {self.game_id})")
         
     async def start(self):
         """Start the audio queue processor"""
+        if os.environ.get("TEST_MODE"):
+            logger.info("TEST_MODE: Skipping audio queue processor")
+            return
         self.is_playing_audio = True
         asyncio.create_task(self.process_audio_queue())
-        logger.info("Audio queue processor started")
+        logger.debug("Audio queue processor started")
         
     def shutdown(self):
         """Shut down the audio manager"""
         self.is_playing_audio = False
-        logger.info("Audio manager shutting down")
+        logger.debug("Audio manager shutting down")
         
     def is_audio_playing(self) -> bool:
         """Check if any audio is currently playing."""
@@ -53,7 +64,7 @@ class AudioManager:
     def clear_question_audio_id(self, audio_id: str):
         """Clear the question audio ID if it matches the completed audio ID."""
         if self.question_audio_id == audio_id:
-            logger.info(f"Clearing question audio ID: {audio_id}")
+            logger.debug(f"Clearing question audio ID: {audio_id}")
             self.question_audio_id = None
             return True
         return False
@@ -61,7 +72,7 @@ class AudioManager:
     def clear_incorrect_answer_audio_id(self, audio_id: str):
         """Clear the incorrect answer audio ID if it matches the completed audio ID."""
         if self.incorrect_answer_audio_id == audio_id:
-            logger.info(f"Clearing incorrect answer audio ID: {audio_id}")
+            logger.debug(f"Clearing incorrect answer audio ID: {audio_id}")
             self.incorrect_answer_audio_id = None
             return True
         return False
@@ -83,14 +94,18 @@ class AudioManager:
     async def synthesize_and_play_speech(self, text: str, is_question_audio=False, is_incorrect_answer_audio=False):
         """
         Synthesize speech from text and play it to all clients.
-        
+
         Args:
             text: The text to convert to speech
             is_question_audio: Whether this is a question being read
             is_incorrect_answer_audio: Whether this is an incorrect answer response
         """
+        if os.environ.get("TEST_MODE"):
+            logger.info(f"TEST_MODE: Skipping TTS for: {text[:60]}...")
+            return
+
         try:
-            logger.info(f"Converting to speech: {text}")
+            logger.debug(f"Converting to speech: {text}")
             
             # Generate unique filename with timestamp
             timestamp = int(time.time())
@@ -100,15 +115,15 @@ class AudioManager:
             if is_incorrect_answer_audio:
                 # Mark incorrect answer audio specially
                 audio_id = f"audio_incorrect_{timestamp}"
-                logger.info(f"Saved incorrect answer audio ID: {audio_id}")
+                logger.debug(f"Saved incorrect answer audio ID: {audio_id}")
             else:
                 audio_id = f"audio_{timestamp}"
-                logger.info(f"Saved audio ID: {audio_id}")
+                logger.debug(f"Saved audio ID: {audio_id}")
             
             # If this audio is for a question, track its ID
             if is_question_audio:
                 self.question_audio_id = audio_id
-                logger.info(f"Setting question audio ID to {self.question_audio_id}")
+                logger.debug(f"Setting question audio ID to {self.question_audio_id}")
             
             # If this is a duplicate speech request for the same file, skip it
             if filename in self.recent_audio_files:
@@ -140,11 +155,13 @@ class AudioManager:
             if os.path.exists(result_file) and os.path.getsize(result_file) > 0:
                 # Add to audio queue instead of playing immediately
                 public_url = f"/static/audio/{filename}"
-                logger.info(f"Adding audio to queue: {public_url}")
-                
-                # Check if this audio file is already in the queue to prevent duplicates
-                if public_url not in self.audio_queue:
-                    self.audio_queue.append(public_url)
+                logger.debug(f"Adding audio to queue: {public_url} (id: {audio_id})")
+
+                # Check if this audio URL is already in the queue to prevent duplicates
+                existing_urls = [item[0] for item in self.audio_queue]
+                if public_url not in existing_urls:
+                    # Store (url, audio_id) tuple so we use the same ID throughout
+                    self.audio_queue.append((public_url, audio_id))
                 else:
                     logger.warning(f"Skipping duplicate audio in queue: {public_url}")
                 
@@ -170,44 +187,41 @@ class AudioManager:
                     continue
                 
                 # Get the next audio file from the queue
-                audio_url = self.audio_queue.pop(0) if self.audio_queue else None
-                if not audio_url:
+                item = self.audio_queue.pop(0) if self.audio_queue else None
+                if not item:
                     continue
-                
-                logger.info(f"Processing audio from queue: {audio_url}")
-                
+
+                # Unpack the (url, audio_id) tuple
+                audio_url, stored_audio_id = item
+                # Use stored ID if available, otherwise generate one as fallback
+                audio_id = stored_audio_id or f"audio_{int(time.time() * 1000)}"
+
+                logger.debug(f"Processing audio from queue: {audio_url} (id: {audio_id})")
+
                 # If game service is available, use it to play the audio
                 if self.game_service:
-                    # Use unique audio ID to track completion
-                    audio_id = f"audio_{int(time.time() * 1000)}"
-                    
                     # Play the audio through the game service
                     await self.game_service.play_audio(
                         audio_url=audio_url,
                         wait_for_completion=True,
-                        audio_id=audio_id
+                        audio_id=audio_id,
+                        game_id=self.game_id
                     )
-                    
-                    # Wait for the audio to complete - timeout after 30 seconds
-                    max_wait_time = 30
-                    wait_time = 0
-                    while wait_time < max_wait_time:
-                        # Check if audio playback has completed
-                        if self.game_service.check_audio_completed(audio_id):
-                            logger.info(f"Audio playback completed: {audio_id}")
-                            break
-                            
-                        # Wait a bit before checking again
-                        await asyncio.sleep(1)
-                        wait_time += 1
-                        
-                    if wait_time >= max_wait_time:
-                        logger.warning(f"Timed out waiting for audio completion: {audio_id}")
+
+                    # Wait for the audio to complete using event-based signaling (no polling)
+                    if self.game_instance:
+                        completed = await self.game_instance.wait_for_audio_completion(audio_id, timeout=30)
+                        if completed:
+                            logger.debug(f"Audio playback completed: {audio_id}")
+                        else:
+                            logger.warning(f"Timed out waiting for audio completion: {audio_id}")
+                    else:
+                        logger.warning(f"No game_instance available to wait for audio completion: {audio_id}")
                 else:
                     # No game service available - just simulate delay based on URL length
                     # This is a rough estimate based on human speech rate
                     await asyncio.sleep(5)  # Default delay
-                    logger.info("No game service - simulated audio playback")
+                    logger.debug("No game service - simulated audio playback")
                     
             except Exception as e:
                 logger.error(f"Error processing audio queue: {e}")

@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Cryptids & Mythical Creatures",
+      "questions": [
+        {
+          "clue": "This large, hairy hominid reportedly inhabits the forests of the Pacific Northwest.",
+          "answer": "What is Bigfoot?",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Scottish creature is often depicted as a sea monster residing in a famous loch.",
+          "answer": "What is the Loch Ness Monster?",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This winged cryptid was reportedly seen in Point Pleasant, West Virginia, between 1966 and 1967.",
+          "answer": "What is the Mothman?",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Sightings of this creature, described as a large lizard or dinosaur, have been reported near Africa's Congo River basin.",
+          "answer": "What is Mok\u00e8l\u00e9-mb\u00e8mb\u00e9?",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Known as the Australian Aboriginal spirit, this creature is said to roam the swamps and waterways of the Outback.",
+          "answer": "What is the Bunyip?",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Classical Composers: Behind the Music",
+      "questions": [
+        {
+          "clue": "Known as the 'Father of Symphony', he composed over 100 symphonies and was a significant influence on Mozart and Beethoven.",
+          "answer": "Joseph Haydn",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "A prodigy from Salzburg, he completed his Symphony No. 41 in C major, also known as the 'Jupiter Symphony', in 1788.",
+          "answer": "Wolfgang Amadeus Mozart",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "His 1812 Overture commemorated the successful Russian defense against Napoleon's invading Grand Army in 1812.",
+          "answer": "Pyotr Ilyich Tchaikovsky",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This deaf composer is famous for his Ninth Symphony, which includes the 'Ode to Joy' choral finale.",
+          "answer": "Ludwig van Beethoven",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "His opera 'Tristan und Isolde' is often noted for its advanced use of chromaticism and harmonic suspension.",
+          "answer": "Richard Wagner",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Innovations in Green Technology",
+      "questions": [
+        {
+          "clue": "This technology captures sunlight and converts it directly into electricity using photovoltaic cells.",
+          "answer": "Solar panels",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This type of energy can be harvested from the natural heat of the Earth, often used for heating and electricity generation.",
+          "answer": "Geothermal energy",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Wind turbines convert kinetic energy from this phenomenon into electrical power.",
+          "answer": "Wind",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This innovative process involves capturing waste CO2 emissions and storing them underground to mitigate climate change.",
+          "answer": "Carbon capture and storage",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Used in electric vehicles, this type of battery offers high energy density and long charge holding capacity.",
+          "answer": "Lithium-ion battery",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Iconic World Landmarks: The Untold Stories",
+      "questions": [
+        {
+          "clue": "Located in Paris, this iron lattice tower was initially criticized by artists and intellectuals but is now a beloved symbol of the city.",
+          "answer": "What is the Eiffel Tower?",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Originally built as a mausoleum for the wife of a Mughal Emperor, this ivory-white marble structure is a UNESCO World Heritage Site.",
+          "answer": "What is the Taj Mahal?",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Nearly destroyed by the Ottoman Empire in the 17th century, this Athens landmark is dedicated to the goddess Athena.",
+          "answer": "What is the Parthenon?",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Constructed over 2,300 years ago, this world's largest religious monument in Cambodia was initially Hindu before becoming a Buddhist site.",
+          "answer": "What is Angkor Wat?",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Despite its name, this iconic New York landmark is actually found in New Jersey and was shipped from France in 1884.",
+          "answer": "What is the Statue of Liberty?",
+          "value": 1000,
+          "daily_double": true,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Globetrotter's Guide: Cuisine of the Continents",
+      "questions": [
+        {
+          "clue": "Known for its sushi and ramen, this Asian country's cuisine is both artful and delicious.",
+          "answer": "Japan",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Originating from the boot-shaped continent of Europe, this cuisine is famous for dishes like pasta and pizza.",
+          "answer": "Italy",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In North America, this country's cuisine features barbecued meats, cornbread, and rich stews, often reflecting its southern hospitality.",
+          "answer": "United States (Southern cuisine)",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Known for dishes like feijoada and churrasco, this South American country's cuisine is vibrant and hearty.",
+          "answer": "Brazil",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Berbere, injera, and doro wat are staples in the spicy cuisine of this East African country.",
+          "answer": "Ethiopia",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Historic Documents",
+    "clue": "In this 1215 document, King John of England agreed to certain demands that ultimately limited the power of the authority over the English nobility.",
+    "answer": "What is the Magna Carta?"
+  }
+}

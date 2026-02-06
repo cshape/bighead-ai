@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Art Movements Through the Ages",
+      "questions": [
+        {
+          "clue": "This art movement, primarily in France, is known for its focus on light and brush strokes, with artists like Monet and Renoir.",
+          "answer": "Impressionism",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Emerging in the early 20th century, this movement features works characterized by abstracted forms and artists such as Braque and Picasso.",
+          "answer": "Cubism",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This art style, associated with Andy Warhol, emphasizes mass production and popular culture imagery.",
+          "answer": "Pop Art",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Originating in Italy, this 15th-century movement, including artists like Michelangelo and Leonardo, revolutionized perspective and anatomical accuracy.",
+          "answer": "Renaissance",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "A reaction against the Industrial Revolution, this 19th-century movement saw artists like William Morris advocate returning to hand-crafted art.",
+          "answer": "Arts and Crafts Movement",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Famous Explorers and Their Journeys",
+      "questions": [
+        {
+          "clue": "This Italian explorer completed four transatlantic voyages, discovering the New World in 1492.",
+          "answer": "Christopher Columbus",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1519, this Portuguese explorer set out on a voyage that first circumnavigated the Earth.",
+          "answer": "Ferdinand Magellan",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Norse explorer is credited with being the first European to reach North America, landing in present-day Canada around the year 1000.",
+          "answer": "Leif Erikson",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Italian explorer worked for Spain and became the first European to see the Pacific Ocean in 1513.",
+          "answer": "Vasco N\u00fa\u00f1ez de Balboa",
+          "value": 800,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "The journey along the coast of Africa beginning in 1497 that finally led to India was commanded by this Portuguese explorer.",
+          "answer": "Vasco da Gama",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "The Science of Food and Cooking",
+      "questions": [
+        {
+          "clue": "This mineral gives table salt its salty flavor and helps in fluid balance in the body.",
+          "answer": "What is sodium?",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "It's the temperature at which water boils in the Fahrenheit scale at sea level.",
+          "answer": "What is 212 degrees?",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This natural protein is responsible for the rising of dough and providing elasticity to bread.",
+          "answer": "What is gluten?",
+          "value": 600,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "Maillard reaction is responsible for this process that gives browned food its distinctive flavor.",
+          "answer": "What is browning?",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This term describes the conversion of sugar into alcohol by yeast.",
+          "answer": "What is fermentation?",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Classic Literature Opening Lines",
+      "questions": [
+        {
+          "clue": "For 200 points: This novel begins with 'It was the best of times, it was the worst of times...'",
+          "answer": "A Tale of Two Cities",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 400 points: Identify the book that starts with 'Call me Ishmael.'",
+          "answer": "Moby-Dick",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 600 points: 'It is a truth universally acknowledged...' begins which classic novel?",
+          "answer": "Pride and Prejudice",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 800 points: This dystopian novel opens with 'It was a bright cold day in April, and the clocks were striking thirteen.'",
+          "answer": "1984",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 1000 points: Name the novel that begins 'In my younger and more vulnerable years my father gave me some advice that I've been turning over in my mind ever since.'",
+          "answer": "The Great Gatsby",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "World Capitals: Past and Present",
+      "questions": [
+        {
+          "clue": "This city has been the capital of France since 508 A.D., becoming the European center for art and culture during the Renaissance.",
+          "answer": "What is Paris?",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Before Tokyo, this city served as the imperial capital of Japan for over one thousand years until 1869.",
+          "answer": "What is Kyoto?",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Previously known as Byzantium and later Constantinople, this city has been key in both the Roman and Ottoman empires.",
+          "answer": "What is Istanbul?",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Prior to the establishment of Bras\u00edlia in 1960, this Brazilian city was the country's capital for over two centuries.",
+          "answer": "What is Rio de Janeiro?",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This city was a major center of the Incan Empire, which named it their capital prior to Spanish conquest in the 1500s.",
+          "answer": "What is Cusco?",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Shakespearean Geography",
+    "clue": "This Italian city, which lends its name to a 1594 Shakespeare play now in the public domain, is a setting in both the play and the modern world.",
+    "answer": "What is Verona?"
+  }
+}

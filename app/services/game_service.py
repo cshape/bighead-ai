@@ -1,23 +1,13 @@
-from typing import Optional, Dict, Any, List
 from fastapi import WebSocket
 import asyncio
 import time
-from ..models.board import Board, BuzzerStatus, BuzzEvent
-from ..models.question import Question
-from ..models.contestant import Contestant
-from ..models.finaljeopardy import FinalJeopardyQuestionResponse
 from ..websockets.connection_manager import ConnectionManager
 import logging
-from ..models.game_state import GameStateManager
-from ..ai.llm_state_manager import LLMStateManager
-from ..ai.host import AIHostService
 from ..ai.host.buzzer_manager import BuzzerManager
 import json
-import os
 from pathlib import Path
 import re
 
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 class GameService:
@@ -44,26 +34,35 @@ class GameService:
     
     def __init__(self, connection_manager: ConnectionManager):
         self.connection_manager = connection_manager
-        self.board = None
         self.boards_path = Path("app/game_data")
-        self.state = GameStateManager()
-        self.llm_state = LLMStateManager()  # Initialize LLM state manager
-        self.current_question = None
-        self.buzzer_active = False
-        self.last_buzzer = None
-        self.game_ready = False
-        self.completed_audio_ids = set()  # Track completed audio playbacks
-        
-        # Initialize the buzzer manager
-        self.buzzer_manager = BuzzerManager()
-        self.buzzer_manager.set_dependencies(game_service=self)
-        
-        # Initialize the AI host service
-        self.ai_host = AIHostService(name="AI Host")
+
+        # Reference to game manager (set in main.py)
+        self.game_manager = None
+
+    def set_game_manager(self, game_manager):
+        """Set reference to game manager for multi-game lookups."""
+        self.game_manager = game_manager
+
+    async def _get_game(self, game_id: str):
+        """Get game instance - required for all operations."""
+        if not game_id:
+            raise ValueError("game_id is required")
+        if not self.game_manager:
+            raise ValueError("game_manager not set")
+        game = await self.game_manager.get_game_by_id(game_id)
+        if not game:
+            raise ValueError(f"Game {game_id} not found")
+        return game
+
+    def _get_buzzer_manager(self, game) -> BuzzerManager:
+        """Get the buzzer manager for the game."""
+        return game.ai_host.buzzer_manager
     
-    async def load_board(self, board_id: str):
-        """Load a board from the filesystem"""
+    async def select_board(self, board_id: str, game_id: str):
+        """Load and initialize a new board for a game"""
         try:
+            game = await self._get_game(game_id)
+
             board_path = self.boards_path / f"{board_id}.json"
             if not board_path.exists():
                 logger.error(f"Board file not found: {board_path}")
@@ -72,404 +71,200 @@ class GameService:
             logger.info(f"Loading board from {board_path}")
             with open(board_path, 'r') as f:
                 board_data = json.load(f)
-                # Make this our current board
-                self.board = board_data
+                game.board = board_data
                 logger.info(f"Successfully loaded board: {board_id}")
-                
-                # Game is ready when board is loaded
-                self.game_ready = True
-                
-                return board_data
 
-        except Exception as e:
-            logger.error(f"Error loading board {board_id}: {e}")
-            raise
-    
-    async def select_board(self, board_id: str):
-        """Load and initialize a new board"""
-        try:
-            board_data = await self.load_board(board_id)
-            self.board = board_data
-            
-            # Send the board to all clients
+            # Send the board to appropriate clients
             await self.connection_manager.broadcast_message(
                 "com.sc2ctl.jeopardy.board_selected",
-                {"categories": board_data["categories"]}
+                {"categories": board_data["categories"]},
+                game_id=game_id
             )
         except Exception as e:
             logger.error(f"Error selecting board: {e}")
-            # You might want to send an error message to the client here
             await self.connection_manager.broadcast_message(
                 "com.sc2ctl.jeopardy.error",
-                {"message": f"Failed to load board: {str(e)}"}
+                {"message": f"Failed to load board: {str(e)}"},
+                game_id=game_id
             )
     
-    async def send_categories(self):
+    async def send_categories(self, game_id: str):
         """Send all categories and questions to clients"""
+        game = await self._get_game(game_id)
+        board = game.board
+
+        if not board:
+            return
+
+        # Handle both dict and object formats
+        if isinstance(board, dict):
+            categories = board.get("categories", [])
+        else:
+            categories = [category.dict() for category in board.categories]
+
         await self.connection_manager.broadcast_message(
             self.BOARD_INIT_TOPIC,
-            {"categories": [category.dict() for category in self.board.categories]}
+            {"categories": categories},
+            game_id=game_id
         )
-        
+
         # Update LLM state with available categories
-        self.llm_state.update_categories([category.name for category in self.board.categories])
-    
-    def find_question(self, category_name: str, value: int):
-        """Find a question in the current board"""
-        if not self.board or "categories" not in self.board:
-            logger.error("No board loaded or invalid board format")
-            return None
-            
-        # Log all categories for debugging
-        categories = [cat["name"] for cat in self.board["categories"]]
-        logger.debug(f"Looking for '{category_name}' in categories: {categories}")
-
-        # First try exact match
-        for category in self.board["categories"]:
-            if category["name"] == category_name:
-                for question in category["questions"]:
-                    if question["value"] == value:
-                        return question
-                        
-        # If no exact match, try case-insensitive match
-        for category in self.board["categories"]:
-            if category["name"].lower() == category_name.lower():
-                logger.info(f"Found case-insensitive match for category: {category['name']}")
-                for question in category["questions"]:
-                    if question["value"] == value:
-                        return question
-        
-        # If still no match, try partial match (contains)
-        for category in self.board["categories"]:
-            if (category_name.lower() in category["name"].lower() or 
-                category["name"].lower() in category_name.lower()):
-                logger.info(f"Found partial match for category: '{category_name}' -> '{category['name']}'")
-                for question in category["questions"]:
-                    if question["value"] == value:
-                        return question
-        
-        logger.error(f"No question found in category '{category_name}' with value ${value}")
-        return None
-
-    def mark_question_used(self, category_name: str, value: int):
-        """Mark a question as used"""
-        if not self.board or "categories" not in self.board:
-            return
-
-        for category in self.board["categories"]:
-            if category["name"] == category_name:
-                for question in category["questions"]:
-                    if question["value"] == value:
-                        question["used"] = True
-                        break
-
-    async def display_question(self, category_name: str, value: int):
-        """Display a question to all clients"""
-        if not self.game_ready:
-            logger.warning("Cannot display question - waiting for players")
-            await self.connection_manager.broadcast_message(
-                "com.sc2ctl.jeopardy.error",
-                {"message": f"Waiting for {self.REQUIRED_PLAYERS - len(self.state.contestants)} more players"}
-            )
-            return
-
-        try:
-            question = self.find_question(category_name, value)
-            if not question:
-                logger.error(f"Question not found: {category_name} ${value}")
-                return
-
-            # Mark as used in the board data
-            self.mark_question_used(category_name, value)
-            
-            # Reset buzzer state for new question
-            self.last_buzzer = None
-            
-            # Set buzzer to inactive initially
-            self.buzzer_active = False
-            
-            # Check if it's a daily double
-            is_daily_double = question.get("daily_double", False)
-            logger.info(f"Question is daily double: {is_daily_double}")
-            
-            # Set up the current question data
-            self.current_question = {
-                "category": category_name,
-                "value": value,
-                "text": question["clue"],
-                "answer": question["answer"],
-                "daily_double": is_daily_double
-            }
-            
-            # Handle daily double differently
-            if is_daily_double:
-                # For daily double, we don't show the question yet
-                # Just notify that it's a daily double
-                logger.info(f"Broadcasting daily double: {category_name} ${value}")
-                await self.connection_manager.broadcast_message(
-                    "com.sc2ctl.jeopardy.daily_double",
-                    {"category": category_name, "value": value}
-                )
-                logger.info(f"Displayed daily double: {category_name} ${value}")
-            else:
-                # For regular questions, proceed as normal
-                logger.info(f"Broadcasting regular question: {category_name} ${value}")
-                
-                # Notify the BuzzerManager about the question display
-                await self.buzzer_manager.handle_question_display()
-                
-                # Broadcast the question to all clients
-                await self.connection_manager.broadcast_message(
-                    self.QUESTION_DISPLAY_TOPIC,
-                    self.current_question
-                )
-                logger.info(f"Displayed question: {category_name} ${value}")
-                
-                # Update LLM state for AI players
-                self.llm_state.question_displayed(
-                    category=category_name, 
-                    value=value, 
-                    question_text=question["clue"]
-                )
-
-        except Exception as e:
-            logger.error(f"Error displaying question: {e}")
-    
-    async def dismiss_question(self):
-        """Dismiss the current question and broadcast to all clients"""
-        logger.info("Dismissing question")
-        
-        # Always ensure buzzer is deactivated when dismissing a question
-        self.buzzer_active = False
-        await self.buzzer_manager.deactivate_buzzer()
-        
-        # Notify clients
-        await self.connection_manager.broadcast_message(
-            self.QUESTION_DISMISS_TOPIC,
-            {}
-        )
-        
-        # Update LLM state
-        self.llm_state.question_dismissed()
-        
-        # Clear question state
-        self.current_question = None
-        self.last_buzzer = None
-    
-    async def change_buzzer_status(self, active: bool):
-        """Change buzzer status and broadcast to all clients"""
-        logger.info(f"Setting buzzer status to: {active}")
-        
-        # Use buzzer manager to handle state changes
-        if active:
-            await self.buzzer_manager.activate_buzzer()
+        if isinstance(board, dict):
+            cat_names = [cat["name"] for cat in board.get("categories", [])]
         else:
-            await self.buzzer_manager.deactivate_buzzer()
+            cat_names = [category.name for category in board.categories]
+        game.llm_state.update_categories(cat_names)
     
-    async def register_player(self, websocket: WebSocket, name: str, preferences: str = ''):
+    def _get_question_manager(self, game):
+        """Get the question manager for the game."""
+        return game.ai_host.question_manager
+
+    async def display_question(self, category_name: str, value: int, game_id: str):
+        """Delegate to QuestionManager."""
+        game = await self._get_game(game_id)
+        await self._get_question_manager(game).display_question(category_name, value, game_id)
+
+    async def dismiss_question(self, game_id: str):
+        """Delegate to QuestionManager."""
+        game = await self._get_game(game_id)
+        await self._get_question_manager(game).dismiss_question(game_id)
+    
+    async def change_buzzer_status(self, active: bool, game_id: str):
+        """Change buzzer status and broadcast to all clients"""
+        logger.debug(f"Setting buzzer status to: {active}")
+
+        game = await self._get_game(game_id)
+        game.buzzer_active = active
+
+        buzzer_mgr = self._get_buzzer_manager(game)
+        if active:
+            await buzzer_mgr.activate_buzzer(game_id=game_id)
+        else:
+            await buzzer_mgr.deactivate_buzzer(game_id=game_id)
+    
+    async def register_player(self, websocket: WebSocket, name: str, preferences: str = '', game_id: str = ''):
         """Register a new player with the given name and preferences"""
+        game = await self._get_game(game_id)
+        state = game.state
+
         websocket_id = str(id(websocket))
-        if self.state.register_contestant(websocket_id, name):
+        if state.register_contestant(websocket_id, name):
             # Store the player's preferences if provided
             if preferences:
                 logger.info(f"Adding preferences from registration: {name}: {preferences}")
-                
-                # Store directly in game state manager if available
-                if hasattr(self, 'ai_host') and self.ai_host and hasattr(self.ai_host, 'game_state_manager'):
-                    self.ai_host.game_state_manager.add_player_preference(name, preferences)
-                    
+                if game.ai_host and hasattr(game.ai_host, 'game_state_manager'):
+                    game.ai_host.game_state_manager.add_player_preference(name, preferences)
+
             # Broadcast updated player list
-            await self.broadcast_player_list()
-            
+            await self.broadcast_player_list(game_id)
+
             # Check if we have enough players
-            if len(self.state.contestants) >= self.REQUIRED_PLAYERS:
-                self.game_ready = True
+            if len(state.contestants) >= self.REQUIRED_PLAYERS:
+                game.game_ready = True
                 await self.connection_manager.broadcast_message(
                     "com.sc2ctl.jeopardy.game_ready",
-                    {"ready": True}
+                    {"ready": True},
+                    game_id=game_id
                 )
             return True
         return False
     
-    async def broadcast_player_list(self):
+    async def broadcast_player_list(self, game_id: str):
         """Send current player list to all clients"""
+        game = await self._get_game(game_id)
+        state = game.state
+
+        # Get preferences if available
+        player_prefs = {}
+        if game.ai_host and hasattr(game.ai_host, 'game_state_manager'):
+            player_prefs = game.ai_host.game_state_manager.player_preferences
+
         players = {
-            c.name: {"score": c.score} 
-            for c in self.state.contestants.values()
+            c.name: {
+                "score": c.score,
+                "preferences": player_prefs.get(c.name, "")
+            }
+            for c in state.contestants.values()
         }
         await self.connection_manager.broadcast_message(
             "com.sc2ctl.jeopardy.player_list",
-            {"players": players}
+            {"players": players},
+            game_id=game_id
         )
     
-    async def handle_buzz(self, websocket: WebSocket, timestamp: float):
+    async def handle_buzz(self, websocket: WebSocket, timestamp: float, game_id: str):
         """Handle a buzz from a contestant"""
-        websocket_id = str(id(websocket))
-        contestant = self.state.get_contestant_by_websocket(websocket_id)
-        
+        logger.debug(f"handle_buzz called with game_id: {game_id}")
+        game = await self._get_game(game_id)
+        state = game.state
+        logger.debug(f"handle_buzz: game.buzzer_active={game.buzzer_active}")
+
+        # Get client_id from connection manager
+        client_id = self.connection_manager.get_client_id_for_websocket(websocket)
+        logger.debug(f"handle_buzz: client_id from connection_manager: {client_id}")
+        if not client_id:
+            client_id = str(id(websocket))
+            logger.debug(f"handle_buzz: fell back to object id: {client_id}")
+
+        contestant = state.get_contestant_by_websocket(client_id)
+
         if not contestant:
-            logger.warning(f"Contestant not found for websocket {websocket_id}")
+            # Fallback: look up by player_name stored in connection manager
+            player_name = self.connection_manager.get_player_name(client_id)
+            if player_name:
+                contestant = state.get_contestant_by_name(player_name)
+                if contestant:
+                    # Fix the stale key mapping so future lookups work
+                    state.update_contestant_key(player_name, client_id)
+                    logger.info(f"Recovered contestant '{player_name}' via fallback lookup, re-keyed to {client_id}")
+
+        if not contestant:
+            logger.warning(f"Contestant not found for websocket {client_id}")
             return
-        
+
         logger.info(f"Buzz received from {contestant.name} at {timestamp}")
-        
-        if not self.buzzer_active:
+
+        if not game.buzzer_active:
             logger.warning(f"Buzz from {contestant.name} ignored - buzzer not active")
             return
-        
+
+        # Reject buzz from players who already answered incorrectly on this clue
+        buzzer_mgr = self._get_buzzer_manager(game)
+        if contestant.name in buzzer_mgr.incorrect_players:
+            logger.warning(f"Buzz from {contestant.name} rejected - already answered incorrectly")
+            return
+
         logger.info(f"Buzz accepted from {contestant.name}")
-        
+
         # Use the buzzer manager to handle the buzz event
-        await self.buzzer_manager.handle_player_buzz(contestant.name)
-        
+        await self._get_buzzer_manager(game).handle_player_buzz(contestant.name, game_id=game_id)
+
         # Notify all clients of the buzz
         await self.connection_manager.broadcast_message(
             self.BUZZER_TOPIC,
-            {"contestant": contestant.name, "timestamp": timestamp}
+            {"contestant": contestant.name, "timestamp": timestamp},
+            game_id=game_id
         )
-        
-        # Update LLM state for player buzzed in
-        self.llm_state.player_buzzed_in(contestant.name)
-    
-    async def answer_question(self, correct: bool, contestant_name=None):
-        """Handle an answer from a contestant"""
-        if not self.current_question:
-            logger.warning("No current question to answer")
-            return
-            
-        # If no contestant name provided, use the last person to buzz in
-        if not contestant_name:
-            contestant_name = self.last_buzzer
-            
-        if not contestant_name:
-            logger.warning("No contestant to score")
-            return
 
-        logger.info(f"Processing answer from {contestant_name}: {'correct' if correct else 'incorrect'}")
-        
-        score_delta = self.current_question["value"]
-        daily_double = self.current_question.get("daily_double", False)
-            
-        contestant = self.find_contestant(contestant_name)
-        if not contestant:
-            logger.warning(f"Contestant {contestant_name} not found")
-            return
-            
-        # Broadcast the answer result
-        await self.connection_manager.broadcast_message(
-            self.QUESTION_ANSWER_TOPIC,
-            {
-                "contestant": contestant_name,
-                "correct": correct,
-                "value": score_delta,
-                "answer": self.current_question["answer"]
-            }
-        )
-            
-        # Handle correct answer
-        if correct:
-            logger.info(f"Correct answer from {contestant_name}")
-            
-            # Award points
-            contestant.score += score_delta
-            
-            # Use the buzzer manager to handle the correct answer
-            await self.buzzer_manager.handle_correct_answer(contestant_name)
-            
-            # If this was a daily double or all questions have been answered, we're done
-            if daily_double or self.all_questions_answered():
-                await self.dismiss_question()
-            else:
-                # Let the contestant choose the next question
-                await self.connection_manager.broadcast_message(
-                    "com.sc2ctl.jeopardy.select_question",
-                    {"contestant": contestant_name}
-                )
-                
-                # Update LLM state for selecting question
-                self.llm_state.selecting_question(contestant_name)
-            
-            # Broadcast score update
-            await self.send_contestant_scores()
-            
-            # Update LLM state with new score
-            self.llm_state.update_player_score(contestant_name, contestant.score)
-            
-        # Handle incorrect answer
-        else:
-            logger.info(f"Incorrect answer from {contestant_name}")
-            
-            # Deduct points for incorrect answers
-            contestant.score -= score_delta
-            
-            # Use the buzzer manager to handle incorrect answer
-            await self.buzzer_manager.handle_incorrect_answer(contestant_name)
-            
-            # Broadcast score update
-            await self.send_contestant_scores()
-            
-            # Update LLM state with new score
-            self.llm_state.update_player_score(contestant_name, contestant.score)
+        # Update LLM state for player buzzed in
+        game.llm_state.player_buzzed_in(contestant.name)
     
-    async def handle_daily_double_bet(self, contestant: str, bet: int):
-        """Handle a daily double bet from a contestant"""
-        logger.info(f"Daily double bet: {contestant} bets ${bet}")
-        
-        if not self.current_question:
-            logger.warning("No current question for daily double bet")
-            return
-            
-        # Validate bet is within allowed range
-        player = self.find_contestant(contestant)
-        if not player:
-            logger.warning(f"Contestant {contestant} not found")
-            return
-            
-        max_bet = max(1000, player.score)
-        if bet < 5 or bet > max_bet:
-            logger.warning(f"Invalid bet amount: ${bet}. Must be between $5 and ${max_bet}")
-            return
-            
-        # Store bet amount and contestant in current question
-        self.current_question["value"] = bet
-        self.current_question["contestant"] = contestant  # Add contestant to the question object
-        
-        # First send a response to confirm the bet was placed
-        # This is what the frontend is looking for
-        await self.connection_manager.broadcast_message(
-            "com.sc2ctl.jeopardy.daily_double_bet_response",
-            {
-                "question": self.current_question,
-                "bet": bet,
-                "contestant": contestant
-            }
-        )
-        
-        # Then display the question after the bet is confirmed
-        await self.connection_manager.broadcast_message(
-            self.QUESTION_DISPLAY_TOPIC,
-            self.current_question
-        )
-            
-        # For daily doubles, the contestant who selected it automatically gets to answer
-        # So we don't activate the buzzer for everyone
-        self.last_buzzer = contestant
-        
-        # Update LLM state
-        self.llm_state.question_displayed(
-            category=self.current_question["category"],
-            value=bet,
-            question_text=self.current_question["text"]
-        )
-        
-        # After showing the question, the next step is for the player to answer
-        # Update LLM state for awaiting answer
-        self.llm_state.player_buzzed_in(contestant)
+    async def answer_question(self, correct: bool, contestant_name=None, game_id: str = ''):
+        """Delegate to QuestionManager."""
+        game = await self._get_game(game_id)
+        await self._get_question_manager(game).answer_question(correct, contestant_name, game_id)
+
+    async def handle_daily_double_bet(self, contestant: str, bet: int, game_id: str):
+        """Delegate to QuestionManager."""
+        game = await self._get_game(game_id)
+        await self._get_question_manager(game).handle_daily_double_bet(contestant, bet, game_id)
     
-    async def handle_final_jeopardy_request(self, content_type: str):
+    async def handle_final_jeopardy_request(self, content_type: str, game_id: str):
         """Handle a request for final jeopardy content"""
-        clue = self.board.final_jeopardy_state.clue
-        
+        game = await self._get_game(game_id)
+        board = game.board
+        clue = board.final_jeopardy_state.clue
+
         payload = {}
         if content_type == "category":
             payload = {"category": clue.category}
@@ -477,94 +272,98 @@ class GameService:
             payload = {"clue": clue.clue}
         elif content_type == "answer":
             payload = {"answer": clue.answer}
-        
-        await self.connection_manager.broadcast_to_topic(
+
+        await self.connection_manager.broadcast_message(
             self.FINAL_JEOPARDY_TOPIC,
-            {
-                "topic": self.FINAL_JEOPARDY_TOPIC,
-                "payload": payload
-            }
+            payload,
+            game_id=game_id
         )
-    
-    async def handle_final_jeopardy_bet(self, contestant: str, bet: int):
+
+    async def handle_final_jeopardy_bet(self, contestant: str, bet: int, game_id: str):
         """Handle a final jeopardy bet"""
-        self.board.final_jeopardy_state.set_bet(contestant, bet)
-    
-    async def handle_final_jeopardy_answer(self, contestant: str, answer: str):
+        game = await self._get_game(game_id)
+        game.board.final_jeopardy_state.set_bet(contestant, bet)
+
+    async def handle_final_jeopardy_answer(self, contestant: str, answer: str, game_id: str):
         """Handle a final jeopardy answer"""
-        self.board.final_jeopardy_state.set_answer(contestant, answer)
-    
-    async def request_final_jeopardy_bets(self):
+        game = await self._get_game(game_id)
+        game.board.final_jeopardy_state.set_answer(contestant, answer)
+
+    async def request_final_jeopardy_bets(self, game_id: str):
         """Request final jeopardy bets from all contestants"""
-        if not self.board:
+        game = await self._get_game(game_id)
+        board = game.board
+
+        if not board:
             logger.warning("Cannot start Final Jeopardy - no board loaded")
             return
-            
+
         # Get final jeopardy question
-        final_jeopardy = self.board.final_jeopardy_state
-        
+        final_jeopardy = board.final_jeopardy_state
+
         # Send category first
         await self.connection_manager.broadcast_message(
             self.FINAL_JEOPARDY_TOPIC,
-            {"type": "category", "category": final_jeopardy.category}
+            {"type": "category", "category": final_jeopardy.category},
+            game_id=game_id
         )
-        
+
         # Request bets
         await self.connection_manager.broadcast_message(
             self.FINAL_JEOPARDY_TOPIC,
-            {"type": "bet"}
+            {"type": "bet"},
+            game_id=game_id
         )
-        
+
         # For each AI player, update their state to making a wager
-        for contestant in self.board.contestants:
-            # Update LLM state for making wager
-            self.llm_state.making_wager(
+        for contestant in game.state.contestants.values():
+            game.llm_state.making_wager(
                 player_name=contestant.name,
                 wager_type="Final Jeopardy",
                 max_wager=contestant.score
             )
-    
-    async def check_final_jeopardy_bets_after_timeout(self):
+
+    async def check_final_jeopardy_bets_after_timeout(self, game_id: str):
         """Check if all bets are received after timeout"""
         await asyncio.sleep(self.FINAL_JEOPARDY_COLLECTION_TIMEOUT)
-        
-        if not self.board.final_jeopardy_state.has_all_bets():
-            missing = self.board.final_jeopardy_state.get_missing_bets()
-            print(f"Did not receive all final jeopardy bets! Missing: {', '.join(missing)}")
-        
+
+        game = await self._get_game(game_id)
+        if not game.board.final_jeopardy_state.has_all_bets():
+            missing = game.board.final_jeopardy_state.get_missing_bets()
+            logger.warning(f"Did not receive all final jeopardy bets! Missing: {', '.join(missing)}")
+
         # Show clue anyway
-        await self.handle_final_jeopardy_request("clue")
-    
-    async def request_final_jeopardy_answers(self):
+        await self.handle_final_jeopardy_request("clue", game_id)
+
+    async def request_final_jeopardy_answers(self, game_id: str):
         """Request answers from all contestants"""
-        await self.connection_manager.broadcast_to_topic(
+        await self.connection_manager.broadcast_message(
             self.FINAL_JEOPARDY_RESPONSES_TOPIC,
-            {
-                "topic": self.FINAL_JEOPARDY_RESPONSES_TOPIC,
-                "payload": {"content": "answer"}
-            }
+            {"content": "answer"},
+            game_id=game_id
         )
-        
+
         # Start timer to show answer anyway after timeout
-        asyncio.create_task(self.check_final_jeopardy_answers_after_timeout())
-    
-    async def check_final_jeopardy_answers_after_timeout(self):
+        asyncio.create_task(self.check_final_jeopardy_answers_after_timeout(game_id))
+
+    async def check_final_jeopardy_answers_after_timeout(self, game_id: str):
         """Check if all answers are received after timeout"""
         await asyncio.sleep(self.FINAL_JEOPARDY_COLLECTION_TIMEOUT)
-        
-        if not self.board.final_jeopardy_state.has_all_answers():
-            missing = self.board.final_jeopardy_state.get_missing_answers()
-            print(f"Did not receive all final jeopardy answers! Missing: {', '.join(missing)}")
-        
+
+        game = await self._get_game(game_id)
+        if not game.board.final_jeopardy_state.has_all_answers():
+            missing = game.board.final_jeopardy_state.get_missing_answers()
+            logger.warning(f"Did not receive all final jeopardy answers! Missing: {', '.join(missing)}")
+
         # Show answer anyway
-        await self.handle_final_jeopardy_request("answer")
-    
-    async def get_final_jeopardy_response(self, contestant: str):
+        await self.handle_final_jeopardy_request("answer", game_id)
+
+    async def get_final_jeopardy_response(self, contestant: str, game_id: str):
         """Get a contestant's final jeopardy response"""
-        response = self.board.final_jeopardy_state.get_response(contestant)
-        
+        game = await self._get_game(game_id)
+        response = game.board.final_jeopardy_state.get_response(contestant)
+
         if not response:
-            # No answer provided
             payload = {
                 "contestant": contestant,
                 "bet": 0,
@@ -572,186 +371,91 @@ class GameService:
             }
         else:
             payload = response.dict()
-        
-        await self.connection_manager.broadcast_to_topic(
+
+        await self.connection_manager.broadcast_message(
             self.FINAL_JEOPARDY_ANSWER_TOPIC,
-            {
-                "topic": self.FINAL_JEOPARDY_ANSWER_TOPIC,
-                "payload": payload
-            }
+            payload,
+            game_id=game_id
         )
 
-    async def send_game_state(self, websocket: WebSocket):
-        """Send current game state to new connection"""
-        if self.board:
-            await self.connection_manager.send_personal_message(
-                websocket,
-                "com.sc2ctl.jeopardy.board_selected",
-                {"categories": self.board["categories"]}
-            )
-        
-        if self.current_question:
-            await self.connection_manager.send_personal_message(
-                websocket,
-                self.QUESTION_DISPLAY_TOPIC,
-                self.current_question
-            )
-        
-        await self.connection_manager.send_personal_message(
-            websocket,
-            self.BUZZER_STATUS_TOPIC,
-            {"active": self.buzzer_active}
-        )
-
-    def find_contestant(self, name: str):
+    def find_contestant(self, name: str, state):
         """Find a contestant by name"""
-        for contestant_id, contestant in self.state.contestants.items():
+        for contestant_id, contestant in state.contestants.items():
             if contestant.name == name:
                 return contestant
         return None
 
-    def all_questions_answered(self) -> bool:
-        """Check if all questions have been answered"""
-        if not self.board or "categories" not in self.board:
-            return False
-            
-        for category in self.board["categories"]:
-            for question in category["questions"]:
-                if not question.get("used", False):
-                    return False
-        return True
-
-    def mark_audio_completed(self, audio_id: str):
-        """Mark an audio file as having completed playback"""
-        logger.info(f"🔊 Marking audio as completed: {audio_id}")
-        self.completed_audio_ids.add(audio_id)
-        logger.debug(f"Current completed audio IDs: {list(self.completed_audio_ids)[:5]}...")
-        
-        # Clean up old IDs if there are too many (keep last 100)
-        if len(self.completed_audio_ids) > 100:
-            # Convert to list, sort by timestamp part of ID, and keep only most recent 100
-            sorted_ids = sorted(
-                self.completed_audio_ids, 
-                key=lambda x: int(x.split('_')[-1]) if '_' in x and x.split('_')[-1].isdigit() else 0,
-                reverse=True
-            )
-            self.completed_audio_ids = set(sorted_ids[:100])
-        
-        # Use the buzzer manager to handle audio completion
-        asyncio.create_task(self.buzzer_manager.handle_audio_completed(audio_id))
-
-    def check_audio_completed(self, audio_id: str) -> bool:
-        """Check if an audio file has completed playback"""
-        result = audio_id in self.completed_audio_ids
-        logger.debug(f"Checking if audio {audio_id} completed: {result}")
-        return result
-
-    async def handle_audio_completed(self, audio_id: str):
+    async def handle_audio_completed(self, audio_id: str, game_id: str):
         """Handle notification that audio playback has completed"""
+        game = await self._get_game(game_id)
+
         # Mark the audio as completed
-        self.mark_audio_completed(audio_id)
-        
-        # Delegate to buzzer manager to handle logic for buzzer activation
-        await self.buzzer_manager.handle_audio_completed(audio_id)
+        game.mark_audio_completed(audio_id)
 
-    async def startup(self):
-        """Initialize the game service and start background tasks"""
-        logger.info("Starting game service")
-        
-        # Start the AI host service
-        success = await self.ai_host.start()
-        if success:
-            # Pass the WebSocket manager to the AI host
-            self.ai_host.set_websocket_manager(self.connection_manager)
-            # Pass the game service to the AI host
-            self.ai_host.set_game_service(self)
-            # Start the main game loop for the AI host
-            asyncio.create_task(self.ai_host.run())
-            
-            # Set the buzzer manager's dependencies after AI host is initialized
-            self.buzzer_manager.set_dependencies(
-                game_service=self,
-                game_state_manager=self.ai_host.game_state_manager,
-                chat_processor=self.ai_host.chat_processor,
-                audio_manager=self.ai_host.audio_manager
-            )
-            
-            logger.info("AI Host Service started successfully")
-        else:
-            logger.error("Failed to start AI host service")
-        
-        # Return success
-        return True
+        # Delegate to buzzer manager
+        logger.debug(f"Delegating audio_completed to buzzer_manager for game {game.game_code}")
+        await self._get_buzzer_manager(game).handle_audio_completed(audio_id)
 
-    async def handle_chat_message(self, username: str, message: str):
+    async def handle_player_answer(self, contestant: str, answer: str, game_id: str):
+        """Process a player's answer directly, bypassing chat classification."""
+        game = await self._get_game(game_id)
+        ai_host = game.ai_host
+        if ai_host is None:
+            logger.warning("AI host not available, cannot process player answer")
+            return
+        await ai_host.chat_processor.process_player_answer(contestant, answer)
+
+    async def handle_chat_message(self, username: str, message: str, game_id: str):
         """
         Handle a chat message from a player and forward it to the AI host.
-        
+
         Args:
             username: The player's username
             message: The chat message content
+            game_id: Game ID for multi-game support
         """
         logger.info(f"Chat message from {username}: {message}")
-        
-        # Store chat messages for preferences directly if we're in the initial game phase
-        if not self.game_ready and hasattr(self, 'ai_host') and hasattr(self.ai_host, 'game_state_manager'):
-            # This is a direct backup to ensure messages are collected
-            logger.info(f"Directly storing chat message for preferences: {username}: {message}")
-            self.ai_host.game_state_manager.recent_chat_messages.append({
+
+        game = await self._get_game(game_id)
+        ai_host = game.ai_host
+
+        if ai_host is None:
+            logger.warning("AI host not available, cannot process chat message")
+            return
+
+        # Store chat messages for preferences if in initial game phase
+        if not game.game_ready and hasattr(ai_host, 'game_state_manager'):
+            logger.debug(f"Directly storing chat message for preferences: {username}: {message}")
+            ai_host.game_state_manager.recent_chat_messages.append({
                 "username": username,
                 "message": message
             })
-        
+
         # Forward to AI host for processing
-        if hasattr(self, 'ai_host'):
-            await self.ai_host.process_chat_message(username, message)
-        else:
-            logger.warning("AI host not available, cannot process chat message")
+        await ai_host.process_chat_message(username, message)
 
-    async def dismiss_current_question(self):
-        """Dismiss the current question and notify all clients"""
-        if self.current_question:
-            # Mark the question as used
-            category = self.current_question["category"]
-            value = self.current_question["value"]
-            
-            # Find and mark the question as used
-            for cat in self.board.categories:
-                if cat.name == category:
-                    for question in cat.questions:
-                        if question.value == value:
-                            question.used = True
-                            break
-        
-        # Call our main dismiss_question method to handle the rest
-        await self.dismiss_question()
-
-    async def send_buzzer_status(self):
-        """Send current buzzer status to all clients"""
-        await self.connection_manager.broadcast_message(
-            self.BUZZER_STATUS_TOPIC,
-            {"active": self.buzzer_active}
-        )
-
-    async def send_contestant_scores(self):
+    async def send_contestant_scores(self, game_id: str):
         """Send current contestant scores to all clients"""
+        game = await self._get_game(game_id)
         scores = {
-            contestant.name: contestant.score 
-            for contestant in self.state.contestants.values()
+            contestant.name: contestant.score
+            for contestant in game.state.contestants.values()
         }
         await self.connection_manager.broadcast_message(
             self.CONTESTANT_SCORE_TOPIC,
-            {"scores": scores}
+            {"scores": scores},
+            game_id=game_id
         )
 
-    async def play_audio(self, audio_url: str, wait_for_completion: bool = True, audio_id: str = None):
+    async def play_audio(self, audio_url: str, wait_for_completion: bool = True, audio_id: str = None, game_id: str = ''):
         """
-        Play audio on all connected clients
-        
+        Play audio on connected clients
+
         Args:
             audio_url: The URL of the audio file to play
             wait_for_completion: Whether to send a completion event when audio finishes
             audio_id: Optional unique ID for this audio playback
+            game_id: Optional game ID to scope broadcast to specific game
         """
         # If no audio_id provided, try to extract it from the filename
         if not audio_id:
@@ -763,19 +467,17 @@ class GameService:
             else:
                 # Fallback to generating a new ID
                 audio_id = f"audio_{int(time.time() * 1000)}"
-        
-        logger.info(f"🔊 Broadcasting audio playback: {audio_url} (ID: {audio_id}, wait: {wait_for_completion})")
-        
-        # Support both message formats - keep as 'url' for backward compatibility with existing UI code
-        # but also include as audio_url for newer code
+
+        logger.debug(f"Broadcasting audio playback: {audio_url} (ID: {audio_id})")
+
         await self.connection_manager.broadcast_message(
             self.AUDIO_PLAY_TOPIC,
             {
-                "url": audio_url,  # For backward compatibility
-                "audio_url": audio_url,  # For newer code
+                "audio_url": audio_url,
                 "audio_id": audio_id,
                 "wait_for_completion": wait_for_completion
-            }
+            },
+            game_id=game_id
         )
-        
+
         return audio_id 

@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "The Art of Renaissance",
+      "questions": [
+        {
+          "clue": "This painting by Leonardo da Vinci, celebrated for its enigmatic expression, is housed in the Louvre Museum.",
+          "answer": "Mona Lisa",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This artist sculpted the iconic marble statue of David before the age of 30.",
+          "answer": "Michelangelo",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This publishing innovation, perfected by Johannes Gutenberg in the 15th century, revolutionized art and literature in the Renaissance.",
+          "answer": "Printing press",
+          "value": 600,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "This technique, known for its use of light and shadow to give the illusion of depth, was perfected during the Renaissance.",
+          "answer": "Chiaroscuro",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Giorgio Vasari's book, considered the first art history publication, details the lives of key Renaissance artists.",
+          "answer": "Lives of the Most Excellent Painters, Sculptors, and Architects",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Innovation in Technology",
+      "questions": [
+        {
+          "clue": "This technology revolutionized the way we communicate wirelessly in 2007 with the release of Apple's iPhone.",
+          "answer": "Smartphone",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This invention, introduced by Sony in the late 1970s, allowed people to listen to music on the go for the first time.",
+          "answer": "Walkman",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1990, this programming language was developed with the goal of enabling the creation of new applications for the growing World Wide Web.",
+          "answer": "HTML",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Used to power electric vehicles, this type of battery offers high energy density and was commercialized by Sony in 1991.",
+          "answer": "Lithium-ion battery",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This cloud computing model enables on-demand delivery of IT resources and applications via the internet with a pay-as-you-go pricing.",
+          "answer": "Infrastructure as a Service (IaaS)",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "World Capitals and History",
+      "questions": [
+        {
+          "clue": "This city has been the capital of France since the 10th century.",
+          "answer": "What is Paris?",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1790, this city became the capital of the United States.",
+          "answer": "What is Washington, D.C.?",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Originally built by the Aztecs, this city became the capital of New Spain in the 16th century.",
+          "answer": "What is Mexico City?",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The capital of this island nation, Colombo, was replaced by Sri Jayawardenepura Kotte as the official capital in the 1980s.",
+          "answer": "What is Sri Lanka?",
+          "value": 800,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "In 1960, this Brazilian city was inaugurated as the country's capital, replacing Rio de Janeiro.",
+          "answer": "What is Bras\u00edlia?",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Culinary Delights: Global Cuisine",
+      "questions": [
+        {
+          "clue": "Often served with soy sauce, this popular Japanese dish includes vinegared rice and seafood or vegetables.",
+          "answer": "Sushi",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Italian dish made from thinly rolled dough, topped with tomato sauce and cheese, is often baked until the cheese is bubbly.",
+          "answer": "Pizza",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Originating in India, this dish involves marinated meat cooked on a skewer over a grill.",
+          "answer": "Tandoori",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "A traditional Korean side dish consisting of fermented vegetables, most commonly napa cabbage and Korean radishes.",
+          "answer": "Kimchi",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This French delicacy made from snails, typically cooked with garlic, parsley, and butter, is known as a starter in upscale dining.",
+          "answer": "Escargot",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Mythology Across Cultures",
+      "questions": [
+        {
+          "clue": "In Greek mythology, Zeus is the king of the gods and rules over this mountain.",
+          "answer": "Mount Olympus",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Thor is a hammer-wielding god associated with thunder in this mythology.",
+          "answer": "Norse mythology",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In Hindu mythology, this god is known as the preserver and protector of the universe.",
+          "answer": "Vishnu",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Anansi is a trickster figure often depicted as a spider in the folklore of this African culture.",
+          "answer": "Akan",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In Aztec mythology, this god is often depicted as a feathered serpent.",
+          "answer": "Quetzalcoatl",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Ancient Civilizations",
+    "clue": "This civilization, spanning roughly 3,000 years, developed a writing system known as cuneiform and is credited with the creation of one of the world's first recorded law codes.",
+    "answer": "What is Mesopotamia?"
+  }
+}

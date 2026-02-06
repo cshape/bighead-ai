@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Literary Theories in Pop Culture",
+      "questions": [
+        {
+          "clue": "This literary theory focuses on the interplay of power and class within 'The Hunger Games' series.",
+          "answer": "Marxist Criticism",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 'The Matrix', this theory questions the nature of reality and perception.",
+          "answer": "Postmodernism",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Feminist theory can be used to analyze the representation of women in this iconic 1995 film featuring Cher Horowitz.",
+          "answer": "Clueless",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Deconstruction is applied to understand the layered meanings and binaries in 'Blade Runner'.",
+          "answer": "Deconstructive Criticism",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In watching 'Get Out', this theory can be used to examine how racial identity and microaggressions are portrayed.",
+          "answer": "Critical Race Theory",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Unbelievable Inventions Throughout History",
+      "questions": [
+        {
+          "clue": "This animated children\u2019s toy, invented by Richard James in the 1940s, can 'walk' down stairs.",
+          "answer": "Slinky",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Patented in 1876, this invention by Alexander Graham Bell transformed long-distance communication.",
+          "answer": "Telephone",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This adhesive substance, which creates a removable bond on paper, was accidentally invented in 1968 by Spencer Silver.",
+          "answer": "Post-it Note adhesive",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1853, this food item was created by George Crum in response to a customer complaint about thick fries.",
+          "answer": "Potato chips",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1938, Roy Plunkett discovered this polymer, later branded as Teflon, while trying to make a new refrigerant.",
+          "answer": "Polytetrafluoroethylene",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Ecosystems of the World",
+      "questions": [
+        {
+          "clue": "The Amazon Rainforest, known for its biodiversity, is mostly in this South American country.",
+          "answer": "Brazil",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This type of grassland ecosystem, found in North America, supports a range of wildlife including bison and prairie dogs.",
+          "answer": "Prairie",
+          "value": 400,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "Coral reefs are underwater ecosystems primarily constructed of calcium carbonate secreted by these marine animals.",
+          "answer": "Coral polyps",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Taiga, also known as boreal forest, is a biome characterized by coniferous forests and is mainly found in these two countries.",
+          "answer": "Russia and Canada",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The Serengeti ecosystem, famous for its annual migration of over 1.5 million wildebeest, is located here.",
+          "answer": "Tanzania and Kenya",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Mathematical Patterns and Sequences",
+      "questions": [
+        {
+          "clue": "This pattern starts with 0, 1 and generates the next number by summing the previous two.",
+          "answer": "Fibonacci sequence",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Increase any number by 2, repeatedly, to form this arithmetic pattern.",
+          "answer": "Even numbers",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In this triangular sequence, the nth term equals n(n+1)/2.",
+          "answer": "Triangular numbers",
+          "value": 600,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "This sequence of numbers, starting with 1, rises by repeatedly multiplying the previous number by 2.",
+          "answer": "Powers of two",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This sequence is defined where each term is the sum of its digits cubed.",
+          "answer": "Armstrong numbers",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Global Music Traditions",
+      "questions": [
+        {
+          "clue": "This stringed instrument, often associated with Spanish flamenco, has six strings and is played with fingers or a pick.",
+          "answer": "Guitar",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This traditional Japanese music ensemble features instruments such as the shamisen, shakuhachi, and koto.",
+          "answer": "Gagaku",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Originating from Brazil, this dance and music form combines elements of samba with pop, rock, and funk influences.",
+          "answer": "Samba",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In India, this type of classical music tradition consists of two major forms: Hindustani from the north and Carnatic from the south.",
+          "answer": "Indian Classical Music",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This traditional throat-singing style, originating among the ethnic groups of Tuva and Mongolia, emphasizes harmonic overtones.",
+          "answer": "Khoomei",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Explorers of the World",
+    "clue": "In 1513, he became the first European to set eyes on the Pacific Ocean from the Americas, naming it 'Mar del Sur', or 'Southern Sea'.",
+    "answer": "Who is Vasco N\u00fa\u00f1ez de Balboa?"
+  }
+}

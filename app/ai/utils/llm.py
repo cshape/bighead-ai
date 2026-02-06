@@ -1,4 +1,6 @@
 import os
+import json
+import asyncio
 from typing import Dict, List, Optional, Union
 import aiohttp
 import base64
@@ -60,72 +62,80 @@ class LLMClient:
             Generated response text
         """
         cfg = config or self.config
+        max_retries = 3
+        last_exception = None
 
-        try:
-            # Prepare the request payload
-            payload = {
-                "serving_id": {
-                    "user_id": "user-test",
-                    "model_id": {
-                        "model": cfg.model,
-                        "service_provider": "SERVICE_PROVIDER_OPENAI"
+        for attempt in range(max_retries):
+            try:
+                # Prepare the request payload
+                payload = {
+                    "serving_id": {
+                        "user_id": "user-test",
+                        "model_id": {
+                            "model": cfg.model,
+                            "service_provider": "SERVICE_PROVIDER_OPENAI"
+                        }
+                    },
+                    "messages": self._convert_messages(messages),
+                    "text_generation_config": {
+                        "max_tokens": cfg.max_tokens,
+                        "stream": False
                     }
-                },
-                "messages": self._convert_messages(messages),
-                "text_generation_config": {
-                    "max_tokens": cfg.max_tokens,
-                    "stream": False
                 }
-            }
 
-            # Add response format if specified
-            if cfg.response_format:
-                payload["response_format"] = "RESPONSE_FORMAT_JSON"
-                logger.info("Requesting JSON response format")
+                # Add response format if specified
+                if cfg.response_format:
+                    payload["response_format"] = "RESPONSE_FORMAT_JSON"
+                    logger.debug("Requesting JSON response format")
 
-            logger.info(f"Sending request to Inworld API with payload: {payload}")
+                logger.debug(f"Sending request to Inworld API with payload: {payload}")
 
-            # Make the API request
-            async with aiohttp.ClientSession() as session:
-                headers = {
-                    "Authorization": f"Basic {self.api_key}",
-                    "Content-Type": "application/json"
-                }
-                
-                async with session.post(self.base_url, json=payload, headers=headers) as response:
-                    if response.status != 200:
-                        error_text = await response.text()
-                        logger.error(f"Inworld API error response: {error_text}")
-                        raise Exception(f"Inworld API error: {error_text}")
-                    
-                    result = await response.json()
-                    logger.info(f"Raw Inworld API response: {result}")
-                    
-                    # Extract response text from the nested structure
-                    try:
+                # Make the API request
+                async with aiohttp.ClientSession() as session:
+                    headers = {
+                        "Authorization": f"Basic {self.api_key}",
+                        "Content-Type": "application/json"
+                    }
+
+                    async with session.post(self.base_url, json=payload, headers=headers) as response:
+                        if response.status != 200:
+                            error_text = await response.text()
+                            # Retry on 5xx or 429; raise immediately on other 4xx
+                            if response.status >= 500 or response.status == 429:
+                                raise aiohttp.ClientResponseError(
+                                    response.request_info, response.history,
+                                    status=response.status, message=error_text
+                                )
+                            logger.error(f"Inworld API error response: {error_text}")
+                            raise Exception(f"Inworld API error: {error_text}")
+
+                        result = await response.json()
+                        logger.debug(f"Raw Inworld API response: {result}")
+
+                        # Extract response text from the nested structure
                         response_text = result["result"]["choices"][0]["message"]["content"]
-                        logger.info(f"Extracted response text: {response_text}")
-                    except (KeyError, IndexError) as e:
-                        logger.error(f"Failed to extract response text from structure: {result}")
-                        logger.error(f"Error details: {str(e)}")
-                        raise Exception("Failed to extract response text from Inworld API response")
-                    
-                    # If JSON format was requested, try to parse the response
-                    if cfg.response_format:
-                        try:
-                            import json
-                            json.loads(response_text)
-                            logger.info("Successfully validated response as JSON")
-                        except json.JSONDecodeError as e:
-                            logger.error(f"Response is not valid JSON: {response_text}")
-                            logger.error(f"JSON parse error: {str(e)}")
-                            raise
-                    
-                    return response_text
+                        logger.debug(f"Extracted response text: {response_text}")
 
-        except Exception as e:
-            logger.error(f"Error in chat_completion: {str(e)}", exc_info=True)
-            raise Exception(f"Error calling Inworld API: {str(e)}")
+                        # If JSON format was requested, validate the response
+                        if cfg.response_format:
+                            json.loads(response_text)
+                            logger.debug("Successfully validated response as JSON")
+
+                        return response_text
+
+            except (json.JSONDecodeError, aiohttp.ClientError, asyncio.TimeoutError) as e:
+                last_exception = e
+                if attempt < max_retries - 1:
+                    delay = 2 ** attempt  # 1s, 2s
+                    logger.warning(f"LLM request failed (attempt {attempt + 1}/{max_retries}): {e}. Retrying in {delay}s...")
+                    await asyncio.sleep(delay)
+                    continue
+                logger.error(f"LLM request failed after {max_retries} attempts: {e}", exc_info=True)
+                raise Exception(f"Error calling Inworld API: {e}")
+
+            except Exception as e:
+                logger.error(f"Error in chat_completion: {e}", exc_info=True)
+                raise Exception(f"Error calling Inworld API: {e}")
 
     async def chat_with_prompt(
         self,

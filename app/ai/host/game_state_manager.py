@@ -17,10 +17,10 @@ class GameStateManager:
         self.game_state = GameState()
         # Set the expected player count to 3 to trigger welcome once all players have joined
         self.game_state.expected_player_count = 3
-        
-        # Track if buzzer is active for current question
+
+        # Last-known buzzer state (used for change detection in game_flow_manager)
         self.buzzer_active = False
-        
+
         # Track when buzzer was activated to calculate timeout properly
         self.buzzer_activation_time = None
         

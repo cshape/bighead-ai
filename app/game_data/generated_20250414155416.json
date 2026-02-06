@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Watery Wonders of Canada",
+      "questions": [
+        {
+          "clue": "This large Canadian lake shares its name with a popular winter sport often played on its frozen surface.",
+          "answer": "Lake Hockey",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "While not located in Russia, this famous Canadian waterfall was named after a city in Russia.",
+          "answer": "Niagara Falls",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The waters of this Quebec river might not be used for baptisms, but it shares names with a traditional role in one.",
+          "answer": "St. Lawrence River",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Located in Alberta, this turquoise lake is known for its stunning color and is often captured in audio guide tours of the Canadian Rockies.",
+          "answer": "Lake Louise",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This largest reservoir in Canada, named after a musical instrument, helps power Alberta\u2019s energy grid and features frozen conditions for much of the winter.",
+          "answer": "Lake Athabasca",
+          "value": 1000,
+          "daily_double": true,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Melodies Through Time: Audio Masterpieces",
+      "questions": [
+        {
+          "clue": "This waterway, shared between Canada and the U.S., is highlighted in the Canadian national anthem and holds significant musical inspiration.",
+          "answer": "St. Lawrence River",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Russian composer created the 1812 Overture, featuring cannon fire that can be challenging to replicate accurately in audio recordings.",
+          "answer": "Pyotr Ilyich Tchaikovsky",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Italian term describes a vocal piece with a smooth melody and is a popular format for classical music recordings.",
+          "answer": "Aria",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Composed by Russian Igor Stravinsky, this ballet score caused a riot at its premiere but later became a staple of 20th-century music.",
+          "answer": "The Rite of Spring",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This versatile French water instrument can mimic the sound of rushing water and has been used in symphonies for Impressionistic effects.",
+          "answer": "Synthesizer (Water instrument)",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Cookie Cutter History: The Science of Baking",
+      "questions": [
+        {
+          "clue": "When water is added to flour, gluten forms, giving this baked good its chewy texture.",
+          "answer": "bread",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In baking, this ingredient acts as a leavening agent, causing dough to rise through the production of carbon dioxide gas.",
+          "answer": "yeast",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "A history of Russian tea biscuits showcases how baking traditions traveled with immigrants to this Canadian province known for its sweet butter tarts.",
+          "answer": "Ontario",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Baking relies on understanding the states of water; this process of turning from liquid to gas helps lighten cakes and muffins.",
+          "answer": "evaporation",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Named for a territory of Canada, this frosted layer cake has two types of chocolate and was made famous by a recipe contest in Toronto in 1903.",
+          "answer": "Saskatoon Berry Cake",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Rugged Rugby: Beyond the Scrum",
+      "questions": [
+        {
+          "clue": "For $200: In rugby, this is the term for the ability to move quickly with the ball after receiving a pass.",
+          "answer": "Running",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $400: Often known for their scrums, this country is famous for its All Blacks team known for the haka.",
+          "answer": "New Zealand",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $600: Like a scrum, but lineouts are an alternative for restarting play, typically taking this form.",
+          "answer": "Throw-in",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $800: This Canadian city hosted the annual Canada Sevens rugby tournament, part of a global series.",
+          "answer": "Vancouver",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $1000: Known for the standard duration, each half of a rugby union match typically lasts for this many minutes.",
+          "answer": "40 minutes",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Frozen, Liquid, and Gas: The States of Water",
+      "questions": [
+        {
+          "clue": "In rugby, the term 'scrum' can be heard in the field, but on a rink, this happens when the liquid state turns solid.",
+          "answer": "freezing",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Canada's Great Lakes contain most of the world's fresh liquid water; name the largest.",
+          "answer": "Lake Superior",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Russian lake, the deepest in the world, represents water in its liquid state and holds about 20% of the world's unfrozen surface fresh water.",
+          "answer": "Lake Baikal",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In music, this state change occurs when the ice on the 'Glass Tiger's water' turns into a gas during a certain temperature rise.",
+          "answer": "sublimation",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For the perfect souffl\u00e9, oven heat causes water in the batter to change into this gaseous state, creating air pockets.",
+          "answer": "steam",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Canadian Bodies of Water",
+    "clue": "At 540 miles long and holding more fresh water than any other lake in Canada, it shares its name with a province.",
+    "answer": "What is Lake Manitoba?"
+  }
+}

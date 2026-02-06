@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Architectural Wonders Across the Ages",
+      "questions": [
+        {
+          "clue": "This giant ring-shaped colosseum in the middle of Rome was designed to seat up to 50,000 spectators.",
+          "answer": "Colosseum",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Built as a tomb for Pharaoh Khufu, it's the largest of the famous Pyramids located in Giza, Egypt.",
+          "answer": "Great Pyramid of Giza",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This famous Islamic palace in Granada, Spain, exemplifies Moorish architecture from the 13th century.",
+          "answer": "Alhambra",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Parisian icon, completed in 1889, was originally criticized for its design but is now a symbol of France.",
+          "answer": "Eiffel Tower",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "An Inca citadel set high in the Andes Mountains in Peru, renowned for its sophisticated dry-stone construction.",
+          "answer": "Machu Picchu",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Famous Felines in Literature and Film",
+      "questions": [
+        {
+          "clue": "This striped feline from 'Alice's Adventures in Wonderland' is known for its wide grin.",
+          "answer": "Cheshire Cat",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 'The Lion King', this young lion cub sings 'I Just Can't Wait to Be King'.",
+          "answer": "Simba",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This lazy orange tabby from Jim Davis's comic strip loves lasagna.",
+          "answer": "Garfield",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 'The Chronicles of Narnia', this great lion is a metaphor for Christ.",
+          "answer": "Aslan",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This picnic-loving tiger is the imaginary friend of a boy named Calvin.",
+          "answer": "Hobbes",
+          "value": 1000,
+          "daily_double": true,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Culinary Chemistry: The Science of Cooking",
+      "questions": [
+        {
+          "clue": "This process involves heating food in water vapor above 100\u00b0C, often using a specialized appliance.",
+          "answer": "Steaming",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This compound, found in both baking soda and baking powder, causes dough to rise by producing carbon dioxide.",
+          "answer": "Sodium bicarbonate",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This French term describes the reaction between amino acids and sugars at high temperatures, leading to a browned color and complex flavors in foods.",
+          "answer": "Maillard reaction",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Emulsification is the process of combining two substances that typically don't mix, such as these two ingredients in mayonnaise.",
+          "answer": "Oil and water",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This acidic technique, which uses a combination of vinegar, sugar, and spices, is employed for preserving foods by lowering their pH.",
+          "answer": "Pickling",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Historic Innovations in Transportation",
+      "questions": [
+        {
+          "clue": "This 1908 vehicle from Ford became the first mass-produced car, making automobiles affordable for average Americans.",
+          "answer": "Model T",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Completed in 1869, this U.S. railroad linked the east and west coasts, transforming American transport and commerce.",
+          "answer": "Transcontinental Railroad",
+          "value": 400,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "This 1957 Soviet satellite, the first to orbit Earth, marked the start of the space race.",
+          "answer": "Sputnik",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This early 20th-century German airship was famously destroyed in a 1937 disaster over Lakehurst, New Jersey.",
+          "answer": "Hindenburg",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Invented by Frank Whittle, this mechanical device revolutionized jet propulsion and air travel in the mid-20th century.",
+          "answer": "Jet engine",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Global Festivals and Traditions",
+      "questions": [
+        {
+          "clue": "This annual festival in Munich, Germany, is famous for its beer tents and traditional Bavarian attire.",
+          "answer": "Oktoberfest",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "People from many cultures light fireworks and lamps during this Indian festival celebrating the victory of light over darkness.",
+          "answer": "Diwali",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In this Spanish festival, locals and visitors throw tomatoes at each other, creating a red-splattered spectacle.",
+          "answer": "La Tomatina",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This famous Brazilian festival features samba parades, vibrant costumes, and takes place before Lent.",
+          "answer": "Carnival",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In Japan, this festival featuring elaborate floats celebrates the Gion deity and has been held annually in Kyoto for over a millennium.",
+          "answer": "Gion Matsuri",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "World Literature",
+    "clue": "In 1847, critics considered this English novel \"coarse\" and \"brutal\"; its author's identity was concealed under the pseudonym \"Currer Bell.\"",
+    "answer": "What is 'Jane Eyre'?"
+  }
+}

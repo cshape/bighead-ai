@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Historical Innovations",
+      "questions": [
+        {
+          "clue": "This invention by Johannes Gutenberg in the 15th century revolutionized the way books were produced and distributed.",
+          "answer": "Printing press",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Developed in 1876 by Alexander Graham Bell, this device was the first to enable voice communication over distances.",
+          "answer": "Telephone",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Credited to Eli Whitney, this 1793 invention had a major impact on the cotton industry and slavery in the United States.",
+          "answer": "Cotton gin",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This ancient Greek engineer is said to have created a steam-powered device known as an 'aeolipile', demonstrating the potential for steam propulsion.",
+          "answer": "Hero of Alexandria",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This revolutionary 1969 innovation, developed by the U.S. Department of Defense, was the precursor to the internet.",
+          "answer": "ARPANET",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "World Festivals",
+      "questions": [
+        {
+          "clue": "This famous festival on the first of March in Venice, Italy is renowned for its elaborate masks.",
+          "answer": "Carnival of Venice",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In India's Tamil Nadu, this harvest festival is celebrated in January with cattle races.",
+          "answer": "Pongal",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Every July, Pamplona, Spain is famous for hosting the Running of the Bulls during this festival.",
+          "answer": "San Ferm\u00edn",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In Rio de Janeiro, this samba-filled event is known as the world's largest carnival.",
+          "answer": "Rio Carnival",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Observing the end of Ramadan, this Islamic festival varies by country but is marked by prayer and feasting.",
+          "answer": "Eid al-Fitr",
+          "value": 1000,
+          "daily_double": true,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Classic Literature Characters",
+      "questions": [
+        {
+          "clue": "This 'Great Expectations' character was raised by a blacksmith and went on to become a gentleman.",
+          "answer": "Pip",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 'Moby-Dick', this captain's obsession with the white whale leads to tragic consequences.",
+          "answer": "Captain Ahab",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This character from 'Pride and Prejudice' is known for her wit and is the second eldest of the Bennet sisters.",
+          "answer": "Elizabeth Bennet",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 'Crime and Punishment', this impoverished student commits a murder leading to his moral and mental downfall.",
+          "answer": "Rodion Raskolnikov",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This character in 'The Brothers Karamazov' represents the radical intellectual and skeptic among the Karamazov brothers.",
+          "answer": "Ivan Karamazov",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Quantum Physics Simplified",
+      "questions": [
+        {
+          "clue": "At the heart of quantum mechanics is this principle, stating that certain pairs of properties cannot both be known to arbitrary precision.",
+          "answer": "Heisenberg Uncertainty Principle",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "A fundamental aspect of quantum theory, this phenomenon shows particles existing in multiple states until measured.",
+          "answer": "Quantum Superposition",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "These hypothetical one-dimensional objects are believed to be the fundamental building blocks in theories beyond quantum physics.",
+          "answer": "Strings in String Theory",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The paradox of a cat that is simultaneously alive and dead is named after this physicist.",
+          "answer": "Erwin Schr\u00f6dinger",
+          "value": 800,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "This thought experiment by Einstein, Podolsky, and Rosen highlighted the 'spooky action at a distance' seen in quantum entanglement.",
+          "answer": "EPR Paradox",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Art Movements of the 20th Century",
+      "questions": [
+        {
+          "clue": "This early 20th-century movement, led by Pablo Picasso and Georges Braque, involved breaking objects into geometric shapes.",
+          "answer": "Cubism",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Known for its use of vibrant colors and expressive brushstrokes, this movement began with artists like Henri Matisse around 1905.",
+          "answer": "Fauvism",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Associated with abstract art and non-representational forms, this movement originated with Russian artist Kazimir Malevich around 1915.",
+          "answer": "Suprematism",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Founded by the architect Walter Gropius in Weimar in 1919, this German art school became famous for its approach to combining fine arts and crafts.",
+          "answer": "Bauhaus",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This avant-garde movement, founded by Andr\u00e9 Breton, sought to release the creative potential of the unconscious mind.",
+          "answer": "Surrealism",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Historical Inventions",
+    "clue": "This device, patented in 1876, was described as 'an improvement in telegraphy' and its inventor famously called out 'Mr. Watson, come here, I want to see you.'",
+    "answer": "What is the telephone?"
+  }
+}

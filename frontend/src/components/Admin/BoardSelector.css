@@ -12,13 +12,13 @@
 
 .board-option {
   padding: 1rem;
-  background: #00008b;
-  color: #ffd700;
-  border: none;
+  background: #3E3328;
+  color: #D4C5A9;
+  border: 1px solid #5C4833;
   cursor: pointer;
   font-size: 1.1rem;
 }
 
 .board-option:hover {
-  background: #000080;
-} 
+  background: #4A3F30;
+}

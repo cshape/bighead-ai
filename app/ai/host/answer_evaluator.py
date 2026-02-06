@@ -3,6 +3,7 @@ Answer evaluation for Jeopardy questions
 """
 
 import logging
+import os
 import re
 from typing import Dict, Any, Optional
 
@@ -21,20 +22,31 @@ class AnswerEvaluator:
             response_format={"type": "json_object"}
         )
     
-    async def evaluate_answer(self, expected_answer: str, player_answer: str, 
+    async def evaluate_answer(self, expected_answer: str, player_answer: str,
                             include_explanation: bool = False) -> Dict[str, Any]:
         """
         Use LLM to evaluate if the player's answer is correct.
-        
+
         Args:
             expected_answer: The correct answer from the board
             player_answer: The player's submitted answer
             include_explanation: Whether to include explanation in response
-            
+
         Returns:
             Dictionary with evaluation results: {'is_correct': bool, 'explanation': str}
         """
         logger.info(f"Evaluating answer: '{player_answer}' against correct answer: '{expected_answer}'")
+
+        # TEST_MODE: simple string matching instead of LLM
+        if os.environ.get("TEST_MODE"):
+            # Strip HTML tags from expected answer
+            clean_expected = re.sub(r'<[^>]+>', '', expected_answer).strip().lower()
+            # Strip "what is", "who is" etc. prefixes from player answer
+            clean_player = re.sub(r'^(what|who|where|when)\s+(is|are|was|were)\s+', '', player_answer.strip().lower())
+            clean_player = clean_player.strip('? ')
+            is_correct = clean_player in clean_expected or clean_expected in clean_player
+            logger.info(f"TEST_MODE: '{clean_player}' vs '{clean_expected}' = {is_correct}")
+            return {"is_correct": is_correct, "explanation": "Test mode"}
         
         try:
             # Use template-based approach for the prompt
@@ -83,7 +95,7 @@ class AnswerEvaluator:
             responses = [
                 f"That's correct, {player_name}! You have control of the board.",
                 f"Yes, {player_name}, that's right! You now have control of the board.",
-                f"Correct, {player_name}! You get to select the next clue.",
+                f"Correct, {player_name}! You have control of the board!",
                 f"Well done, {player_name}! The board is yours."
             ]
         else:

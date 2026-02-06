@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Japanese Culinary Arts",
+      "questions": [
+        {
+          "clue": "This popular Japanese dish consists of vinegar-flavored rice combined with seafood, vegetables, and sometimes tropical fruits.",
+          "answer": "What is sushi?",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Commonly served as a warm bowl meal, this Japanese dish's name translates to 'pull noodles'.",
+          "answer": "What is udon?",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In Japanese cuisine, 'dashi' is a type of broth essential as a base for soups and stews, often made from dried kelp and this fish.",
+          "answer": "What is bonito?",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Fermented soybeans, known in Japan as this, are known for their powerful smell, sticky texture, and healthy probiotic benefits.",
+          "answer": "What is natto?",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Japanese culinary practice involves grilling skewers of ingredients over charcoal, traditionally paired with sauces ranging from salty to sweet.",
+          "answer": "What is yakitori?",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Literary Landmarks",
+      "questions": [
+        {
+          "clue": "Known for its exquisite gardens, this Japanese city inspired settings in numerous Haruki Murakami novels.",
+          "answer": "Kyoto",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "A pivotal scene in Kazuo Ishiguro's 'Never Let Me Go' takes place in this fictional English boarding school.",
+          "answer": "Hailsham",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The novel 'Memoirs of a Geisha' is set in this historic district in Kyoto, known for its Geisha culture.",
+          "answer": "Gion",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Nobel laureate's novel, 'The Old Capital,' prominently features the city of Kyoto, highlighting its cultural heritage.",
+          "answer": "Yasunari Kawabata",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 'The Sound of Waves,' Yukio Mishima sets his story on Uta-jima, which is based on this real-life island in Mie Prefecture.",
+          "answer": "Kakkan-jima",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Innovations in Technology",
+      "questions": [
+        {
+          "clue": "For 200 points: This Japanese electronics company introduced the first commercially successful Walkman in 1979, revolutionizing personal music consumption.",
+          "answer": "Sony",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 400 points: In 1996, this Japanese automobile manufacturer introduced the Prius, the world's first mass-produced hybrid car.",
+          "answer": "Toyota",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 600 points: Released in 2008, this Japanese gaming giant's Wii Fit employed a balance board to combine fitness and video gaming.",
+          "answer": "Nintendo",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 800 points: Known for its high-speed trains, this revolutionary rail network in Japan, first introduced in 1964, is the world's first bullet train service.",
+          "answer": "Shinkansen",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 1000 points: In Japan, this humanoid robot created in 2000 was one of the first to walk independently and is considered a milestone in robotics.",
+          "answer": "ASIMO",
+          "value": 1000,
+          "daily_double": true,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Mythical Creatures & Legends",
+      "questions": [
+        {
+          "clue": "This mythical one-horned horse is often associated with purity and grace.",
+          "answer": "Unicorn",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In Japanese folklore, this fox spirit is known for its intelligence and magical shape-shifting abilities.",
+          "answer": "Kitsune",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This serpent-like sea creature is said to inhabit the waters of Scotland's Loch Ness.",
+          "answer": "Loch Ness Monster",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Known for their incredible craftsmanship, these creatures from Norse mythology are famed for creating Thor's hammer.",
+          "answer": "Dwarves",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In Japanese mythology, this giant, often winged, bird is said to have once inadvertently protected a city by fiercely defending its territory.",
+          "answer": "Tengu",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "World Dance Forms",
+      "questions": [
+        {
+          "clue": "This traditional Japanese form of theater uses dance, drama, and elaborate makeup to portray historical plays.",
+          "answer": "Kabuki",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Originating from Argentina, this partner dance is characterized by its passionate movements and dramatic style.",
+          "answer": "Tango",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Known for its graceful movements, this classical dance form from southern India uses intricate footwork and hand gestures to tell a story.",
+          "answer": "Bharatanatyam",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Often performed with kimonos and fans, this traditional Japanese dance mimics movements found in nature.",
+          "answer": "Nihon Buyo",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Originating from the Sakha Republic in Russia, this dance features performers mimicking the movements of native animals, often to rhythmic drumbeats.",
+          "answer": "Osuokhai",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Japanese Cuisine",
+    "clue": "This traditional Japanese seasoning, made from fermented soybeans, originates from the 3rd century and is a staple ingredient in soups and marinades.",
+    "answer": "What is miso?"
+  }
+}

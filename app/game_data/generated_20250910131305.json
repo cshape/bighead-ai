@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Tiny Treasures: Small Pastas of Italy",
+      "questions": [
+        {
+          "clue": "These rice-sized pasta grains share their name with the Italian word for 'barley'.",
+          "answer": "What is orzo?",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Meaning 'small gifts' in Italian, these are stuffed pasta shaped like little rings, often filled with cheese or meat.",
+          "answer": "What are tortellini?",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "These small, ridged pasta shapes are named after 'gnocchi' but are distinct from potato gnocchi.",
+          "answer": "What are gnocchetti?",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Resembling tiny hats, these small pastas are a staple in Italian soups and broths.",
+          "answer": "What are cappelletti?",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Sardinian pasta, whose name means 'little ears', is traditionally made by pressing the dough against a ridged surface.",
+          "answer": "What are malloreddus?",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Masters of Industry: Legendary Entrepreneurs",
+      "questions": [
+        {
+          "clue": "This entrepreneur founded the Standard Oil Company in 1870, becoming the world's first billionaire.",
+          "answer": "John D. Rockefeller",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1976, this man co-founded Apple Inc., a company known for revolutionizing personal computing.",
+          "answer": "Steve Jobs",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Known for his eponymous car company, this American industrialist introduced the assembly line to automobile manufacturing.",
+          "answer": "Henry Ford",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "She founded Spanx in 1998 with $5,000, becoming one of Forbes' youngest self-made billionaires.",
+          "answer": "Sara Blakely",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "He founded the global e-commerce platform Alibaba in 1999, leading it to become one of the largest tech companies in the world.",
+          "answer": "Jack Ma",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Literary Locales: Settings That Define the Book",
+      "questions": [
+        {
+          "clue": "In 'Pride and Prejudice', much of the romantic tension unfolds at this estate owned by Mr. Darcy.",
+          "answer": "Pemberley",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This fictional island is the setting for William Golding's novel about stranded boys, 'Lord of the Flies'.",
+          "answer": "Uninhabited tropical island",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "'The Great Gatsby' features this fictional Long Island village, home to Jay Gatsby himself.",
+          "answer": "West Egg",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This city serves as the primary setting for James Joyce's 'Ulysses', with its streets and landmarks intricately detailed.",
+          "answer": "Dublin",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In Gabriel Garcia Marquez's 'One Hundred Years of Solitude', this town is the backdrop for the Buend\u00eda family's saga.",
+          "answer": "Macondo",
+          "value": 1000,
+          "daily_double": true,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Celestial Wonders: Marvels of the Night Sky",
+      "questions": [
+        {
+          "clue": "Often visible in summer in the Northern Hemisphere, this arm of our galaxy looks like a milky band across the sky.",
+          "answer": "Milky Way",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This small celestial body, discovered in 1930, was downgraded from planet status in 2006.",
+          "answer": "Pluto",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Named after Roma characters, the moons Oberon and Titania orbit this planet in the solar system.",
+          "answer": "Uranus",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "These small objects become visible when they enter a planet's atmosphere and create a bright streak of light.",
+          "answer": "Meteors",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Among the closely packed open clusters in Taurus, these stars are often referred to as the celestial equivalent of the Seven Sisters.",
+          "answer": "Pleiades",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Artful Expressions: Renowned Modern Art Movements",
+      "questions": [
+        {
+          "clue": "This early 20th-century movement is known for its vibrant colors and was inspired by the works of Van Gogh and Gauguin.",
+          "answer": "Fauvism",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Pablo Picasso and Georges Braque pioneered this art movement known for its fragmented objects and varying perspectives.",
+          "answer": "Cubism",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This movement emerged around World War I and is famous for its 'ready-mades' and absurdity, questioning the nature of art itself.",
+          "answer": "Dadaism",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Inspired by technological advancements and the dynamism of modern life, this Italian movement glorified speed and energy.",
+          "answer": "Futurism",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Characterized by juxtaposed images and dreamlike scenes, this movement was heavily influenced by the subconscious mind.",
+          "answer": "Surrealism",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Pastas of Italy",
+    "clue": "Named after the Italian word for 'barley', this small rice-shaped pasta is often used in soups and is known for its quick cooking time.",
+    "answer": "What is orzo?"
+  }
+}

@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Pucks and Sticks: The World of Hockey",
+      "questions": [
+        {
+          "clue": "For $200: This is the term for scoring three goals in a single hockey game.",
+          "answer": "Hat trick",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $400: Wayne Gretzky, often considered the greatest hockey player of all time, wore this jersey number.",
+          "answer": "99",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $600: Founded in 1917, this is the premier professional league for ice hockey in North America.",
+          "answer": "NHL (National Hockey League)",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $800: The Stanley Cup is awarded annually to the champion of this league.",
+          "answer": "NHL (National Hockey League)",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $1000: This country is known for its passion for hockey and won gold in men's hockey at the 2010 Winter Olympics in Vancouver.",
+          "answer": "Canada",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Indie Sleaze: The 2000s Revival",
+      "questions": [
+        {
+          "clue": "This Toronto-based indie rock band, known for hits like 'Take Me Out,' was at the forefront of the 2000s indie sleaze fashion scene.",
+          "answer": "Franz Ferdinand",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This sport, popular in Canadian indie circles, saw players embracing vintage equipment and attire reminiscent of the 2000s.",
+          "answer": "Hockey",
+          "value": 400,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "Known for their unique thrift store style, this band released the hit 'Float On' and became icons of the indie sleaze era.",
+          "answer": "Modest Mouse",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This indie music festival, founded in 2004, became a key event for 2000s revival enthusiasts, celebrating the indie sleaze aesthetic.",
+          "answer": "Pitchfork Music Festival",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Often seen in 2000s indie rock music videos, this garment became synonymous with the punk-inspired indie look of the time.",
+          "answer": "Leather jacket",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Global Cuisines: Unique Dishes from Around the World",
+      "questions": [
+        {
+          "clue": "This Canadian favorite from Quebec is a must-try, made with fries, cheese curds, and gravy.",
+          "answer": "Poutine",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "From Sweden, these small seasoned meatballs are often served with lingonberry sauce, perhaps found while watching a hockey game.",
+          "answer": "Swedish Meatballs",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Korean dish of fermented vegetables is typically spicy and served alongside meals, providing a flavorful kick.",
+          "answer": "Kimchi",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Originating during the British colonial era, this Indian dish combines rice and a variety of spices, making it a vibrant option on any menu.",
+          "answer": "Biryani",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Named after a Middle-Eastern dance, this Turkish dish features grape leaves stuffed with a mixture of rice, pine nuts, and spices.",
+          "answer": "Dolma",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Classical Mythology: Legends and Lore",
+      "questions": [
+        {
+          "clue": "For $200: This king of the gods wields a thunderbolt and is known to many as the ruler of Mount Olympus.",
+          "answer": "Zeus",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $400: Known for his twelve labors, this hero's strength was as strong as a modern hockey player's slap shot.",
+          "answer": "Heracles",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $600: Like an indie sleaze icon, this Trojan prince preferred style and charm, ultimately leading to the fabled Trojan War.",
+          "answer": "Paris",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $800: This legendary architect of the Labyrinth is said to have escaped Crete using homemade wings.",
+          "answer": "Daedalus",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $1000: Often seen as a symbol of hubris, this Athenian hero killed the Minotaur but met his end at sea.",
+          "answer": "Theseus",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Quantum Quandaries: The World of Physics",
+      "questions": [
+        {
+          "clue": "For $200: This physicist's last name might also remind you of a smaller bowling pin, and he introduced the concept of energy quanta.",
+          "answer": "Max Planck",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $400: This type of quantum particle flows like a skate on ice, creating a low temperature superconductor when paired with others.",
+          "answer": "Cooper pair",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $600: Known for experiments involving cats, this quantum physicist's name sounds like a top-shelf German goalie.",
+          "answer": "Erwin Schr\u00f6dinger",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $800: This thought experiment, which combines hockey strategy and indie music randomness, is about particles communicating faster than light.",
+          "answer": "Quantum entanglement",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $1000: This uncertainty principle, perhaps jazz improv\u2019s inspiration, allows for the unpredictability of an electron's position and momentum.",
+          "answer": "Heisenberg Uncertainty Principle",
+          "value": 1000,
+          "daily_double": true,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Indie Sleaze in Sports",
+    "clue": "This NHL player, known for his indie sleaze aesthetic and being part of the 2006 Stanley Cup-winning team, became an icon for his relaxed, offbeat lifestyle that stood out during his time with the Carolina Hurricanes.",
+    "answer": "Who is Justin Williams?"
+  }
+}

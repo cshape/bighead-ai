@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Literary First Lines",
+      "questions": [
+        {
+          "clue": "It was the best of times, it was the worst of times, begins this novel by Charles Dickens.",
+          "answer": "A Tale of Two Cities",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This novel, whose first line is 'Call me Ishmael,' features Captain Ahab's obsessive quest.",
+          "answer": "Moby-Dick",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "George Orwell starts this dystopian novel with 'It was a bright cold day in April, and the clocks were striking thirteen.'",
+          "answer": "1984",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This novel opens with 'Mrs. Dalloway said she would buy the flowers herself,' showing a day in the life of a woman in post-WWI England.",
+          "answer": "Mrs. Dalloway",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Toni Morrison's novel begins with '124 was spiteful,' setting the stage for a haunting presence.",
+          "answer": "Beloved",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Historic Inventions",
+      "questions": [
+        {
+          "clue": "In 1879, this American inventor gave the world a practical electric light bulb.",
+          "answer": "Thomas Edison",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In the late 15th century, Johannes Gutenberg revolutionized printing with this invention.",
+          "answer": "Printing press",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Patented in 1843, this invention by Sir Charles Wheatstone and Sir William Fothergill Cooke advanced communication technology.",
+          "answer": "Electric telegraph",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1793, Eli Whitney transformed agriculture with this machine that efficiently removed seeds from cotton fiber.",
+          "answer": "Cotton gin",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Invented by Alexander Graham Bell in 1876, this device transmitted speech electrically over wires.",
+          "answer": "Telephone",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "World Geography: Rivers",
+      "questions": [
+        {
+          "clue": "This river, the longest in the world, flows northward through northeastern Africa into the Mediterranean Sea.",
+          "answer": "What is the Nile River?",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The Amazon River, known for its vast discharge volume, runs primarily through this South American country.",
+          "answer": "What is Brazil?",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Asian river, sacred in Hinduism, is the third largest by discharge volume and supports millions of people.",
+          "answer": "What is the Ganges River?",
+          "value": 600,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "Flowing through 10 countries, this river is the second-longest in Europe after the Volga.",
+          "answer": "What is the Danube River?",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This river, forming part of the border between the US and Mexico, is known in Mexico as R\u00edo Bravo.",
+          "answer": "What is the Rio Grande?",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Classical Music Composers",
+      "questions": [
+        {
+          "clue": "Known as the 'Father of the Symphony', he composed over 100 symphonies.",
+          "answer": "Joseph Haydn",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Born in 1770 in Bonn, Germany, he composed the famous 'Ode to Joy'.",
+          "answer": "Ludwig van Beethoven",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Baroque composer is well known for 'The Four Seasons'.",
+          "answer": "Antonio Vivaldi",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "A master of opera, some of his famous works include 'The Magic Flute' and 'Don Giovanni'.",
+          "answer": "Wolfgang Amadeus Mozart",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Romantic composer composed only nine symphonies, but his choral symphony includes a famous 'Ode to Joy'.",
+          "answer": "Ludwig van Beethoven",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Fascinating Animal Adaptations",
+      "questions": [
+        {
+          "clue": "For 200 points: This desert mammal has elongated ears that help dissipate heat.",
+          "answer": "What is a fennec fox?",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 400 points: This marine mammal uses echolocation to navigate and hunt in murky waters.",
+          "answer": "What is a dolphin?",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 600 points: Known for their color-changing ability, these reptiles use chromatophores to camouflage.",
+          "answer": "What is a chameleon?",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 800 points: These amphibians produce a toxic secretion and have bright warning colors to deter predators.",
+          "answer": "What are poison dart frogs?",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 1000 points: This bird uses mimicry to imitate sounds it hears, including tools and human voices.",
+          "answer": "What is a lyrebird?",
+          "value": 1000,
+          "daily_double": true,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Famous Authors",
+    "clue": "Despite struggling with dyslexia, this author created an imaginary world that has sold over 500 million copies since the late 1990s.",
+    "answer": "Who is J.K. Rowling?"
+  }
+}

@@ -4,6 +4,7 @@ Buzzer Manager for handling buzzer-related functionality in the Jeopardy game.
 
 import logging
 import asyncio
+import os
 import time
 from typing import Set, Optional
 
@@ -25,12 +26,12 @@ class BuzzerManager:
         
         # Timeout management
         self.buzzer_timeout_task = None
-        self.buzzer_timeout_seconds = 5.0  # 5 second timeout
+        self.buzzer_timeout_seconds = 30.0 if os.environ.get("TEST_MODE") else 5.0
         self.is_timeout_active = False
-        
+
         # Answer timeout management
         self.answer_timeout_task = None
-        self.answer_timeout_seconds = 7.0  # 7 second timeout for answering
+        self.answer_timeout_seconds = 15.0 if os.environ.get("TEST_MODE") else 7.0
         self.answer_timeout_active = False
         
         # Dependencies (to be set later)
@@ -38,9 +39,10 @@ class BuzzerManager:
         self.game_state_manager = None
         self.chat_processor = None
         self.audio_manager = None
-    
-    def set_dependencies(self, game_service=None, game_state_manager=None, 
-                         chat_processor=None, audio_manager=None):
+        self.game_instance = None
+
+    def set_dependencies(self, game_service=None, game_state_manager=None,
+                         chat_processor=None, audio_manager=None, game_instance=None):
         """Set dependencies required for buzzer management."""
         if game_service:
             self.game_service = game_service
@@ -50,54 +52,84 @@ class BuzzerManager:
             self.chat_processor = chat_processor
         if audio_manager:
             self.audio_manager = audio_manager
-    
-    async def activate_buzzer(self):
+        if game_instance:
+            self.game_instance = game_instance
+            logger.debug(f"BuzzerManager: game_instance set (game_id: {game_instance.game_id})")
+
+    def _get_game_id(self) -> Optional[str]:
+        """Get the game_id from game_instance if available."""
+        return self.game_instance.game_id if self.game_instance else None
+
+    def _get_current_question(self):
+        """Get current_question from game_instance."""
+        if self.game_instance:
+            return self.game_instance.current_question
+        return None
+
+    def _get_last_buzzer(self):
+        """Get last_buzzer from game_instance."""
+        if self.game_instance:
+            return self.game_instance.last_buzzer
+        return None
+
+    async def activate_buzzer(self, game_id: str):
         """Activate the buzzer and broadcast state to all clients."""
         if not self.buzzer_active:
-            logger.info("Activating buzzer")
+            logger.debug("Activating buzzer")
             self.buzzer_active = True
-            
+
+            # Update game instance state if available
+            if self.game_instance:
+                self.game_instance.buzzer_active = True
+                logger.debug(f"Set game_instance.buzzer_active=True (game_id: {self.game_instance.game_id})")
+            else:
+                logger.warning("No game_instance available in buzzer_manager!")
+
             # Update game state manager if available
             if self.game_state_manager:
                 self.game_state_manager.buzzer_active = True
-            
-            # Update game service state if available
+
+            # Broadcast status via game service if available
             if self.game_service:
-                self.game_service.buzzer_active = True
                 await self.game_service.connection_manager.broadcast_message(
                     "com.sc2ctl.jeopardy.buzzer_status",
-                    {"active": True}
+                    {"active": True, "incorrect_players": list(self.incorrect_players)},
+                    game_id=game_id
                 )
-            
+
             # Start timeout for buzzer
             self.start_timeout()
     
-    async def deactivate_buzzer(self):
+    async def deactivate_buzzer(self, game_id: str):
         """Deactivate the buzzer and broadcast state to all clients."""
         if self.buzzer_active:
-            logger.info("Deactivating buzzer")
+            logger.debug("Deactivating buzzer")
             self.buzzer_active = False
-            
+
+            # Update game instance state if available
+            if self.game_instance:
+                self.game_instance.buzzer_active = False
+
             # Update game state manager if available
             if self.game_state_manager:
                 self.game_state_manager.buzzer_active = False
-            
-            # Update game service state if available
+
+            # Broadcast status via game service if available
             if self.game_service:
-                self.game_service.buzzer_active = False
                 await self.game_service.connection_manager.broadcast_message(
                     "com.sc2ctl.jeopardy.buzzer_status",
-                    {"active": False}
+                    {"active": False},
+                    game_id=game_id
                 )
-            
+
             # Cancel any active timeout
             self.cancel_timeout()
     
     async def handle_question_display(self):
         """Handle when a question is displayed, making sure buzzer is disabled."""
-        logger.info("Question displayed, ensuring buzzer is disabled")
-        await self.deactivate_buzzer()
-        
+        logger.debug("Question displayed, ensuring buzzer is disabled")
+        await self.deactivate_buzzer(game_id=self._get_game_id())
+
         # Reset state for new question
         self.incorrect_players.clear()
         self.last_buzzer = None
@@ -111,12 +143,12 @@ class BuzzerManager:
             audio_id: The ID of the audio that finished playing
         """
         try:
-            logger.info(f"Audio completed notification: {audio_id}")
-            
+            logger.debug(f"Audio completed notification: {audio_id}")
+
             # Track already processed audio IDs to prevent duplicate handling
             if hasattr(self, '_processed_audio_ids'):
                 if audio_id in self._processed_audio_ids:
-                    logger.info(f"Already processed audio completion for {audio_id}, skipping")
+                    logger.debug(f"Already processed audio completion for {audio_id}, skipping")
                     return
                 self._processed_audio_ids.add(audio_id)
             else:
@@ -128,115 +160,151 @@ class BuzzerManager:
                 # Keep only the most recent 50 IDs
                 self._processed_audio_ids = set(list(self._processed_audio_ids)[-50:])
             
-            # Clear audio IDs but don't rely on them for timer decision
+            # Check and clear audio IDs, and determine what type of audio completed
+            was_question_audio = False
+            was_incorrect_audio = False
             if self.audio_manager:
-                self.audio_manager.check_and_clear_audio_ids(audio_id)
-            
+                was_question_audio, was_incorrect_audio = self.audio_manager.check_and_clear_audio_ids(audio_id)
+                logger.debug(f"Audio type check - was_question: {was_question_audio}, was_incorrect: {was_incorrect_audio}")
+
             # Check if this is an incorrect answer audio completion
             if "incorrect" in audio_id and self.expecting_reactivation:
-                logger.info("Incorrect answer audio completed, now reactivating buzzer for other players")
-                
+                logger.debug("Incorrect answer audio completed, now reactivating buzzer for other players")
+
                 # Reset flag
                 self.expecting_reactivation = False
-                
+
                 # Check if we still have a current question and other players available
-                if self.game_service and self.game_service.current_question:
+                current_question = self._get_current_question()
+                if current_question:
                     # Get all players and incorrect players
                     all_players = set()
                     if self.game_state_manager:
                         all_players = set(self.game_state_manager.get_player_names())
                     
                     if len(self.incorrect_players) < len(all_players):
-                        logger.info(f"Not all players have attempted, reactivating buzzer. "
-                                    f"Incorrect: {len(self.incorrect_players)}, Total: {len(all_players)}")
-                        
+                        logger.debug(f"Not all players have attempted, reactivating buzzer. "
+                                     f"Incorrect: {len(self.incorrect_players)}, Total: {len(all_players)}")
+
                         # Activate the buzzer for other players
-                        await self.activate_buzzer()
-                        
+                        await self.activate_buzzer(game_id=self._get_game_id())
+
                         # Update game state manager buzzer state
                         if self.game_state_manager:
                             self.game_state_manager.buzzer_active = True
                     else:
                         # All players have attempted, dismiss the question
-                        logger.info("All players have attempted, dismissing question")
+                        logger.debug("All players have attempted, dismissing question")
+
+                        # Capture the correct answer before dismiss clears it
+                        correct_answer = current_question.get("answer", "Unknown") if current_question else "Unknown"
+
                         if self.game_service:
-                            await self.game_service.dismiss_question()
-                
+                            await self.game_service.dismiss_question(game_id=self._get_game_id())
+
+                            # Restore board control
+                            controlling_player = None
+                            if self.game_state_manager:
+                                controlling_player = self.game_state_manager.get_player_with_control()
+                                if controlling_player:
+                                    await self.game_service.connection_manager.broadcast_message(
+                                        "com.sc2ctl.jeopardy.select_question",
+                                        {"contestant": controlling_player},
+                                        game_id=self._get_game_id()
+                                    )
+
+                            # Announce the correct answer
+                            if controlling_player:
+                                reveal_msg = f"Nobody got it! The correct answer was: {correct_answer}. {controlling_player}, you still have control of the board!"
+                            else:
+                                reveal_msg = f"Nobody got it! The correct answer was: {correct_answer}."
+
+                            if self.chat_processor:
+                                await self.chat_processor.send_chat_message(reveal_msg)
+                            if self.audio_manager:
+                                await self.audio_manager.synthesize_and_play_speech(reveal_msg)
+
                 return
-            
+
             # Check if we're expecting to reactivate the buzzer after regular audio
-            elif self.expecting_reactivation and self.game_service and self.game_service.current_question:
-                logger.info("Regular audio completed with reactivation flag set, activating buzzer")
-                
+            elif self.expecting_reactivation and self._get_current_question():
+                logger.debug("Regular audio completed with reactivation flag set, activating buzzer")
+
                 # Reset flag
                 self.expecting_reactivation = False
-                
+
                 # Activate the buzzer for other players
-                await self.activate_buzzer()
-                
+                await self.activate_buzzer(game_id=self._get_game_id())
+
                 # Update game state manager buzzer state
                 if self.game_state_manager:
                     self.game_state_manager.buzzer_active = True
-                
+
                 return
-            
-            # Normal case: Only activate buzzer if there's a current question and no one has buzzed yet
-            if (self.game_service and self.game_service.current_question 
-                and not self.game_service.last_buzzer):
-                
-                logger.info("Question audio completed, activating buzzer")
-                
+
+            # Normal case: Only activate buzzer if this was the QUESTION audio,
+            # there's a current question, and no one has buzzed yet
+            current_question = self._get_current_question()
+            last_buzzer = self._get_last_buzzer()
+
+            if was_question_audio and current_question and not last_buzzer:
+                logger.debug("Question audio completed, activating buzzer")
+
                 # Clear any existing incorrect player tracking
                 self.incorrect_players.clear()
                 if self.game_state_manager:
                     self.game_state_manager.clear_incorrect_attempts()
-                
+
                 # Activate the buzzer
-                await self.activate_buzzer()
-                
+                await self.activate_buzzer(game_id=self._get_game_id())
+
                 # Update game state manager buzzer state
                 if self.game_state_manager:
                     self.game_state_manager.buzzer_active = True
             else:
-                if not (self.game_service and self.game_service.current_question):
-                    logger.info("Not activating buzzer - no active question")
-                elif self.game_service.last_buzzer:
-                    logger.info(f"Not activating buzzer - player {self.game_service.last_buzzer} already buzzed")
+                if not was_question_audio:
+                    logger.debug("Not activating buzzer - not a question audio")
+                elif not current_question:
+                    logger.debug("Not activating buzzer - no active question")
+                elif last_buzzer:
+                    logger.debug(f"Not activating buzzer - player {last_buzzer} already buzzed")
                 else:
-                    logger.info("Not activating buzzer - unknown reason")
+                    logger.debug("Not activating buzzer - unknown reason")
                 
         except Exception as e:
             logger.error(f"Error handling audio completion: {e}")
             import traceback
             logger.error(traceback.format_exc())
     
-    async def handle_player_buzz(self, player_name: str):
+    async def handle_player_buzz(self, player_name: str, game_id: str):
         """Handle when a player buzzes in."""
         logger.info(f"Player {player_name} buzzed in")
-        
-        # Record the player who buzzed in
+
+        # CRITICAL: Set last_buzzer and cancel timeout SYNCHRONOUSLY before any
+        # await.  During an await the event loop may resume the buzzer-timeout
+        # task; if game_instance.last_buzzer is still None at that point, the
+        # timeout handler will dismiss the question out from under the player.
         self.last_buzzer = player_name
-        
-        # Always deactivate the buzzer when someone buzzes in
-        await self.deactivate_buzzer()
-        
-        # Cancel any active timeout
         self.cancel_timeout()
-        
+        if self.game_instance:
+            self.game_instance.last_buzzer = player_name
+
+        # Now safe to await — the timeout task is cancelled and last_buzzer is
+        # visible to any code that checks it.
+        await self.deactivate_buzzer(game_id=self._get_game_id())
+
         # Update game state manager
         if self.game_state_manager:
             self.game_state_manager.set_buzzed_player(player_name, self.incorrect_players)
             self.game_state_manager.buzzer_active = False
-        
-        # Update game service if available
-        if self.game_service:
-            self.game_service.last_buzzer = player_name
-            
-            # Start answer timeout and notify frontend
+
+        # Start answer timeout and notify frontend
+        if self.game_instance:
             self.start_answer_timeout(player_name)
             await self.game_service.connection_manager.broadcast_message(
                 "com.sc2ctl.jeopardy.answer_timer_start",
-                {"player": player_name, "seconds": self.answer_timeout_seconds}
+                {"player": player_name, "seconds": self.answer_timeout_seconds},
+                game_id=game_id if game_id else self._get_game_id()
             )
     
     async def handle_incorrect_answer(self, player_name: str):
@@ -259,59 +327,81 @@ class BuzzerManager:
         # Don't activate buzzer yet - audio will play first
         # Instead, set flag so audio completion will activate it
         self.expecting_reactivation = True
-        logger.info("Set expecting_reactivation=True - buzzer will activate after audio completes")
+        logger.debug("Set expecting_reactivation=True - buzzer will activate after audio completes")
         
         # Check if all players have attempted (this logic still needed for edge cases)
         if self.game_state_manager:
             all_players = set(self.game_state_manager.get_player_names())
             incorrect_players = self.incorrect_players
             
-            if len(incorrect_players) >= len(all_players):
-                # All players have attempted, keep buzzer disabled and dismiss
-                logger.info("All players have attempted, dismissing question")
+            current_question = self._get_current_question()
+            is_daily_double = current_question.get("daily_double", False) if current_question else False
+
+            if len(incorrect_players) >= len(all_players) or is_daily_double:
+                # All players have attempted (or daily double — only one player answers), dismiss
+                logger.debug("All players have attempted, dismissing question")
                 self.expecting_reactivation = False  # Cancel reactivation expectation
-                
+
+                # Capture the correct answer BEFORE dismiss clears the question
+                current_question = self._get_current_question()
+                correct_answer = current_question.get("answer", "Unknown") if current_question else "Unknown"
+
+                # Reset game_state_manager
+                if self.game_state_manager:
+                    self.game_state_manager.reset_question()
+
                 if self.game_service:
-                    await self.game_service.dismiss_question()
-                    
-                    # Get the player with control after all incorrect answers
+                    await self.game_service.dismiss_question(game_id=self._get_game_id())
+
+                    # Restore board control for the controlling player
+                    controlling_player = None
                     if self.game_state_manager:
                         controlling_player = self.game_state_manager.get_player_with_control()
                         if controlling_player:
-                            # Small delay for UI update
-                            await asyncio.sleep(0.5)
-                            
-                            # Inform the player with control
-                            control_msg = f"{controlling_player}, you still have control of the board. Please select the next clue."
-                            if self.chat_processor:
-                                await self.chat_processor.send_chat_message(control_msg)
+                            await self.game_service.connection_manager.broadcast_message(
+                                "com.sc2ctl.jeopardy.select_question",
+                                {"contestant": controlling_player},
+                                game_id=self._get_game_id()
+                            )
+
+                    # Announce the correct answer
+                    if controlling_player:
+                        reveal_msg = f"Nobody got it! The correct answer was: {correct_answer}. {controlling_player}, you still have control of the board!"
+                    else:
+                        reveal_msg = f"Nobody got it! The correct answer was: {correct_answer}."
+
+                    if self.chat_processor:
+                        await self.chat_processor.send_chat_message(reveal_msg)
+                    if self.audio_manager:
+                        await self.audio_manager.synthesize_and_play_speech(reveal_msg)
         else:
             # No game state manager, just reactivate the buzzer
             logger.warning("No game state manager available, just reactivating buzzer")
-            await self.activate_buzzer()
-    
+            await self.activate_buzzer(game_id=self._get_game_id())
+
     async def handle_correct_answer(self, player_name: str):
         """Handle when a player gives a correct answer."""
         logger.info(f"Correct answer from {player_name}")
-        
+
         # Cancel the answer timeout
         self.cancel_answer_timeout()
-        
+
         # Keep buzzer deactivated
-        await self.deactivate_buzzer()
-        
+        await self.deactivate_buzzer(game_id=self._get_game_id())
+
         # Cancel any active timeout
         self.cancel_timeout()
         
         # Update player with control in game state
         if self.game_state_manager:
             used_questions = set()
-            if self.game_service and self.game_service.current_question:
-                category = self.game_service.current_question["category"]
-                value = self.game_service.current_question["value"]
+            current_question = self._get_current_question()
+            if current_question:
+                category = current_question["category"]
+                value = current_question["value"]
                 question_key = f"{category}:{value}"
                 used_questions.add(question_key)
-            
+
             self.game_state_manager.set_player_with_control(player_name, used_questions)
     
     def start_timeout(self):
@@ -321,7 +411,7 @@ class BuzzerManager:
         
         # Create new timeout task and set flag
         expiry_time = time.time() + self.buzzer_timeout_seconds
-        logger.info(f"Starting buzzer timeout task ({self.buzzer_timeout_seconds} seconds) - timer will expire at {expiry_time:.1f}")
+        logger.debug(f"Starting buzzer timeout task ({self.buzzer_timeout_seconds}s)")
         
         self.buzzer_timeout_task = asyncio.create_task(self.handle_timeout())
         self.is_timeout_active = True
@@ -330,10 +420,10 @@ class BuzzerManager:
         """Cancel the buzzer timeout task if it exists."""
         if self.buzzer_timeout_task:
             if not self.buzzer_timeout_task.done():
-                logger.info("Cancelling active buzzer timeout task")
+                logger.debug("Cancelling active buzzer timeout task")
                 self.buzzer_timeout_task.cancel()
             else:
-                logger.info("Buzzer timeout task already done, clearing reference")
+                logger.debug("Buzzer timeout task already done, clearing reference")
             
             self.buzzer_timeout_task = None
             self.is_timeout_active = False
@@ -345,7 +435,7 @@ class BuzzerManager:
         
         # Create new timeout task and set flag
         expiry_time = time.time() + self.answer_timeout_seconds
-        logger.info(f"Starting answer timeout task for {player_name} ({self.answer_timeout_seconds} seconds) - timer will expire at {expiry_time:.1f}")
+        logger.debug(f"Starting answer timeout task for {player_name} ({self.answer_timeout_seconds}s)")
         
         self.answer_timeout_task = asyncio.create_task(self.handle_answer_timeout(player_name))
         self.answer_timeout_active = True
@@ -354,10 +444,10 @@ class BuzzerManager:
         """Cancel the answer timeout task if it exists."""
         if self.answer_timeout_task:
             if not self.answer_timeout_task.done():
-                logger.info("Cancelling active answer timeout task")
+                logger.debug("Cancelling active answer timeout task")
                 self.answer_timeout_task.cancel()
             else:
-                logger.info("Answer timeout task already done, clearing reference")
+                logger.debug("Answer timeout task already done, clearing reference")
             
             self.answer_timeout_task = None
             self.answer_timeout_active = False
@@ -365,19 +455,22 @@ class BuzzerManager:
     async def handle_timeout(self):
         """Handle the case when buzzer timeout expires with no one answering."""
         try:
-            logger.info(f"Buzzer timeout starting - waiting {self.buzzer_timeout_seconds} seconds...")
+            logger.debug(f"Buzzer timeout starting - waiting {self.buzzer_timeout_seconds}s...")
             
             # Wait for the timeout period
             await asyncio.sleep(self.buzzer_timeout_seconds)
             
-            logger.info("Buzzer timeout expired - checking if we need to handle it...")
-            
+            logger.debug("Buzzer timeout expired - checking if we need to handle it...")
+
             # Check if there's still an active question and no one has buzzed in
-            if (self.game_service and self.game_service.current_question and not self.game_service.last_buzzer):
-                logger.info("No one buzzed in - handling timeout...")
-                
+            current_question = self._get_current_question()
+            last_buzzer = self._get_last_buzzer()
+
+            if current_question and not last_buzzer:
+                logger.info("No one buzzed in")
+
                 # Get the current question data
-                question = self.game_service.current_question
+                question = current_question
                 if not question:
                     logger.warning("No question found during buzzer timeout")
                     return
@@ -389,62 +482,53 @@ class BuzzerManager:
                 if self.game_state_manager:
                     controlling_player = self.game_state_manager.get_player_with_control()
                     if controlling_player:
-                        timeout_msg = f"Time's up! The correct answer was: {answer}. {controlling_player}, you still have control of the board. Please select the next clue."
+                        timeout_msg = f"Time's up! The correct answer was: {answer}. {controlling_player}, you still have control of the board!"
                     else:
                         timeout_msg = f"Time's up! The correct answer was: {answer}"
-                logger.info(f"Revealing answer: {timeout_msg}")
-                
-                # Send message and speak it
-                if self.chat_processor:
-                    await self.chat_processor.send_chat_message(timeout_msg)
-                
-                if self.audio_manager:
-                    await self.audio_manager.synthesize_and_play_speech(timeout_msg)
-                
-                # Dismiss the question in the UI
+                logger.debug(f"Revealing answer: {timeout_msg}")
+
+                # Dismiss the question in the UI immediately (before TTS)
                 if self.game_service:
-                    logger.info("Dismissing question after timeout")
-                    await self.game_service.dismiss_question()
-                
-                # Get the player with control
+                    logger.debug("Dismissing question after timeout")
+                    await self.game_service.dismiss_question(game_id=self._get_game_id())
+
+                # Restore board control for the controlling player
                 if self.game_state_manager:
                     controlling_player = self.game_state_manager.get_player_with_control()
-                    if controlling_player:
-                        # Small delay for UI update
-                        await asyncio.sleep(0.5)
-                        
-                        # Prompt the player with control to select the next clue
-                        next_clue_msg = f"{controlling_player}, you still have control of the board. Please select the next clue."
-                        if self.chat_processor:
-                            await self.chat_processor.send_chat_message(next_clue_msg)
-                    else:
+                    if not controlling_player:
                         # If no player has control, find the player with the highest score
-                        if self.game_service and hasattr(self.game_service, "state") and hasattr(self.game_service.state, "contestants"):
+                        if self.game_instance and self.game_instance.state:
                             best_player = None
                             best_score = float('-inf')
-                            
-                            for contestant_id, contestant in self.game_service.state.contestants.items():
+
+                            for contestant_id, contestant in self.game_instance.state.contestants.items():
                                 if contestant.score > best_score:
                                     best_score = contestant.score
                                     best_player = contestant.name
-                            
+
                             if best_player:
-                                # Set player with control in game state
                                 self.game_state_manager.set_player_with_control(best_player, set())
-                                
-                                # Small delay for UI update
-                                await asyncio.sleep(0.5)
-                                
-                                # Prompt the player with highest score to select the next clue
-                                next_clue_msg = f"{best_player}, you have the highest score and control of the board. Please select the next clue."
-                                if self.chat_processor:
-                                    await self.chat_processor.send_chat_message(next_clue_msg)
+                                controlling_player = best_player
                             else:
                                 logger.warning("No player found with highest score after buzzer timeout")
+
+                    if controlling_player and self.game_service:
+                        await self.game_service.connection_manager.broadcast_message(
+                            "com.sc2ctl.jeopardy.select_question",
+                            {"contestant": controlling_player},
+                            game_id=self._get_game_id()
+                        )
                 else:
                     logger.warning("No game state manager available during timeout, cannot determine controlling player")
+
+                # Send message and speak it (after dismiss so modal closes immediately)
+                if self.chat_processor:
+                    await self.chat_processor.send_chat_message(timeout_msg)
+
+                if self.audio_manager:
+                    await self.audio_manager.synthesize_and_play_speech(timeout_msg)
             else:
-                logger.info("Buzzer timeout not handled - no active question or someone already buzzed in")
+                logger.debug("Buzzer timeout not handled - no active question or someone already buzzed in")
                 
         except asyncio.CancelledError:
             # Task was cancelled, which is expected behavior
@@ -457,57 +541,61 @@ class BuzzerManager:
     async def handle_answer_timeout(self, player_name: str):
         """Handle the case when a player doesn't answer within the time limit."""
         try:
-            logger.info(f"Answer timeout starting for {player_name} - waiting {self.answer_timeout_seconds} seconds...")
+            logger.debug(f"Answer timeout starting for {player_name} - waiting {self.answer_timeout_seconds}s...")
             
             # Wait for the timeout period
             await asyncio.sleep(self.answer_timeout_seconds)
             
-            logger.info(f"Answer timeout expired for {player_name} - checking if we need to handle it...")
-            
+            logger.debug(f"Answer timeout expired for {player_name} - checking if we need to handle it...")
+
             # Check if there's still an active question and the same player still has the buzzer
-            if (self.game_service and self.game_service.current_question 
-                and self.game_service.last_buzzer == player_name 
+            current_question = self._get_current_question()
+            last_buzzer = self._get_last_buzzer()
+
+            if (current_question
+                and last_buzzer == player_name
                 and self.last_buzzer == player_name):
-                
-                logger.info(f"Player {player_name} didn't answer in time - marking as incorrect...")
-                
+
+                logger.info(f"Player {player_name} didn't answer in time")
+
                 # Get the current question data
-                question = self.game_service.current_question
+                question = current_question
                 if not question:
                     logger.warning("No question found during answer timeout")
                     return
                 
                 # Announce that time is up for this player
                 timeout_msg = f"Time's up, {player_name}! You didn't answer in time."
-                logger.info(f"Sending timeout message: {timeout_msg}")
-                
-                # Send message and speak it
-                if self.chat_processor:
-                    await self.chat_processor.send_chat_message(timeout_msg)
-                
-                if self.audio_manager:
-                    await self.audio_manager.synthesize_and_play_speech(timeout_msg)
-                
+                logger.debug(f"Sending timeout message: {timeout_msg}")
+
                 # Deduct points as if they answered incorrectly
                 value = question.get("value", 0)
-                
-                # Update score
+
+                # Update score and handle incorrect answer BEFORE TTS
+                # so the UI updates immediately
                 if self.game_service:
-                    # Mark incorrect without showing answer yet
                     await self.game_service.connection_manager.broadcast_message(
                         "com.sc2ctl.jeopardy.answer",
                         {
                             "contestant": player_name,
                             "correct": False,
                             "value": value
-                        }
+                        },
+                        game_id=self._get_game_id()
                     )
-                
-                # Handle this as an incorrect answer to reactivate buzzer for others
+
+                # Handle as incorrect answer (may dismiss or reactivate buzzer)
                 await self.handle_incorrect_answer(player_name)
+
+                # Send chat message and TTS after UI is already updated
+                if self.chat_processor:
+                    await self.chat_processor.send_chat_message(timeout_msg)
+
+                if self.audio_manager:
+                    await self.audio_manager.synthesize_and_play_speech(timeout_msg)
                 
             else:
-                logger.info(f"Answer timeout not handled - no active question, or player {player_name} no longer has control")
+                logger.debug(f"Answer timeout not handled - no active question, or player {player_name} no longer has control")
                 
         except asyncio.CancelledError:
             # Task was cancelled, which is expected behavior

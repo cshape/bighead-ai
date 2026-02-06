@@ -8,7 +8,6 @@ import os
 import logging
 from utils.prompt_manager import PromptManager
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Templates to initialize

@@ -3,12 +3,23 @@ import { useGame } from '../../contexts/GameContext';
 import './Modal.css';
 
 export default function QuestionModal() {
-  const { state, sendMessage } = useGame();
-  const { currentQuestion, buzzerActive, lastBuzzer, playerName, answerTimer } = state;
+  const { state, sendMessage, submitAnswer } = useGame();
+  const { currentQuestion, buzzerActive, lastBuzzer, answerTimer, answerSubmitted, players, incorrectPlayers } = state;
+
+  // Get playerName from state OR sessionStorage as fallback (registration
+  // happens on LobbyPage's WebSocket, so state.playerName may still be null)
+  let playerName = state.playerName;
+  if (!playerName) {
+    const info = JSON.parse(sessionStorage.getItem('playerInfo') || '{}');
+    playerName = info.playerName;
+  }
   const [showDailyDoubleQuestion, setShowDailyDoubleQuestion] = useState(false);
   const [timerProgress, setTimerProgress] = useState(0);
   const [answerTimerProgress, setAnswerTimerProgress] = useState(0);
-  
+  const [betAmount, setBetAmount] = useState(5);
+  const [answerText, setAnswerText] = useState('');
+  const answerInputRef = useRef(null);
+
   // Reference to track if this is the first time we're seeing this question
   const questionRef = useRef(null);
   // Track if we've received at least one true buzzerActive state for this question
@@ -167,7 +178,7 @@ export default function QuestionModal() {
   // Add keyboard event listener for spacebar
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.code === 'Space' && showActiveBuzzer) {
+      if (e.code === 'Space' && showActiveBuzzer && !incorrectPlayers.includes(playerName)) {
         handleBuzz();
       }
     };
@@ -176,7 +187,7 @@ export default function QuestionModal() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [showActiveBuzzer]);
+  }, [showActiveBuzzer, incorrectPlayers, playerName]);
 
   // If currentQuestion changes and it's a daily double, update state
   useEffect(() => {
@@ -184,6 +195,17 @@ export default function QuestionModal() {
       setShowDailyDoubleQuestion(true);
     }
   }, [currentQuestion]);
+
+  // Auto-focus answer input when this player buzzes in
+  useEffect(() => {
+    if (lastBuzzer && lastBuzzer === playerName && !answerSubmitted) {
+      setAnswerText('');
+      // Small delay to let the DOM render the input
+      setTimeout(() => {
+        answerInputRef.current?.focus();
+      }, 50);
+    }
+  }, [lastBuzzer, playerName, answerSubmitted]);
 
   // Log state for debugging
   useEffect(() => {
@@ -213,15 +235,65 @@ export default function QuestionModal() {
     }
   };
 
+  // Handle bet submission
+  const handleBetSubmit = () => {
+    if (state.dailyDouble && playerName === state.dailyDouble.selectingPlayer) {
+      sendMessage('com.sc2ctl.jeopardy.daily_double_bet', {
+        contestant: playerName,
+        bet: betAmount
+      });
+    }
+  };
+
+  // Handle answer submission from modal input
+  const handleAnswerSubmit = () => {
+    if (answerText.trim() === '') return;
+    submitAnswer(answerText.trim());
+  };
+
+  // Calculate max bet for the selecting player
+  const getMaxBet = () => {
+    if (!state.dailyDouble?.selectingPlayer || !players) return 1000;
+    const playerScore = players[state.dailyDouble.selectingPlayer]?.score || 0;
+    return Math.max(1000, playerScore);
+  };
+
   // If we have a daily double but not yet the question
   if (state.dailyDouble) {
-    console.log("Showing daily double selection screen");
+    const selectingPlayer = state.dailyDouble.selectingPlayer;
+    const isSelectingPlayer = playerName === selectingPlayer;
+    const maxBet = getMaxBet();
+
+    console.log("Showing daily double selection screen", { selectingPlayer, isSelectingPlayer, playerName });
     return (
       <div className="modal-overlay">
         <div className="modal-content daily-double">
           <h2>Daily Double!</h2>
-          <p>{state.dailyDouble.category} - ${state.dailyDouble.value}</p>
-          <p>The host is selecting a player for this Daily Double...</p>
+          <p className="daily-double-info">{state.dailyDouble.category} - ${state.dailyDouble.value}</p>
+
+          {isSelectingPlayer ? (
+            <div className="bet-input-container">
+              <p>Enter your wager:</p>
+              <div className="bet-controls">
+                <input
+                  type="number"
+                  min="5"
+                  max={maxBet}
+                  value={betAmount}
+                  onChange={(e) => setBetAmount(Math.max(5, Math.min(maxBet, parseInt(e.target.value) || 5)))}
+                  className="bet-input"
+                />
+                <span className="bet-range">(${5} - ${maxBet})</span>
+              </div>
+              <button onClick={handleBetSubmit} className="bet-submit-btn">
+                Place Wager
+              </button>
+            </div>
+          ) : (
+            <p className="waiting-message">
+              {selectingPlayer ? `${selectingPlayer} is placing their wager...` : 'Waiting for wager...'}
+            </p>
+          )}
         </div>
       </div>
     );
@@ -234,9 +306,9 @@ export default function QuestionModal() {
       <div className="modal-overlay">
         <div className="modal-content daily-double">
           <h2>Daily Double!</h2>
-          <p>{currentQuestion.category} - ${currentQuestion.value}</p>
-          <p>Player: {currentQuestion.contestant}</p>
-          <p>Bet: ${currentQuestion.bet}</p>
+          <p className="daily-double-info">{currentQuestion.category} - ${currentQuestion.value}</p>
+          <p className="daily-double-info">Player: {currentQuestion.contestant}</p>
+          <p className="daily-double-info">Bet: ${currentQuestion.bet}</p>
           
           {playerName === currentQuestion.contestant ? (
             <p>Wait for the host to reveal the question...</p>
@@ -255,30 +327,49 @@ export default function QuestionModal() {
         {currentQuestion.daily_double && <h3 className="daily-double-banner">Daily Double!</h3>}
         <p className="question-text">{currentQuestion.text}</p>
         
-        {!currentQuestion.daily_double && !lastBuzzer && (
-          <div 
+        {!currentQuestion.daily_double && !lastBuzzer && !incorrectPlayers.includes(playerName) && (
+          <div
             className={`player-buzzer ${showActiveBuzzer ? 'active' : ''}`}
             onClick={handleBuzz}
           >
             {showActiveBuzzer ? 'BUZZ IN! (Space)' : 'Wait...'}
           </div>
         )}
-        
-        {lastBuzzer && (
-          <div className="timer-container answer-timer">
-          <div 
-            className="timer-bar answer" 
-            style={{ width: `${100 - answerTimerProgress}%` }}
-          ></div>
-        </div>
+
+        {!currentQuestion.daily_double && !lastBuzzer && incorrectPlayers.includes(playerName) && (
+          <p className="waiting-message">You already answered this one. Waiting for other players...</p>
         )}
         
-        {/* Buzzer timer - only show when buzzer is active */}
-        {showActiveBuzzer && (
+        {lastBuzzer && lastBuzzer === playerName && !answerSubmitted && (
+          <div className="answer-input-container">
+            <input
+              ref={answerInputRef}
+              type="text"
+              className="answer-input"
+              placeholder="Type your answer..."
+              value={answerText}
+              onChange={(e) => setAnswerText(e.target.value)}
+              onKeyDown={(e) => {
+                e.stopPropagation();
+                if (e.key === 'Enter') handleAnswerSubmit();
+              }}
+            />
+            <button className="answer-submit-btn" onClick={handleAnswerSubmit}>
+              Submit
+            </button>
+          </div>
+        )}
+
+        {lastBuzzer && lastBuzzer === playerName && answerSubmitted && (
+          <p className="answer-submitted-text">Answer submitted...</p>
+        )}
+        
+        {/* Unified bottom timer bar for buzzer countdown and answer countdown */}
+        {(showActiveBuzzer || (answerTimer.active && lastBuzzer)) && (
           <div className="timer-container">
-            <div 
-              className="timer-bar" 
-              style={{ width: `${100 - timerProgress}%` }}
+            <div
+              className="timer-bar"
+              style={{ width: `${100 - (answerTimer.active && lastBuzzer ? answerTimerProgress : timerProgress)}%` }}
             ></div>
           </div>
         )}

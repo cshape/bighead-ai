@@ -15,10 +15,10 @@ from .audio_manager import AudioManager
 from .game_state_manager import GameStateManager
 from .answer_evaluator import AnswerEvaluator
 from .board_manager import BoardManager
-from .clue_processor import ClueProcessor
 from .chat_processor import ChatProcessor
 from .buzzer_manager import BuzzerManager
 from .game_flow_manager import GameFlowManager
+from .question_manager import QuestionManager
 from .utils.helpers import is_same_player, cleanup_audio_files
 
 logger = logging.getLogger(__name__)
@@ -50,9 +50,9 @@ class AIHostService:
         self.audio_manager = AudioManager(api_key=self.inworld_api_key, voice=self.tts_voice)
         self.answer_evaluator = AnswerEvaluator()
         self.board_manager = BoardManager()
-        self.clue_processor = ClueProcessor()
         self.chat_processor = ChatProcessor()
         self.buzzer_manager = BuzzerManager()
+        self.question_manager = QuestionManager()
         self.game_flow_manager = GameFlowManager()
         
         # Set up the chat processor
@@ -94,31 +94,51 @@ class AIHostService:
         self.websocket_manager = websocket_manager
         logger.info("WebSocket manager set for AI Host Service")
     
-    def set_game_service(self, game_service):
-        """Set the game service for direct interaction with game state."""
+    def set_game_service(self, game_service, game_instance=None):
+        """Set the game service using the internal game state manager."""
+        self.game_instance = game_instance  # Store reference
+        self.set_dependencies(game_service, self.game_state_manager)
+
+    def set_dependencies(self, game_service, game_state_manager):
+        """
+        Set dependencies for the AI host service.
+
+        Args:
+            game_service: The game service for direct interaction
+            game_state_manager: The shared game state manager from GameInstance
+        """
+        # Use the shared game state manager instead of our own
+        self.game_state_manager = game_state_manager
         self.game_service = game_service
-        
+
         # Propagate the game service to all components that need it
-        self.audio_manager.set_game_service(game_service)
+        self.audio_manager.set_game_service(game_service, game_instance=self.game_instance if hasattr(self, 'game_instance') else None)
         self.board_manager.set_game_service(game_service)
-        self.clue_processor.set_game_service(game_service)
-        
+
         # Set up chat processor dependencies
         self.chat_processor.set_dependencies(
             game_service=game_service,
             game_state_manager=self.game_state_manager,
-            clue_processor=self.clue_processor,
-            answer_evaluator=self.answer_evaluator
+            answer_evaluator=self.answer_evaluator,
+            game_instance=self.game_instance if hasattr(self, 'game_instance') else None
         )
-        
+
+        # Set up question manager dependencies
+        self.question_manager.set_dependencies(
+            game_service=game_service,
+            game_instance=self.game_instance if hasattr(self, 'game_instance') else None,
+            buzzer_manager=self.buzzer_manager,
+        )
+
         # Set up buzzer manager dependencies
         self.buzzer_manager.set_dependencies(
             game_service=game_service,
             game_state_manager=self.game_state_manager,
             chat_processor=self.chat_processor,
-            audio_manager=self.audio_manager
+            audio_manager=self.audio_manager,
+            game_instance=self.game_instance if hasattr(self, 'game_instance') else None
         )
-        
+
         # Set up game flow manager dependencies
         self.game_flow_manager.set_dependencies(
             game_service=game_service,
@@ -128,8 +148,15 @@ class AIHostService:
             buzzer_manager=self.buzzer_manager,
             board_manager=self.board_manager
         )
-        
-        logger.info("Game service set for AI Host Service")
+
+        # Pass game_instance to components that need it
+        if hasattr(self, 'game_instance') and self.game_instance:
+            self.game_flow_manager.game_instance = self.game_instance
+            self.board_manager.game_instance = self.game_instance
+            self.audio_manager.game_instance = self.game_instance
+            self.question_manager.game_instance = self.game_instance
+
+        logger.info("Dependencies set for AI Host Service")
     
     async def send_chat_message(self, message: str):
         """Send a chat message as the AI host."""
@@ -165,7 +192,12 @@ class AIHostService:
     async def run(self):
         """Main game loop for monitoring the game and managing interactions."""
         logger.info("Starting AI host game loop")
-        
+
+        # Initialize the AI host (starts audio queue processor)
+        if not await self.start():
+            logger.error("Failed to start AI host service")
+            return
+
         try:
             game_error_count = 0
             max_errors = 5

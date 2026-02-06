@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useState } from 'react';
 import useWebSocket from '../hooks/useWebSocket';
+import { getLegacyWebSocketUrl, getWebSocketUrl } from '../config';
 
 const GameContext = createContext();
 
@@ -22,8 +23,16 @@ const initialState = {
   answerTimer: {
     active: false,
     player: null,
-    seconds: 0
-  }
+    seconds: 0,
+  },
+  answerSubmitted: false,
+  incorrectPlayers: [], // Players who answered incorrectly on the current clue
+  controllingPlayer: null, // Player who has control to select the next clue
+  // Multi-game state
+  gameCode: null,
+  gameId: null,
+  isHost: false,
+  gameStatus: null, // 'lobby', 'active', 'completed'
 };
 
 function gameReducer(state, action) {
@@ -89,16 +98,19 @@ function gameReducer(state, action) {
         gameReady: true // Ensure gameReady stays true
       };
     case 'SHOW_QUESTION':
-      return { 
-        ...state, 
+      return {
+        ...state,
         currentQuestion: action.payload,
+        controllingPlayer: null, // Clear controlling player when question is displayed
         buzzerActive: false,  // Keep buzzer inactive when showing question
         answerTimer: { active: false, player: null, seconds: 0 }, // Reset answer timer
+        answerSubmitted: false, // Reset for new question
+        incorrectPlayers: [], // Reset incorrect players for new question
         board: {
           ...state.board,
           categories: state.board.categories.map(cat => ({
             ...cat,
-            questions: cat.questions.map(q => 
+            questions: cat.questions.map(q =>
               q.value === action.payload.value && cat.name === action.payload.category
                 ? { ...q, used: true }
                 : q
@@ -111,12 +123,15 @@ function gameReducer(state, action) {
       console.log('Setting dailyDouble state:', action.payload);
       return {
         ...state,
-        dailyDouble: action.payload,
+        dailyDouble: {
+          ...action.payload,
+          selectingPlayer: action.payload.selecting_player
+        },
         board: {
           ...state.board,
           categories: state.board.categories.map(cat => ({
             ...cat,
-            questions: cat.questions.map(q => 
+            questions: cat.questions.map(q =>
               q.value === action.payload.value && cat.name === action.payload.category
                 ? { ...q, used: true }
                 : q
@@ -130,6 +145,7 @@ function gameReducer(state, action) {
       return {
         ...state,
         dailyDouble: null, // Clear the dailyDouble state since we're moving to currentQuestion
+        lastBuzzer: action.payload.contestant, // Set lastBuzzer so answer input shows for the contestant
         currentQuestion: {
           ...action.payload.question,
           bet: action.payload.bet,
@@ -139,12 +155,14 @@ function gameReducer(state, action) {
       };
     case 'DISMISS_QUESTION':
       console.log('Dismissing question and clearing dailyDouble state');
-      return { 
-        ...state, 
+      return {
+        ...state,
         currentQuestion: null,
         dailyDouble: null,
         lastBuzzer: null,  // Clear the last buzzer
-        answerTimer: { active: false, player: null, seconds: 0 } // Reset answer timer
+        answerTimer: { active: false, player: null, seconds: 0 }, // Reset answer timer
+        answerSubmitted: false,
+        incorrectPlayers: [], // Reset incorrect players
       };
     case 'UPDATE_SCORE':
       console.log('Update score action:', action.payload);
@@ -210,6 +228,11 @@ function gameReducer(state, action) {
           seconds: 0
         }
       };
+    case 'SET_ANSWER_SUBMITTED':
+      return {
+        ...state,
+        answerSubmitted: true
+      };
     case 'REGISTER_PLAYER':
       return {
         ...state,
@@ -247,10 +270,13 @@ function gameReducer(state, action) {
         currentQuestion: correct ? null : state.currentQuestion,
         // Always clear the buzzer state to allow other players to buzz in
         lastBuzzer: null,
-        // Re-enable the buzzer for incorrect answers to allow other players to buzz in
-        buzzerActive: correct ? false : true,
+        // Let the server control buzzer reactivation via buzzer_status message
+        buzzerActive: false,
         // Clear the answer timer
         answerTimer: { active: false, player: null, seconds: 0 },
+        answerSubmitted: false,
+        // Track incorrect players so they can't buzz again
+        incorrectPlayers: correct ? [] : [...state.incorrectPlayers, contestant],
         players: {
           ...state.players,
           [contestant]: {
@@ -278,6 +304,11 @@ function gameReducer(state, action) {
       // Audio playback is now fully handled by the WebSocket message handler
       // Just ensure buzzer is disabled during audio playback
       return { ...state, buzzerActive: false };
+    case 'SET_CONTROLLING_PLAYER':
+      return {
+        ...state,
+        controllingPlayer: action.payload.contestant,
+      };
     case 'com.sc2ctl.jeopardy.question_selected':
       return {
         ...state,
@@ -365,8 +396,38 @@ function gameReducer(state, action) {
         answerTimer: {
           active: true,
           player: action.payload.player,
-          seconds: action.payload.seconds
-        }
+          seconds: action.payload.seconds,
+        },
+      };
+    case 'SET_GAME_CODE':
+      return {
+        ...state,
+        gameCode: action.payload.code,
+        gameId: action.payload.gameId || state.gameId,
+      };
+    case 'SET_GAME_STATE':
+      return {
+        ...state,
+        gameId: action.payload.game_id,
+        gameCode: action.payload.game_code,
+        gameStatus: action.payload.status,
+        board: action.payload.board,
+        currentQuestion: action.payload.current_question,
+        buzzerActive: action.payload.buzzer_active,
+        lastBuzzer: action.payload.last_buzzer,
+        gameReady: action.payload.game_ready,
+        isHost: action.payload.is_host,
+      };
+    case 'GAME_STARTED':
+      return {
+        ...state,
+        gameStatus: 'active',
+        gameReady: true,
+      };
+    case 'SET_INCORRECT_PLAYERS':
+      return {
+        ...state,
+        incorrectPlayers: action.payload,
       };
     default:
       return state;
@@ -376,9 +437,12 @@ function gameReducer(state, action) {
 export function GameProvider({ children }) {
   const [state, dispatch] = useReducer(gameReducer, {
     ...initialState,
-    registered: initialState.adminMode // Auto-register if admin mode
+    registered: initialState.adminMode, // Auto-register if admin mode
   });
-  
+
+  // Track current game code for WebSocket URL
+  const [currentGameCode, setCurrentGameCode] = useState(null);
+
   // Handle all WebSocket messages in a single callback function
   const handleWebSocketMessage = useCallback((message) => {
     console.log('Processing WebSocket message:', message);
@@ -402,6 +466,10 @@ export function GameProvider({ children }) {
         // Always trust the server state for buzzer status
         console.log('Server buzzer status update:', message.payload.active);
         dispatch({ type: 'SET_BUZZER_STATUS', payload: message.payload.active });
+        // Sync incorrect players from server if included
+        if (message.payload.incorrect_players) {
+          dispatch({ type: 'SET_INCORRECT_PLAYERS', payload: message.payload.incorrect_players });
+        }
         break;
       case 'com.sc2ctl.jeopardy.contestant_score':
         dispatch({ type: 'UPDATE_SCORE', payload: message.payload });
@@ -564,6 +632,13 @@ export function GameProvider({ children }) {
           console.error('Error setting up audio playback:', err);
         }
         break;
+      case 'com.sc2ctl.jeopardy.select_question':
+        console.log('Player has control:', message.payload.contestant);
+        dispatch({
+          type: 'SET_CONTROLLING_PLAYER',
+          payload: { contestant: message.payload.contestant }
+        });
+        break;
       case 'com.sc2ctl.jeopardy.question_selected':
         dispatch({ type: 'QUESTION_SELECTED', payload: message.payload });
         break;
@@ -590,19 +665,58 @@ export function GameProvider({ children }) {
           type: 'SET_ANSWER_TIMER',
           payload: {
             player: message.payload.player,
-            seconds: message.payload.seconds
-          }
+            seconds: message.payload.seconds,
+          },
         });
+        break;
+      case 'com.sc2ctl.jeopardy.answer_timer_stop':
+        console.log('Answer timer stopped — answer received');
+        dispatch({ type: 'CLEAR_ANSWER_TIMER' });
+        break;
+      case 'com.sc2ctl.jeopardy.game_state':
+        console.log('Received game state:', message.payload);
+        dispatch({
+          type: 'SET_GAME_STATE',
+          payload: message.payload,
+        });
+        // Also update players from the game state
+        if (message.payload.players) {
+          dispatch({
+            type: 'PLAYER_LIST',
+            payload: { players: message.payload.players },
+          });
+        }
+        break;
+      case 'com.sc2ctl.jeopardy.game_started':
+        console.log('Game started');
+        dispatch({ type: 'GAME_STARTED' });
         break;
       default:
         console.log('Unhandled message topic:', message.topic);
     }
   }, [dispatch]);
   
+  // Get player name from session storage for HTTP-joined players
+  const playerInfo = typeof window !== 'undefined'
+    ? JSON.parse(sessionStorage.getItem('playerInfo') || '{}')
+    : {};
+
+  // Determine WebSocket URL based on game code, include player_name for linking
+  const wsUrl = currentGameCode
+    ? getWebSocketUrl(currentGameCode, playerInfo.playerName || null)
+    : getLegacyWebSocketUrl();
+
   // Use the refactored WebSocket hook with our message handler
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const wsUrl = `${protocol}//${window.location.host}/ws`;
-  const { sendMessage, ws } = useWebSocket(wsUrl, handleWebSocketMessage);
+  const { sendMessage, ws, isConnected } = useWebSocket(wsUrl, handleWebSocketMessage);
+
+  // Function to set the game code (called from game pages)
+  const setGameCode = useCallback((code, gameId = null) => {
+    setCurrentGameCode(code);
+    dispatch({
+      type: 'SET_GAME_CODE',
+      payload: { code, gameId },
+    });
+  }, []);
 
   // Effect to handle admin mode initialization
   useEffect(() => {
@@ -611,13 +725,45 @@ export function GameProvider({ children }) {
     }
   }, [state.adminMode]);
 
+  // Initialize playerName from sessionStorage
+  useEffect(() => {
+    const playerInfo = JSON.parse(sessionStorage.getItem('playerInfo') || '{}');
+    if (playerInfo.playerName && !state.playerName) {
+      dispatch({
+        type: 'REGISTER_PLAYER',
+        payload: { name: playerInfo.playerName }
+      });
+    }
+  }, []);
+
+  // Function to submit an answer from the QuestionModal
+  const submitAnswer = useCallback((answer) => {
+    // state.playerName may be null (registration happens on LobbyPage's WS),
+    // so fall back to sessionStorage like other components do.
+    let name = state.playerName;
+    if (!name) {
+      const info = JSON.parse(sessionStorage.getItem('playerInfo') || '{}');
+      name = info.playerName;
+    }
+    sendMessage('com.sc2ctl.jeopardy.submit_answer', {
+      contestant: name,
+      answer: answer
+    });
+    dispatch({ type: 'SET_ANSWER_SUBMITTED' });
+  }, [sendMessage, state.playerName]);
+
   // Function to send chat messages
   const sendChatMessage = (message) => {
     if (message.trim() === '') return;
-    
+
     const isAdmin = state.adminMode;
-    const username = state.playerName || 'Anonymous';
-    
+    // Try state first, then sessionStorage as fallback
+    let username = state.playerName;
+    if (!username) {
+      const playerInfo = JSON.parse(sessionStorage.getItem('playerInfo') || '{}');
+      username = playerInfo.playerName || 'Anonymous';
+    }
+
     // Send message to server
     sendMessage({
       topic: 'com.sc2ctl.jeopardy.chat_message',
@@ -633,7 +779,17 @@ export function GameProvider({ children }) {
   };
 
   return (
-    <GameContext.Provider value={{ state, dispatch, sendMessage, sendChatMessage }}>
+    <GameContext.Provider
+      value={{
+        state,
+        dispatch,
+        sendMessage,
+        sendChatMessage,
+        submitAnswer,
+        setGameCode,
+        isConnected,
+      }}
+    >
       {children}
     </GameContext.Provider>
   );

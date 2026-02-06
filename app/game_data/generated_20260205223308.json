@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Around the World with Sushi",
+      "questions": [
+        {
+          "clue": "This type of sushi is named after the Japanese tradition of pressing fish on rice, often with a bamboo mat.",
+          "answer": "Nigiri",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Popular in Western sushi, this roll combines avocado, imitation crab, and cucumber.",
+          "answer": "California Roll",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Pizza sushi, an American-Japanese fusion, involves rolling traditional sushi ingredients with unconventional toppings like mozzarella cheese.",
+          "answer": "Pizza Sushi",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This vinegared rice dish garnished with raw fish, vegetables, and sometimes fruits, became globally popular in the late 20th century.",
+          "answer": "Sashimi",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1910, this Tokyo district's sushi stalls popularized serving fish atop vinegared rice, changing sushi culture forever.",
+          "answer": "Edo (now Tokyo)",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Literary Terrains: Books with a Journey",
+      "questions": [
+        {
+          "clue": "'The Hobbit' begins with hobbit Bilbo Baggins being whisked away on an adventure by this wizard.",
+          "answer": "Gandalf",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 'Around the World in 80 Days,' Phileas Fogg uses this mode of transport for most of his journey.",
+          "answer": "Train",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This book by Jack Kerouac features the character Sal Paradise traveling across America.",
+          "answer": "On the Road",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "'The Road' is a novel about a post-apocalyptic journey taken by an unnamed father and son, written by this author.",
+          "answer": "Cormac McCarthy",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 'Life of Pi,' the protagonist shares a lifeboat with this fearsome companion while lost at sea.",
+          "answer": "Bengal tiger",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Cheese, Please: Pizza Variations Across Borders",
+      "questions": [
+        {
+          "clue": "For $200: Known for its thick crust and deep dish style, this type of pizza originated in this windy U.S. city.",
+          "answer": "Chicago",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $400: This pizza from New York City is famous for its large, foldable slices and thin crust.",
+          "answer": "New York-style pizza",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $600: Topped with tomato, mozzarella, basil, and olive oil, this classic Neapolitan pizza shares its name with an Italian queen.",
+          "answer": "Pizza Margherita",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $800: A cheese-laden pie, this Detroit pizza style is characterized by its rectangular shape and automotive roots.",
+          "answer": "Detroit-style pizza",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $1000: Combining raw fish with rice and traditional pizza elements, this fusion food trend is particularly popular in Japan and California.",
+          "answer": "Pizza sushi",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Innovations in Technology: From Idea to Marketplace",
+      "questions": [
+        {
+          "clue": "For $200, this food delivery service started in 2004 provides both pizza and sushi delivery options.",
+          "answer": "Grubhub",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1995, this online auction site was founded and quickly became a hub for buying and selling, including consumer electronics and collectibles.",
+          "answer": "eBay",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "First sold in 1984, this brick phone revolutionized wireless communication and was created by Martin Cooper's team at Motorola.",
+          "answer": "Motorola DynaTAC",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Developed by Maser Technology, this 3D printer known as the 'Foodini' focuses on printing edible items like sushi or pizza.",
+          "answer": "Foodini",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This operating system, released in 2007, laid the foundation for seamless integration of mobile apps, including those delivering pizzas and sushi.",
+          "answer": "iOS",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Classical Composers & Their Inspirations",
+      "questions": [
+        {
+          "clue": "In the late 19th century, he composed the famous New World Symphony, drawing inspiration from Native American and African-American music.",
+          "answer": "Anton\u00edn Dvo\u0159\u00e1k",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This German composer's Symphony No. 6, also known as the Pastoral Symphony, was inspired by his love for nature and countryside walks.",
+          "answer": "Ludwig van Beethoven",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "His ballet 'The Firebird' was inspired by Russian folklore and premiered in 1910 in Paris.",
+          "answer": "Igor Stravinsky",
+          "value": 600,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "Dating back to the Romantic era, this composer's work was notably influenced by his intense relationship with novelist George Sand.",
+          "answer": "Fr\u00e9d\u00e9ric Chopin",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Inspired by returning to his roots, this Czech composer wrote 'From My Life', a string quartet reflecting significant events in his life.",
+          "answer": "Bed\u0159ich Smetana",
+          "value": 1000,
+          "daily_double": true,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Culinary Combinations",
+    "clue": "This unique fusion dish, combining Italian and Japanese cuisine, features raw fish traditionally found in sushi served on a thin, bread-based crust typically associated with a classic Italian favorite.",
+    "answer": "What is sushi pizza?"
+  }
+}

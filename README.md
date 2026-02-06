@@ -1,26 +1,39 @@
-This app lets you play online Jeopardy with an AI host and custom, dynamically-generated game boards.
+# Jeopardy AI
 
-LLM-powered stuff (board generation, response evaluation, etc.) and synthesized voices are provided by [Inworld AI](https://inworld.ai/), so you'll need a `.env` file with your `INWORLD_API_KEY`.
+Play Jeopardy online with an AI host and dynamically-generated game boards. Supports multiple concurrent games via shareable game codes.
 
-# Development Setup
+**Stack:** FastAPI, React/Vite, WebSockets, Inworld AI (LLM + TTS)
 
-1. In root, create/activate your virtual environment
-2. In `app` folder, run `pip install -r requirements.txt`
-3. In the `frontend` folder, run `npm run build`
-2. In the root, run `uvicorn app.main:app --reload`
+## Setup
 
-Access the app at `http://localhost:8000/`
+```bash
+pip install -r app/requirements.txt
+npm install   # installs frontend deps
 
-# Serving to Online Players
+cp .env.example .env   # add your INWORLD_API_KEY
+```
 
-You can play this online with friends using [ngrok](https://ngrok.com/).
+## Development
 
-1. In frontend, run `npm run build`
-2. Start the server with `uvicorn app.main:app`
-3. Start ngrok with `ngrok http 8000`
+```bash
+# Backend
+npm start
 
-Direct your friends to the ngrok URL and enjoy a game of Jeopardy!
+# Frontend (separate terminal)
+npm run dev   # from frontend/
+```
 
-# Build Notes
+## Tests
 
-This app was built as an experiment with 'vibe coding', so apologies for any code which is myopic, conflicting, or insecure.
+```bash
+cd frontend && npm run test:e2e
+```
+
+## Play Online
+
+You can share your game with friends using [ngrok](https://ngrok.com/):
+
+```bash
+npm run build && npm start
+ngrok http 8000
+```

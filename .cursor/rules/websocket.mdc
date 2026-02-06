@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Always use the websocket patterns in game_service.py (backend) and GameContext.jsx (frontend)

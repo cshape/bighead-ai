@@ -15,10 +15,11 @@ logger = logging.getLogger(__name__)
 
 class BoardManager:
     """Manages board generation and selection for the AI host"""
-    
+
     def __init__(self):
         """Initialize the board manager"""
         self.game_service = None
+        self.game_instance = None
     
     def set_game_service(self, game_service):
         """Set the game service reference"""
@@ -28,11 +29,36 @@ class BoardManager:
     async def generate_board_from_preferences(self, preference_messages: List[Dict[str, str]]):
         """
         Generate a board based on user preferences.
-        
+
         Args:
             preference_messages: List of messages containing user preferences
         """
         try:
+            # TEST_MODE: load static questions.json board instead of generating via LLM
+            if os.environ.get("TEST_MODE"):
+                logger.info("TEST_MODE: Skipping LLM board generation, loading questions.json")
+                if self.game_service and self.game_instance:
+                    await self.game_service.select_board("questions", game_id=self.game_instance.game_id)
+
+                    # Load questions.json to get categories for reveal animation
+                    questions_path = os.path.join("app/game_data", "questions.json")
+                    with open(questions_path, 'r') as f:
+                        board_data = json.load(f)
+
+                    # Reveal categories with short delay
+                    for i, cat_data in enumerate(board_data.get("categories", [])):
+                        await self.game_service.connection_manager.broadcast_message(
+                            "com.sc2ctl.jeopardy.reveal_category",
+                            {"index": i, "category": cat_data},
+                            game_id=self.game_instance.game_id
+                        )
+                        await asyncio.sleep(0.2)
+
+                    return "questions"
+                else:
+                    logger.error("TEST_MODE: Cannot select board - game_service or game_instance not set")
+                    return None
+
             # Extract user preferences from messages
             user_preferences = " ".join([msg["message"] for msg in preference_messages])
             
@@ -77,12 +103,14 @@ class BoardManager:
             for i, cat_data in enumerate(category_data):
                 logger.info(f"Revealing category {i+1} of {len(categories)}: {cat_data['name']}")
                 if self.game_service:
+                    game_id = self.game_instance.game_id if self.game_instance else None
                     await self.game_service.connection_manager.broadcast_message(
-                        "com.sc2ctl.jeopardy.reveal_category", 
+                        "com.sc2ctl.jeopardy.reveal_category",
                         {
                             "index": i,
                             "category": cat_data
-                        }
+                        },
+                        game_id=game_id
                     )
                 # Small delay between reveals for visual effect
                 await asyncio.sleep(1.5)
@@ -108,8 +136,10 @@ class BoardManager:
                 json.dump(board_data, f, indent=2)
             
             # Set the board in the game service
-            if self.game_service:
-                await self.game_service.select_board(board_name)
+            if self.game_service and self.game_instance:
+                await self.game_service.select_board(board_name, game_id=self.game_instance.game_id)
+            elif not self.game_instance:
+                logger.error("Cannot select board - game_instance not set on BoardManager")
             
             return board_name
             
@@ -121,10 +151,12 @@ class BoardManager:
         """Load the default board as a fallback"""
         try:
             logger.info("Attempting to load default board")
-            
-            if self.game_service:
-                await self.game_service.select_board("default")
+
+            if self.game_service and self.game_instance:
+                await self.game_service.select_board("default", game_id=self.game_instance.game_id)
                 return "default"
+            elif not self.game_instance:
+                logger.error("Cannot load default board - game_instance not set on BoardManager")
             else:
                 logger.error("Cannot load default board - game service not available")
                 return None

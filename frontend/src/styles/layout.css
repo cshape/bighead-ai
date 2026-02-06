@@ -2,14 +2,14 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #000;
-  color: #fff;
+  background-color: #EFE6D8;
+  color: #2B2B2B;
 }
 
 .admin-bar {
-  background-color: #333;
+  background-color: #38322B;
   padding: 10px;
-  border-bottom: 2px solid #F7D74A;
+  border-bottom: 2px solid #5C4833;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -22,8 +22,8 @@
 }
 
 .admin-indicator {
-  background-color: #F7D74A;
-  color: #000;
+  background-color: #C9A84C;
+  color: #2C2519;
   padding: 5px 10px;
   border-radius: 4px;
   font-weight: bold;
@@ -42,7 +42,7 @@
   display: flex;
   align-items: stretch;
   justify-content: stretch;
-  background-color: #000;
+  background-color: #2C2519;
   height: 100%;
   width: 100%;
   overflow: hidden; /* Never scroll */
@@ -55,8 +55,8 @@
   flex: 1;
   min-width: 250px;
   max-width: 300px;
-  background-color: #060CE9;
-  border-left: 2px solid #F7D74A;
+  background-color: #38322B;
+  border-left: 2px solid #5C4833;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -77,7 +77,7 @@
 }
 
 .waiting-screen h2 {
-  color: #F7D74A;
+  color: #C9A84C;
   margin-bottom: 20px;
   width: 100%;
   text-align: center;
@@ -86,11 +86,12 @@
 .waiting-screen p {
   text-align: center;
   width: 100%;
+  color: #D4C5A9;
 }
 
 .current-players {
   margin-top: 30px;
-  background-color: rgba(6, 12, 233, 0.3);
+  background-color: rgba(74, 63, 48, 0.3);
   padding: 20px;
   border-radius: 8px;
   width: 100%;
@@ -100,7 +101,7 @@
 }
 
 .current-players h3 {
-  color: #F7D74A;
+  color: #C9A84C;
   margin-bottom: 15px;
 }
 
@@ -110,7 +111,8 @@
 }
 
 .current-players li {
-  background-color: #060CE9;
+  background-color: #4A3F30;
+  color: #D4C5A9;
   margin: 8px 0;
   padding: 10px;
   border-radius: 4px;
@@ -123,9 +125,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: rgba(20, 17, 12, 0.92);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-} 
+}

@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Pasta From Around The Globe",
+      "questions": [
+        {
+          "clue": "This long, thin pasta is commonly associated with Italy and is often used in a dish featuring a marinara sauce.",
+          "answer": "What is spaghetti?",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Ramen, not just for college students, is a Japanese noodle dish that includes meat or vegetables in a broth.",
+          "answer": "What is ramen?",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Germany is known for this egg pasta that is often shaped like little sparrows and traditionally served with cheese and onions.",
+          "answer": "What is spaetzle?",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In Hungary, this type of pasta is usually served alongside goulash and is known for being twisted or dumpling-shaped.",
+          "answer": "What is csipetke?",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Originating from Austria, these tiny pasta pieces are similar to Italian orzo but are traditionally used in soups such as consomm\u00e9.",
+          "answer": "What is frittaten?",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Olympic Legends: A Track Through Time",
+      "questions": [
+        {
+          "clue": "This sprinter is known for winning 8 Olympic gold medals and setting world records in the 100m, 200m, and 4x100m relay.",
+          "answer": "Usain Bolt",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Nicknamed 'The Flying Finn,' he won 9 gold and 3 silver medals in the 1920s.",
+          "answer": "Paavo Nurmi",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1952, this runner thrilled audiences by winning gold in the 5,000m, 10,000m, and marathon at the Helsinki Games.",
+          "answer": "Emil Z\u00e1topek",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This female athlete dominated the 1936 Berlin Olympics by setting world records and winning 4 gold medals in track and field.",
+          "answer": "Jesse Owens",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1960, this sprinter became the first African American woman to win three gold medals in a single Olympics.",
+          "answer": "Wilma Rudolph",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "The Art & Science of Bodybuilding",
+      "questions": [
+        {
+          "clue": "This macronutrient, abundant in pasta, is essential for energy and muscle growth.",
+          "answer": "Carbohydrates",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Arnold Schwarzenegger won this prestigious title, held annually by the International Federation of Bodybuilding & Fitness (IFBB).",
+          "answer": "Mr. Olympia",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "To increase muscle hypertrophy, bodybuilders often perform resistance training at this level of intensity of their one-rep max.",
+          "answer": "70-85%",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This term describes eating high-carb meals like pasta after workouts to replenish glycogen stores in muscles.",
+          "answer": "Carb loading",
+          "value": 800,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "This process, crucial for muscle repair and growth, involves consuming protein within 30-60 minutes post-exercise.",
+          "answer": "Anabolic window",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Literary Lost Cities",
+      "questions": [
+        {
+          "clue": "In Homer's 'The Odyssey', this legendary city was the starting point for Odysseus' 10-year journey home.",
+          "answer": "Troy",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In this Shakespeare play, Prospero rules the magical island that once belonged to the witch Sycorax.",
+          "answer": "The Tempest",
+          "value": 400,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "Described as a utopian paradise, this lost city is central to James Hilton's novel where European refugees find peace.",
+          "answer": "Shangri-La",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In Sir Arthur Conan Doyle's story, Professor Challenger discovers a plateau rich with prehistoric life in this forgotten city.",
+          "answer": "The Lost World",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "H.G. Wells wrote about this subterranean city where the Morlocks lived and preyed upon the Eloi.",
+          "answer": "The Time Machine",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Mysteries of Quantum Physics",
+      "questions": [
+        {
+          "clue": "For 200 points: Just like one might flip a coin to decide between spaghetti and penne, a quantum bit, or qubit, can be in multiple states at once. What is this principle called?",
+          "answer": "Superposition",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 400 points: Unlike a soccer ball, which you can measure both speed and position, this principle states you can't simultaneously know both for a particle in quantum physics.",
+          "answer": "Heisenberg Uncertainty Principle",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 600 points: Much like how your pasta dishes can differ by sauces and shapes, this theory describes how particles exist in multiple possible histories until observed.",
+          "answer": "Many-Worlds Interpretation",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 800 points: In bodybuilding, consistency is key; similarly, this fundamental concept suggests particles can instantaneously affect each other, regardless of distance.",
+          "answer": "Quantum Entanglement",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 1000 points: Like finding the perfect balance in a pasta sauce, this principle, which originally puzzled Einstein, Rosen, and Podolsky, challenges our understanding of separate realities.",
+          "answer": "EPR Paradox",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Iconic Sports Nutrition",
+    "clue": "This pasta dish, named after a Roman restaurateur's mother, is rich in carbohydrates and was famously consumed by Arnold Schwarzenegger during his bodybuilding competitions for energy and muscle recovery.",
+    "answer": "What is Pasta alla Maria?"
+  }
+}

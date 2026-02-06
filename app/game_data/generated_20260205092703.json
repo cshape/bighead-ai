@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Historical Game-Changers in Sports",
+      "questions": [
+        {
+          "clue": "In 1947, he broke baseball's color barrier as the first African American to play in Major League Baseball.",
+          "answer": "Jackie Robinson",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1981, this professional golfer became the first woman to qualify for the PGA Tour.",
+          "answer": "Mildred 'Babe' Zaharias",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1960, this organization held the first-ever Paralympic Games in Rome.",
+          "answer": "International Paralympic Committee",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1974, this South African runner was the first person banned from athletics for using performance-enhancing drugs.",
+          "answer": "Zola Budd",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1972, this Olympian refused to accept his silver medal as a protest against judging biases, marking a significant political statement at the Olympics.",
+          "answer": "Vasyl Lomachenko",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "World Wonders and Their Secrets",
+      "questions": [
+        {
+          "clue": "Built around 2560 BC, this wonder's precision is such that the Great Pyramid of Giza has a base length equivalent to an Olympic running track.",
+          "answer": "The Great Pyramid of Giza",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This ancient Greek stadium, part of the wonder Olympia, still signifies the birthplace of the Olympic Games.",
+          "answer": "Olympia",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This South American wonder reveals the Inca's understanding of astronomy, having a stone structure aligned with the June solstice.",
+          "answer": "Machu Picchu",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Chichen Itza's Temple of Kukulkan displays a shadow of a serpent on the equinoxes, symbolizing early Maya's astronomical skills often compared to accurate sports refereeing.",
+          "answer": "Chichen Itza",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The Colosseum in Rome, a site of ancient sporting events, once featured a retractable awning system called the velarium.",
+          "answer": "The Colosseum",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Cryptocurrency 101",
+      "questions": [
+        {
+          "clue": "This first and most well-known cryptocurrency is often called digital gold.",
+          "answer": "What is Bitcoin?",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Named after a famous figure in computer science, this is Bitcoin's smallest divisible unit.",
+          "answer": "What is a Satoshi?",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Ethereum introduced this innovative contract, which executes automatically when conditions are met.",
+          "answer": "What is a smart contract?",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This term describes the process of validating cryptocurrency transactions through complex computations, often compared to mining resources.",
+          "answer": "What is mining?",
+          "value": 800,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "Like a great sports playbook, this consensus mechanism ensures all players agree on game rules in blockchain networks.",
+          "answer": "What is proof of stake?",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Literary Plot Twists",
+      "questions": [
+        {
+          "clue": "Not a sports book, but it's revealed Boo Radley saves the Finch children in this classic.",
+          "answer": "To Kill a Mockingbird",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In this Agatha Christie novel, the killer is someone who loves a good 'whodunnit'\u2014it's the narrator himself.",
+          "answer": "The Murder of Roger Ackroyd",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In this Dickens classic, a spinster stays in her wedding dress for years, connecting to her romantic misfortune like a sports fan to a losing streak.",
+          "answer": "Great Expectations",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This dystopian novel reveals the ruling class maintains power by staging brutal sports-like contests in an annual event.",
+          "answer": "The Hunger Games",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In this book, the unexpected win is that Tyler Durden and the narrator are the same person, a twist like finding out the star athlete was in on both teams.",
+          "answer": "Fight Club",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Space Missions of the 21st Century",
+      "questions": [
+        {
+          "clue": "For $200: Named after the legendary lunar golfer, this mission put the first rover on the Red Planet's southern hemisphere in 2004.",
+          "answer": "Opportunity Rover",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $400: Much like the goal of a soccer match, this mission aimed to capture asteroid samples from Bennu and return them to Earth.",
+          "answer": "OSIRIS-REx",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $600: Similar to a NASCAR pit stop, this mission completed a series of carefully planned maneuvers to correct its mid-course trajectory to Mars in 2012.",
+          "answer": "Mars Science Laboratory (Curiosity Rover)",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $800: This enduring mission, which shares its name with a famous tennis venue, explored Saturn and its moons for over 13 years.",
+          "answer": "Cassini-Huygens",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $1000: Like a marathoner who keeps going, this mission, launched in 2006, became the first to fly by Pluto and continued into the Kuiper Belt.",
+          "answer": "New Horizons",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Historic Sports Moments",
+    "clue": "In 1997, this athlete became the first player in NBA history to be unanimously voted the Most Valuable Player award.",
+    "answer": "Shaquille O'Neal"
+  }
+}

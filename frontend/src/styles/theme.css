@@ -1,59 +1,62 @@
 :root {
   /* Color palette */
-  --color-white: #FFFFFF;
-  --color-black: #0D0B12;
-  --color-dark-purple: #352040;
-  --color-dark-blue: #202540;
-  --color-blue-gray: #202E40;
-  --color-teal: #203A40;
-  --color-dark-teal: #20403A;
-  
+  --color-primary-text: #2B2B2B;
+  --color-background: #EFE6D8;
+  --color-primary-ui: #6B7A4C;
+  --color-secondary-ui: #4F5D73;
+  --color-accent: #A33E3E;
+  --color-prestige: #B59A5B;
+  --color-success: #2F4F3E;
+  --color-borders: #7A756D;
+
   /* Functional colors */
-  --color-background: var(--color-white);
-  --color-text: var(--color-white);
-  --color-primary: var(--color-dark-purple);
-  --color-secondary: var(--color-blue-gray);
-  --color-accent: var(--color-teal);
-  --color-highlight: var(--color-dark-purple);
-  
+  --color-text: var(--color-primary-text);
+  --color-primary: var(--color-primary-ui);
+  --color-secondary: var(--color-secondary-ui);
+  --color-highlight: var(--color-prestige);
+
   /* UI States */
-  --color-disabled: rgba(32, 37, 64, 0.4);
-  --color-success: #4caf50;
-  --color-error: #f44336;
-  
-  /* Game Board Specific */
-  --color-board-bg: transparent;
-  --color-cell-bg: var(--color-dark-teal);
-  --color-cell-text: var(--color-white);
-  --color-cell-value: var(--color-white);
-  --color-cell-used: rgba(32, 64, 58, 0.6);
-  --color-cell-used-text: rgba(255, 255, 255, 0.5);
-  --color-category-bg: var(--color-dark-teal);
-  --color-category-text: var(--color-white);
-  
+  --color-disabled: rgba(122, 117, 109, 0.4);
+  --color-error: #A33E3E;
+
+  /* Game Board Palette — "Ancient Map" */
+  --color-board-bg: #2C2519;
+  --color-cell-bg: #3E3328;
+  --color-cell-text: #C9A84C;
+  --color-cell-value: #C9A84C;
+  --color-cell-used: rgba(44, 37, 25, 0.4);
+  --color-cell-used-text: rgba(201, 168, 76, 0.2);
+  --color-category-bg: #4A3F30;
+  --color-category-text: #D4C5A9;
+  --color-antique-gold: #C9A84C;
+  --color-aged-parchment: #D4C5A9;
+  --color-sienna: #5C4833;
+  --color-warm-charcoal: #38322B;
+
   /* Typography */
   --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, sans-serif;
+  --font-game-display: Georgia, 'Times New Roman', Times, serif;
   --font-size-small: 0.875rem;
   --font-size-base: 1rem;
   --font-size-medium: 1.25rem;
   --font-size-large: 1.5rem;
   --font-size-xlarge: 2rem;
   --font-size-xxlarge: 2.5rem;
-  
+
   /* Spacing */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
   --spacing-md: 1rem;
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
-  
+
   /* Border Radius */
   --border-radius-sm: 4px;
   --border-radius-md: 8px;
   --border-radius-lg: 12px;
-  
+
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(13, 11, 18, 0.1);
-  --shadow-md: 0 4px 6px rgba(13, 11, 18, 0.1);
-  --shadow-lg: 0 10px 20px rgba(13, 11, 18, 0.15);
-} 
+  --shadow-sm: 0 1px 3px rgba(43, 43, 43, 0.1);
+  --shadow-md: 0 4px 6px rgba(43, 43, 43, 0.1);
+  --shadow-lg: 0 10px 20px rgba(43, 43, 43, 0.15);
+}

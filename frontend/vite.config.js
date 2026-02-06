@@ -5,11 +5,27 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': 'http://localhost:8000',
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
       '/ws': {
         target: 'ws://localhost:8000',
-        ws: true
-      }
-    }
-  }
+        ws: true,
+        changeOrigin: true,
+      },
+      '/static': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
+  },
+  build: {
+    outDir: 'dist',
+  },
+  define: {
+    // Inject env vars at build time for production
+    'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || ''),
+    'import.meta.env.VITE_WS_URL': JSON.stringify(process.env.VITE_WS_URL || ''),
+  },
 }); 

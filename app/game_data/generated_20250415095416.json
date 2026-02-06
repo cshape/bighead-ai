@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Korean Cinema: Directors & Their Visions",
+      "questions": [
+        {
+          "clue": "This Korean director won the Palme d'Or and multiple Oscars for his film 'Parasite'.",
+          "answer": "Bong Joon-ho",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Known for his film 'Oldboy', this director is celebrated for vivid storytelling and unique Korean noir.",
+          "answer": "Park Chan-wook",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "'The Handmaiden', a film by this director, pulls inspiration from the novel 'Fingersmith' and depicts complex human desires.",
+          "answer": "Park Chan-wook",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Korean director Kim Ki-duk gained international fame with visually stunning films like 'Spring, Summer, Fall, Winter... and Spring'.",
+          "answer": "Kim Ki-duk",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This avant-garde director's film 'Memories of Murder' examines an unsolved crime case and was inspired by a real-life series of murders.",
+          "answer": "Bong Joon-ho",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Navigating the High Seas: A History of European Sailing",
+      "questions": [
+        {
+          "clue": "In 1492, this Italian explorer set sail under the Spanish flag to find a route to Asia, but instead reached the Americas.",
+          "answer": "Christopher Columbus",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Portuguese navigator Vasco da Gama found a sea route to India in this year, opening the way for an age of global imperialism.",
+          "answer": "1498",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1519, this explorer began the first known circumnavigation of the globe, though he was killed in the Philippines before completing the voyage.",
+          "answer": "Ferdinand Magellan",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The Treaty of Tordesillas, signed in 1494, divided the newly discovered lands outside Europe between these two maritime powers.",
+          "answer": "Spain and Portugal",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Dutch explorer, hired by the British, sought the Northeast Passage and discovered lands including what is now known as New York, naming the Hudson River.",
+          "answer": "Henry Hudson",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Face-Off Factoids: Hockey History & Legends",
+      "questions": [
+        {
+          "clue": "This player, often referred to as 'The Great One', holds the record for the most career points in NHL history.",
+          "answer": "Wayne Gretzky",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1998, this California-based NHL team was named after a famous Disney movie about a youth hockey team.",
+          "answer": "Anaheim Ducks",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Montreal Canadiens player, also known as 'The Rocket', was the first to score 50 goals in 50 games.",
+          "answer": "Maurice Richard",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The Stanley Cup, awarded annually to the NHL champion, was first given in this year.",
+          "answer": "1893",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This player's triple gold club membership includes an Olympic gold medal, IIHF World Championship gold, and a Stanley Cup victory.",
+          "answer": "Sidney Crosby",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Inside Silicon Valley: Tech Hubs & Innovators",
+      "questions": [
+        {
+          "clue": "This popular search engine's headquarters, also known as the Googleplex, is located in Mountain View.",
+          "answer": "Google",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Named after this early Portuguese explorer, and featured in a famous racing video game, this valley hub is home to many startups.",
+          "answer": "Vasco da Gama",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This city, known nowadays for being home to a top computer company, shares its name with a legendary soccer team.",
+          "answer": "Cupertino (Apple)",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This university near Palo Alto, renowned for engineering and tech, hosts an annual sailing regatta named after its stadium.",
+          "answer": "Stanford University",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Known for sparring in digital and legal battles, this social media platform's HQ is set in Menlo Park, its name reminding some of a close combat sport.",
+          "answer": "Meta (formerly Facebook)",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Anime Adrenaline: Combat Sports & Showdowns",
+      "questions": [
+        {
+          "clue": "For 200, this anime features the intense battles of Ippo Makunouchi as he climbs the ranks of boxing.",
+          "answer": "Hajime no Ippo",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 400, this anime blends hockey with psychological drama, centering around the relationship between Haru and Maki.",
+          "answer": "Sket Dance",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 600, Eijun Sawamura works to become the ace pitcher of Seido High in this baseball-centric anime.",
+          "answer": "Ace of Diamond",
+          "value": 600,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "For 800, this anime features Rikishi Toru and the pride of Koreatown in a story where boxing meets Korean drama.",
+          "answer": "Ashita no Joe",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 1000, set in a dystopian Tokyo, this anime follows a squad fighting massive monsters called NOVA, mixed with an intriguing geolocation twist with ties to Seoul.",
+          "answer": "Freezing",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Hockey & Korean Cinema",
+    "clue": "This South Korean film, winner of the 2020 Academy Award for Best Picture, shares its name with a key strategy in hockey used when a team pulls the goalie for an extra attacker.",
+    "answer": "Parasite"
+  }
+}

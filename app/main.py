@@ -120,7 +120,7 @@ async def websocket_game_endpoint(websocket: WebSocket, game_code: str, player_n
 
     try:
         # Connect and join the game room
-        client_id = await connection_manager.connect(websocket, game_id=game.game_id)
+        client_id = await connection_manager.connect(websocket, game_id=game.game_id, player_name=player_name)
         game.add_client(client_id)
 
         # If player_name provided (HTTP-joined player connecting), link their game state entry

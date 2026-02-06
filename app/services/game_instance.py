@@ -119,9 +119,13 @@ class GameInstance:
         logger.debug(f"Client {client_id} joined game {self.game_code}")
 
     def remove_client(self, client_id: str):
-        """Remove a connected client from this game."""
+        """Remove a connected client from this game.
+
+        Note: Does NOT remove the contestant from the game state.
+        Players register via HTTP and their registration persists
+        independently of WebSocket connection state.
+        """
         self.connected_clients.discard(client_id)
-        self.state.remove_contestant(client_id)
         logger.debug(f"Client {client_id} left game {self.game_code}")
 
     def is_client_connected(self, client_id: str) -> bool:

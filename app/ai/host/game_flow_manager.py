@@ -363,8 +363,14 @@ class GameFlowManager:
             if not player_names:
                 logger.warning("No players found when trying to assign first player")
                 return
-                
+
+            # The host gets first pick
             first_player = player_names[0]
+            if self.game_instance and self.game_instance.host_player_id:
+                for c in self.game_instance.state.contestants.values():
+                    if c.player_id == self.game_instance.host_player_id:
+                        first_player = c.name
+                        break
             logger.info(f"Assigning first player {first_player} control of the board")
             
             # Set the first player as having control of the board

@@ -26,14 +26,18 @@ class ConnectionManager:
         # Reverse lookup: client_id -> game_id
         self.client_rooms: Dict[str, str] = {}
 
+        # Player name lookup: client_id -> player_name
+        self.client_names: Dict[str, str] = {}
 
-    async def connect(self, websocket: WebSocket, game_id: Optional[str] = None) -> str:
+
+    async def connect(self, websocket: WebSocket, game_id: Optional[str] = None, player_name: Optional[str] = None) -> str:
         """
         Connect a websocket and optionally join a game room.
 
         Args:
             websocket: The WebSocket connection
             game_id: Optional game ID to join immediately
+            player_name: Optional player name to associate with this connection
 
         Returns:
             The generated client_id
@@ -42,11 +46,18 @@ class ConnectionManager:
         client_id = str(uuid.uuid4())
         self.active_connections[client_id] = websocket
 
+        if player_name:
+            self.client_names[client_id] = player_name
+
         if game_id:
             self.join_room(client_id, game_id)
 
-        logger.debug(f"Client {client_id} connected" + (f" to game {game_id}" if game_id else ""))
+        logger.debug(f"Client {client_id} connected" + (f" to game {game_id}" if game_id else "") + (f" as '{player_name}'" if player_name else ""))
         return client_id
+
+    def get_player_name(self, client_id: str) -> Optional[str]:
+        """Get the player name associated with a client connection."""
+        return self.client_names.get(client_id)
 
     def join_room(self, client_id: str, game_id: str):
         """
@@ -112,6 +123,7 @@ class ConnectionManager:
         if to_remove:
             self.leave_room(to_remove)
             del self.active_connections[to_remove]
+            self.client_names.pop(to_remove, None)
             logger.debug(f"Client {to_remove} disconnected")
 
         return to_remove

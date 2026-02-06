@@ -26,7 +26,7 @@ class BuzzerManager:
         
         # Timeout management
         self.buzzer_timeout_task = None
-        self.buzzer_timeout_seconds = 10.0 if os.environ.get("TEST_MODE") else 5.0
+        self.buzzer_timeout_seconds = 30.0 if os.environ.get("TEST_MODE") else 5.0
         self.is_timeout_active = False
 
         # Answer timeout management

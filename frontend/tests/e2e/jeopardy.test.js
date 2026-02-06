@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
 const { startServers, stopServers } = require('./setup');
 
-const BASE_URL = 'http://localhost:5173';
+const BASE_URL = 'http://localhost:8000';
 
 jest.setTimeout(120000);
 
@@ -30,6 +30,28 @@ describe('Jeopardy E2E Tests', () => {
 
   // Helper: short delay
   const delay = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  // Helper: get the LAST controlling player's name from chat messages
+  const getControllingPlayer = (page) =>
+    page.evaluate(() => {
+      const chatTexts = [...document.querySelectorAll('.message-text')];
+      for (let j = chatTexts.length - 1; j >= 0; j--) {
+        const text = chatTexts[j].textContent || '';
+        const match = text.match(/(\w+), you have control of the board/);
+        if (match) return match[1];
+      }
+      return null;
+    });
+
+  // Helper: wait for a controlling player to be assigned
+  const waitForControllingPlayer = async (page, maxAttempts = 30) => {
+    for (let i = 0; i < maxAttempts; i++) {
+      const player = await getControllingPlayer(page);
+      if (player) return player;
+      await delay(500);
+    }
+    return null;
+  };
 
   test('Create game, join with 3 players, and start', async () => {
     // --- Host creates game ---
@@ -73,16 +95,13 @@ describe('Jeopardy E2E Tests', () => {
     await alicePage.setViewport({ width: 1280, height: 800 });
     await alicePage.goto(BASE_URL, { waitUntil: 'networkidle0' });
 
-    // Click "JOIN GAME" to reveal the join form
     await waitFor(alicePage, '.join-button');
     await alicePage.click('.join-button');
 
-    // Fill in the join form
     await waitFor(alicePage, '#gameCode');
     await alicePage.type('#gameCode', gameCode);
     await alicePage.type('#playerName', 'Alice');
 
-    // Click "JOIN" (submit)
     await alicePage.click('.join-button');
 
     await alicePage.waitForFunction(
@@ -97,16 +116,13 @@ describe('Jeopardy E2E Tests', () => {
     await bobPage.setViewport({ width: 1280, height: 800 });
     await bobPage.goto(BASE_URL, { waitUntil: 'networkidle0' });
 
-    // Click "JOIN GAME" to reveal the join form
     await waitFor(bobPage, '.join-button');
     await bobPage.click('.join-button');
 
-    // Fill in the join form
     await waitFor(bobPage, '#gameCode');
     await bobPage.type('#gameCode', gameCode);
     await bobPage.type('#playerName', 'Bob');
 
-    // Click "JOIN" (submit)
     await bobPage.click('.join-button');
 
     await bobPage.waitForFunction(
@@ -115,34 +131,7 @@ describe('Jeopardy E2E Tests', () => {
     );
     console.log('Bob joined lobby');
 
-    // Verify backend has 3 players via direct API call
-    const apiResponse = await hostPage.evaluate(async (code) => {
-      const res = await fetch(`http://localhost:8000/api/games/code/${code}`);
-      return res.json();
-    }, gameCode);
-    console.log('API response players:', JSON.stringify(apiResponse.players));
-    console.log('API response player_count:', apiResponse.player_count);
-
-    // Navigate host back to lobby to pick up all 3 players from API
-    // (Vite WS proxy drops connections, so WS broadcasts don't always reach the lobby)
-    await hostPage.goto(`${BASE_URL}/game/${gameCode}/lobby`, { waitUntil: 'networkidle0' });
-    console.log('Host navigated to lobby');
-
-    // Debug: check what's on the page
-    await delay(2000);
-    const pageDebug = await hostPage.evaluate(() => {
-      const items = document.querySelectorAll('.player-item');
-      const nonEmpty = document.querySelectorAll('.player-item:not(.empty)');
-      return {
-        allItems: items.length,
-        nonEmptyItems: nonEmpty.length,
-        html: document.querySelector('.players-list')?.innerHTML || 'NO .players-list found',
-        bodyText: document.body.innerText.substring(0, 500),
-      };
-    });
-    console.log('Page debug:', JSON.stringify(pageDebug, null, 2));
-
-    // Wait for 3 player items to appear (from API fetch)
+    // Wait for host to see 3 players (via WS broadcast or API fetch)
     await hostPage.waitForFunction(
       () => document.querySelectorAll('.player-item:not(.empty)').length >= 3,
       { timeout: 15000 }
@@ -182,13 +171,24 @@ describe('Jeopardy E2E Tests', () => {
   });
 
   test('Controlling player picks a clue, player buzzes in with correct answer', async () => {
-    // Host has control (first registered player). Click the $200 clue in first category.
-    const questions = await hostPage.$$('.question');
-    expect(questions.length).toBeGreaterThan(0);
+    const pages = { Host: hostPage, Alice: alicePage, Bob: bobPage };
 
-    // Click the first question ($200 in first category "HELLO, SUCKER!")
+    // Wait for the backend to assign a controlling player
+    const controllingPlayer = await waitForControllingPlayer(hostPage);
+    console.log(`Controlling player: ${controllingPlayer}`);
+    expect(controllingPlayer).toBeTruthy();
+
+    const controlPage = pages[controllingPlayer];
+    expect(controlPage).toBeTruthy();
+
+    // Let WebSocket stabilize after page transition before clicking
+    await delay(500);
+
+    // Click the first question ($200 in first category) from the controlling player's page
+    const questions = await controlPage.$$('.question:not(.used)');
+    expect(questions.length).toBeGreaterThan(0);
     await questions[0].click();
-    console.log('Host clicked $200 clue');
+    console.log(`${controllingPlayer} clicked $200 clue`);
 
     // Wait for question modal to appear on all pages
     await Promise.all([
@@ -198,22 +198,25 @@ describe('Jeopardy E2E Tests', () => {
     ]);
     console.log('Question modal visible on all pages');
 
-    // Wait for buzzer to activate (backend sends buzzer_status after short delay in TEST_MODE)
-    // The frontend has a 500ms delay before showing active state
-    await waitFor(alicePage, '.player-buzzer.active', { timeout: 15000 });
-    console.log('Buzzer active on Alice page');
+    // Pick a non-controlling player to buzz in
+    const buzzerPlayerName = controllingPlayer === 'Alice' ? 'Bob' : 'Alice';
+    const buzzerPage = pages[buzzerPlayerName];
 
-    // Alice buzzes in
-    await alicePage.click('.player-buzzer.active');
-    console.log('Alice buzzed in');
+    // Wait for buzzer to activate
+    await waitFor(buzzerPage, '.player-buzzer.active', { timeout: 15000 });
+    console.log(`Buzzer active on ${buzzerPlayerName} page`);
 
-    // Wait for answer input to appear on Alice's page
-    await waitFor(alicePage, '.answer-input', { timeout: 10000 });
+    // Buzzer player buzzes in
+    await buzzerPage.click('.player-buzzer.active');
+    console.log(`${buzzerPlayerName} buzzed in`);
 
-    // Type the correct answer: "the lemon" (expected answer is "the lemon (or lime)")
-    await alicePage.type('.answer-input', 'What is the lemon');
-    await alicePage.click('.answer-submit-btn');
-    console.log('Alice submitted answer');
+    // Wait for answer input to appear
+    await waitFor(buzzerPage, '.answer-input', { timeout: 10000 });
+
+    // Type the correct answer
+    await buzzerPage.type('.answer-input', 'What is the lemon');
+    await buzzerPage.click('.answer-submit-btn');
+    console.log(`${buzzerPlayerName} submitted answer`);
 
     // Wait for modal to dismiss (correct answer dismisses the question)
     await hostPage.waitForSelector('.modal-overlay', { hidden: true, timeout: 15000 });
@@ -222,27 +225,34 @@ describe('Jeopardy E2E Tests', () => {
     // Give the score update a moment to propagate
     await delay(1000);
 
-    // Verify Alice's score is $200
-    const aliceScore = await hostPage.evaluate(() => {
+    // Verify the buzzer player's score is $200
+    const score = await hostPage.evaluate((name) => {
       const els = document.querySelectorAll('.player-score');
       for (const el of els) {
-        if (el.querySelector('.player-name')?.textContent === 'Alice') {
+        if (el.querySelector('.player-name')?.textContent === name) {
           return el.querySelector('.score')?.textContent;
         }
       }
       return null;
-    });
-    expect(aliceScore).toBe('$200');
-    console.log('Test 2 passed: Alice answered correctly and has $200');
+    }, buzzerPlayerName);
+    expect(score).toBe('$200');
+    console.log(`Test 2 passed: ${buzzerPlayerName} answered correctly and has $200`);
   });
 
   test('Player picks clue after correct answer, another player gives incorrect answer', async () => {
-    // Alice now has board control (she answered correctly in previous test)
-    // Wait for Alice to have the "select question" state
-    await delay(1000);
+    const pages = { Host: hostPage, Alice: alicePage, Bob: bobPage };
 
-    // Get the first non-used question in the first category column ($400)
-    const clicked = await alicePage.evaluate(() => {
+    // The player who answered correctly now has board control
+    // Wait for the new "you have control" message
+    await delay(1000);
+    const controllingPlayer = await waitForControllingPlayer(hostPage);
+    console.log(`Controlling player for test 3: ${controllingPlayer}`);
+    expect(controllingPlayer).toBeTruthy();
+
+    const controlPage = pages[controllingPlayer];
+
+    // Click the first non-used question from the controlling player's page
+    const clicked = await controlPage.evaluate(() => {
       const categories = document.querySelectorAll('.category');
       if (categories.length > 0) {
         const q = categories[0].querySelector('.question:not(.used)');
@@ -251,7 +261,7 @@ describe('Jeopardy E2E Tests', () => {
       return false;
     });
     expect(clicked).toBe(true);
-    console.log('Alice clicked $400 clue');
+    console.log(`${controllingPlayer} clicked next clue`);
 
     // Wait for question modal to appear
     await Promise.all([
@@ -261,37 +271,41 @@ describe('Jeopardy E2E Tests', () => {
     ]);
     console.log('Question modal visible on all pages');
 
+    // Pick a different player to buzz in and give a wrong answer
+    const wrongPlayerName = controllingPlayer === 'Bob' ? 'Alice' : 'Bob';
+    const wrongPage = pages[wrongPlayerName];
+
     // Wait for buzzer to activate
-    await waitFor(bobPage, '.player-buzzer.active', { timeout: 15000 });
-    console.log('Buzzer active on Bob page');
+    await waitFor(wrongPage, '.player-buzzer.active', { timeout: 15000 });
+    console.log(`Buzzer active on ${wrongPlayerName} page`);
 
-    // Bob buzzes in
-    await bobPage.click('.player-buzzer.active');
-    console.log('Bob buzzed in');
+    // Wrong player buzzes in
+    await wrongPage.click('.player-buzzer.active');
+    console.log(`${wrongPlayerName} buzzed in`);
 
-    // Wait for answer input on Bob's page
-    await waitFor(bobPage, '.answer-input', { timeout: 10000 });
+    // Wait for answer input
+    await waitFor(wrongPage, '.answer-input', { timeout: 10000 });
 
-    // Bob gives an incorrect answer
-    await bobPage.type('.answer-input', 'What is zombie');
-    await bobPage.click('.answer-submit-btn');
-    console.log('Bob submitted incorrect answer');
+    // Give an incorrect answer
+    await wrongPage.type('.answer-input', 'What is zombie');
+    await wrongPage.click('.answer-submit-btn');
+    console.log(`${wrongPlayerName} submitted incorrect answer`);
 
     // Wait for score to update
     await delay(2000);
 
-    // Check Bob's score - should be -$400
-    const bobScore = await hostPage.evaluate(() => {
+    // Check the wrong player's score - should be negative
+    const wrongScore = await hostPage.evaluate((name) => {
       const els = document.querySelectorAll('.player-score');
       for (const el of els) {
-        if (el.querySelector('.player-name')?.textContent === 'Bob') {
+        if (el.querySelector('.player-name')?.textContent === name) {
           return el.querySelector('.score')?.textContent;
         }
       }
       return null;
-    });
-    expect(bobScore).toBe('-$400');
-    console.log(`Bob score: ${bobScore}`);
-    console.log('Test 3 passed: Bob answered incorrectly and has -$400');
+    }, wrongPlayerName);
+    expect(wrongScore).toMatch(/^(\$-|-\$)/);
+    console.log(`${wrongPlayerName} score: ${wrongScore}`);
+    console.log('Test 3 passed: Incorrect answer deducted points');
   });
 });

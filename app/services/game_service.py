@@ -209,6 +209,16 @@ class GameService:
         contestant = state.get_contestant_by_websocket(client_id)
 
         if not contestant:
+            # Fallback: look up by player_name stored in connection manager
+            player_name = self.connection_manager.get_player_name(client_id)
+            if player_name:
+                contestant = state.get_contestant_by_name(player_name)
+                if contestant:
+                    # Fix the stale key mapping so future lookups work
+                    state.update_contestant_key(player_name, client_id)
+                    logger.info(f"Recovered contestant '{player_name}' via fallback lookup, re-keyed to {client_id}")
+
+        if not contestant:
             logger.warning(f"Contestant not found for websocket {client_id}")
             return
 

@@ -3,32 +3,35 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #EFE6D8;
+  background: #2C2519;
   padding: 20px;
 }
 
 .lobby-container {
-  background: rgba(74, 63, 48, 0.08);
-  border: 2px solid #7A756D;
+  background: #3E3328;
+  border: 2px solid #5C4833;
   border-radius: 8px;
   padding: 40px;
   max-width: 500px;
   width: 100%;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4), 0 0 60px rgba(201, 168, 76, 0.06);
 }
 
 .lobby-title {
   text-align: center;
-  color: #2B2B2B;
+  color: #C9A84C;
   font-size: 2rem;
   font-weight: bold;
+  font-family: var(--font-game-display);
   margin-bottom: 30px;
+  letter-spacing: 2px;
 }
 
 .game-code-section {
   text-align: center;
   margin-bottom: 30px;
   padding: 20px;
-  background: rgba(74, 63, 48, 0.12);
+  background: rgba(92, 72, 51, 0.3);
   border-radius: 8px;
 }
 
@@ -49,7 +52,7 @@
 .game-code {
   font-size: 2.5rem;
   font-weight: bold;
-  color: #B59A5B;
+  color: #C9A84C;
   letter-spacing: 8px;
   font-family: monospace;
 }
@@ -57,16 +60,16 @@
 .copy-button {
   padding: 8px 16px;
   font-size: 0.875rem;
-  background: rgba(181, 154, 91, 0.2);
-  border: 1px solid #B59A5B;
+  background: rgba(201, 168, 76, 0.15);
+  border: 1px solid #C9A84C;
   border-radius: 4px;
-  color: #B59A5B;
+  color: #C9A84C;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .copy-button:hover {
-  background: rgba(181, 154, 91, 0.3);
+  background: rgba(201, 168, 76, 0.25);
 }
 
 .game-code-hint {
@@ -80,11 +83,11 @@
 }
 
 .players-title {
-  color: #2B2B2B;
+  color: #D4C5A9;
   font-size: 1.125rem;
   margin-bottom: 16px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #7A756D;
+  border-bottom: 1px solid #5C4833;
 }
 
 .players-list {
@@ -97,10 +100,10 @@
   display: flex;
   flex-direction: column;
   padding: 12px 16px;
-  background: rgba(74, 63, 48, 0.12);
+  background: rgba(92, 72, 51, 0.3);
   border-radius: 8px;
   margin-bottom: 8px;
-  color: #2B2B2B;
+  color: #D4C5A9;
 }
 
 .player-item.empty {
@@ -117,7 +120,7 @@
 
 .player-item .player-name {
   font-weight: 500;
-  color: #2B2B2B;
+  color: #EFE6D8;
 }
 
 .player-preferences {
@@ -130,8 +133,8 @@
 .host-badge {
   font-size: 0.75rem;
   padding: 4px 8px;
-  background: #B59A5B;
-  color: #EFE6D8;
+  background: #C9A84C;
+  color: #2C2519;
   border-radius: 4px;
   font-weight: bold;
 }
@@ -177,14 +180,14 @@
 
 .waiting-message {
   text-align: center;
-  color: #7A756D;
+  color: #D4C5A9;
   font-style: italic;
   padding: 20px;
 }
 
 .loading {
   text-align: center;
-  color: #7A756D;
+  color: #D4C5A9;
   font-size: 1.125rem;
   padding: 40px;
 }
@@ -205,14 +208,14 @@
   width: 100%;
   padding: 12px 24px;
   font-size: 1rem;
-  background: rgba(74, 63, 48, 0.15);
-  border: 1px solid #7A756D;
+  background: rgba(212, 197, 169, 0.1);
+  border: 1px solid #5C4833;
   border-radius: 8px;
-  color: #2B2B2B;
+  color: #D4C5A9;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .lobby-button:hover {
-  background: rgba(74, 63, 48, 0.25);
+  background: #5C4833;
 }

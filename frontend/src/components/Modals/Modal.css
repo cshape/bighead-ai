@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: rgba(20, 17, 12, 0.92);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,41 +12,37 @@
 }
 
 .modal-content {
-  background-color: #060CE9;
-  padding: 2rem;
-  border-radius: 8px;
+  background-color: #3E3328;
+  padding: 3rem;
+  border-radius: 10px;
   max-width: 80%;
   width: 800px;
   text-align: center;
   position: relative;
-  box-shadow: 0 0 30px rgba(247, 215, 74, 0.3);
+  border: 2px solid #5C4833;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 60px rgba(201, 168, 76, 0.08);
+  color: #EFE6D8;
 }
 
-.modal-content .value {
-  font-size: 2rem;
-  color: #F7D74A;
+.modal-content h2 {
+  color: #C9A84C;
+  font-family: var(--font-game-display);
+  font-size: 1.8rem;
   margin-bottom: 1rem;
 }
 
-.modal-content .category {
-  font-size: 1.5rem;
-  color: white;
-  margin-bottom: 2rem;
-  text-transform: uppercase;
+.modal-content p {
+  color: #D4C5A9;
+  font-size: 1.1rem;
+  line-height: 1.5;
 }
 
-.modal-content .clue {
-  font-size: 2.5rem;
-  color: white;
-  margin-bottom: 2rem;
-  line-height: 1.4;
-}
-
-.modal-content .answer {
-  font-size: 2rem;
-  color: #F7D74A;
-  margin: 2rem 0;
-  font-style: italic;
+.modal-content .question-text {
+  font-size: 2.2rem;
+  color: #F5F0E8;
+  font-family: var(--font-game-display);
+  line-height: 1.6;
+  margin: 1.5rem 0;
 }
 
 .modal-content .controls {
@@ -54,8 +50,8 @@
 }
 
 .modal-content button {
-  background-color: #F7D74A;
-  color: #060CE9;
+  background-color: #A33E3E;
+  color: #EFE6D8;
   border: none;
   padding: 1rem 2rem;
   font-size: 1.2rem;
@@ -65,8 +61,9 @@
 }
 
 .modal-content button:hover {
-  transform: scale(1.05);
-  background-color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  background-color: #8B3535;
 }
 
 /* Player registration form styles */
@@ -97,11 +94,11 @@
   padding: 1rem;
   border-radius: 4px;
   font-size: 1.5rem;
-  color: white;
+  color: #D4C5A9;
 }
 
 .buzzer-status.active {
-  background-color: #28a745;
+  background-color: #2F4F3E;
   animation: pulse 2s infinite;
 }
 
@@ -122,13 +119,13 @@
 }
 
 .buzzer-control:not(.active) {
-  background-color: #f44336;
-  color: white;
+  background-color: #A33E3E;
+  color: #EFE6D8;
 }
 
 .buzzer-control.active {
-  background-color: #4caf50;
-  color: white;
+  background-color: #2F4F3E;
+  color: #EFE6D8;
 }
 
 .player-buzzer {
@@ -142,13 +139,13 @@
 }
 
 .player-buzzer:not(.active) {
-  background-color: #f44336;
-  color: white;
+  background-color: #A33E3E;
+  color: #EFE6D8;
 }
 
 .player-buzzer.active {
-  background-color: #4caf50;
-  color: white;
+  background-color: #2F4F3E;
+  color: #EFE6D8;
   animation: pulse 1s infinite;
 }
 
@@ -164,7 +161,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: rgba(20, 17, 12, 0.92);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -172,8 +169,8 @@
 }
 
 .daily-double-banner {
-  background-color: #FFDD00;
-  color: #000;
+  background-color: #C9A84C;
+  color: #2C2519;
   padding: 5px 10px;
   border-radius: 4px;
   font-weight: bold;
@@ -182,7 +179,7 @@
 }
 
 .daily-double h2 {
-  color: #FFDD00;
+  color: #C9A84C;
   font-size: 32px;
   animation: pulse 1.5s infinite;
   text-align: center;
@@ -202,9 +199,9 @@
 .daily-double input {
   padding: 8px 12px;
   border-radius: 4px;
-  border: 1px solid #3a3a3a;
-  background-color: #222;
-  color: white;
+  border: 1px solid #5C4833;
+  background-color: #38322B;
+  color: #D4C5A9;
   font-size: 16px;
 }
 
@@ -213,24 +210,26 @@
 }
 
 .daily-double form button {
-  background-color: #FFDD00;
-  color: black;
+  background-color: #C9A84C;
+  color: #2C2519;
   font-weight: bold;
   border: none;
   padding: 10px;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.2s ease;
   margin-top: 10px;
 }
 
 .daily-double form button:hover {
-  background-color: #FFE959;
+  background-color: #D4B85C;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .show-question-btn {
-  background-color: #FFDD00 !important;
-  color: black !important;
+  background-color: #C9A84C !important;
+  color: #2C2519 !important;
   font-weight: bold;
   font-size: 18px;
   padding: 12px 20px !important;
@@ -239,11 +238,13 @@
   border: none !important;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.2s ease;
 }
 
 .show-question-btn:hover {
-  background-color: #FFE959 !important;
+  background-color: #D4B85C !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 @keyframes pulse {
@@ -272,14 +273,14 @@
 .admin-controls input {
   padding: 8px;
   font-size: 16px;
-  border: 1px solid #ccc;
+  border: 1px solid #5C4833;
   border-radius: 4px;
 }
 
 .admin-controls form button {
   padding: 10px;
-  background-color: #4285f4;
-  color: white;
+  background-color: #4A3F30;
+  color: #D4C5A9;
   border: none;
   border-radius: 4px;
   font-size: 16px;
@@ -288,7 +289,7 @@
 }
 
 .admin-controls form button:hover {
-  background-color: #3367d6;
+  background-color: #5C4833;
 }
 
 /* Timer styles */
@@ -300,28 +301,14 @@
   height: 10px;
   background-color: rgba(0, 0, 0, 0.3);
   overflow: hidden;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
 }
 
 .timer-bar {
   height: 100%;
-  background-color: #FFDD00;
+  background-color: #C9A84C;
   transition: width 0.05s linear;
-}
-
-/* Answer timer - show at the top of the modal */
-.timer-container.answer-timer {
-  top: 0;
-  bottom: auto;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-.timer-bar.answer {
-  background-color: #FFDD00; /* Same yellow color for consistency */
 }
 
 /* Styling for the player answering info */
@@ -339,7 +326,7 @@
 }
 
 .answer-prompt {
-  color: #FFDD00;
+  color: #C9A84C;
   font-weight: bold;
   font-size: 1.3em !important;
   animation: pulse 1.5s infinite;
@@ -365,26 +352,26 @@
   padding: 12px 15px;
   font-size: 24px;
   text-align: center;
-  border: 2px solid #FFDD00;
+  border: 2px solid #C9A84C;
   border-radius: 8px;
-  background-color: #060CE9;
-  color: #FFDD00;
+  background-color: #38322B;
+  color: #C9A84C;
   font-weight: bold;
 }
 
 .bet-input:focus {
   outline: none;
-  border-color: #fff;
+  border-color: #D4C5A9;
 }
 
 .bet-range {
-  color: #ccc;
+  color: #D4C5A9;
   font-size: 14px;
 }
 
 .bet-submit-btn {
-  background-color: #FFDD00 !important;
-  color: #060CE9 !important;
+  background-color: #C9A84C !important;
+  color: #2C2519 !important;
   font-weight: bold;
   font-size: 18px;
   padding: 15px 40px !important;
@@ -395,12 +382,13 @@
 }
 
 .bet-submit-btn:hover {
-  background-color: #fff !important;
-  transform: scale(1.05);
+  background-color: #D4B85C !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .waiting-message {
-  color: #ccc;
+  color: #D4C5A9;
   font-size: 18px;
   font-style: italic;
   margin-top: 20px;
@@ -419,20 +407,20 @@
   max-width: 400px;
   padding: 12px 15px;
   font-size: 20px;
-  border: 2px solid #FFDD00;
+  border: 2px solid #C9A84C;
   border-radius: 8px;
-  background-color: #060CE9;
-  color: #fff;
+  background-color: #38322B;
+  color: #D4C5A9;
 }
 
 .answer-input:focus {
   outline: none;
-  border-color: #fff;
+  border-color: #D4C5A9;
 }
 
 .answer-submit-btn {
-  background-color: #FFDD00 !important;
-  color: #060CE9 !important;
+  background-color: #C9A84C !important;
+  color: #2C2519 !important;
   font-weight: bold;
   font-size: 18px;
   padding: 12px 24px !important;
@@ -442,8 +430,8 @@
 }
 
 .answer-submitted-text {
-  color: #FFDD00;
+  color: #C9A84C;
   font-size: 18px;
   font-style: italic;
   margin-top: 20px;
-} 
+}

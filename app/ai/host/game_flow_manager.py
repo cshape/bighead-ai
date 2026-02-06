@@ -368,7 +368,7 @@ class GameFlowManager:
                 )
             
             # Announce that the first player has control
-            control_message = f"{first_player}, you have control of the board. Please select the first clue."
+            control_message = f"{first_player}, you have control of the board!"
             await self.chat_processor.send_chat_message(control_message)
             await self.audio_manager.synthesize_and_play_speech(control_message)
             

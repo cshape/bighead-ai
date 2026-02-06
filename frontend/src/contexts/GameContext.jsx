@@ -26,6 +26,7 @@ const initialState = {
     seconds: 0,
   },
   answerSubmitted: false,
+  incorrectPlayers: [], // Players who answered incorrectly on the current clue
   controllingPlayer: null, // Player who has control to select the next clue
   // Multi-game state
   gameCode: null,
@@ -104,6 +105,7 @@ function gameReducer(state, action) {
         buzzerActive: false,  // Keep buzzer inactive when showing question
         answerTimer: { active: false, player: null, seconds: 0 }, // Reset answer timer
         answerSubmitted: false, // Reset for new question
+        incorrectPlayers: [], // Reset incorrect players for new question
         board: {
           ...state.board,
           categories: state.board.categories.map(cat => ({
@@ -158,7 +160,8 @@ function gameReducer(state, action) {
         dailyDouble: null,
         lastBuzzer: null,  // Clear the last buzzer
         answerTimer: { active: false, player: null, seconds: 0 }, // Reset answer timer
-        answerSubmitted: false
+        answerSubmitted: false,
+        incorrectPlayers: [], // Reset incorrect players
       };
     case 'UPDATE_SCORE':
       console.log('Update score action:', action.payload);
@@ -266,11 +269,13 @@ function gameReducer(state, action) {
         currentQuestion: correct ? null : state.currentQuestion,
         // Always clear the buzzer state to allow other players to buzz in
         lastBuzzer: null,
-        // Re-enable the buzzer for incorrect answers to allow other players to buzz in
-        buzzerActive: correct ? false : true,
+        // Let the server control buzzer reactivation via buzzer_status message
+        buzzerActive: false,
         // Clear the answer timer
         answerTimer: { active: false, player: null, seconds: 0 },
         answerSubmitted: false,
+        // Track incorrect players so they can't buzz again
+        incorrectPlayers: correct ? [] : [...state.incorrectPlayers, contestant],
         players: {
           ...state.players,
           [contestant]: {
@@ -418,6 +423,11 @@ function gameReducer(state, action) {
         gameStatus: 'active',
         gameReady: true,
       };
+    case 'SET_INCORRECT_PLAYERS':
+      return {
+        ...state,
+        incorrectPlayers: action.payload,
+      };
     default:
       return state;
   }
@@ -455,6 +465,10 @@ export function GameProvider({ children }) {
         // Always trust the server state for buzzer status
         console.log('Server buzzer status update:', message.payload.active);
         dispatch({ type: 'SET_BUZZER_STATUS', payload: message.payload.active });
+        // Sync incorrect players from server if included
+        if (message.payload.incorrect_players) {
+          dispatch({ type: 'SET_INCORRECT_PLAYERS', payload: message.payload.incorrect_players });
+        }
         break;
       case 'com.sc2ctl.jeopardy.contestant_score':
         dispatch({ type: 'UPDATE_SCORE', payload: message.payload });

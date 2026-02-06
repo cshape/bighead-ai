@@ -4,7 +4,7 @@ import './Modal.css';
 
 export default function QuestionModal() {
   const { state, sendMessage, submitAnswer } = useGame();
-  const { currentQuestion, buzzerActive, lastBuzzer, answerTimer, answerSubmitted, players } = state;
+  const { currentQuestion, buzzerActive, lastBuzzer, answerTimer, answerSubmitted, players, incorrectPlayers } = state;
 
   // Get playerName from state OR sessionStorage as fallback (registration
   // happens on LobbyPage's WebSocket, so state.playerName may still be null)
@@ -178,7 +178,7 @@ export default function QuestionModal() {
   // Add keyboard event listener for spacebar
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.code === 'Space' && showActiveBuzzer) {
+      if (e.code === 'Space' && showActiveBuzzer && !incorrectPlayers.includes(playerName)) {
         handleBuzz();
       }
     };
@@ -187,7 +187,7 @@ export default function QuestionModal() {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [showActiveBuzzer]);
+  }, [showActiveBuzzer, incorrectPlayers, playerName]);
 
   // If currentQuestion changes and it's a daily double, update state
   useEffect(() => {
@@ -269,7 +269,7 @@ export default function QuestionModal() {
       <div className="modal-overlay">
         <div className="modal-content daily-double">
           <h2>Daily Double!</h2>
-          <p>{state.dailyDouble.category} - ${state.dailyDouble.value}</p>
+          <p className="daily-double-info">{state.dailyDouble.category} - ${state.dailyDouble.value}</p>
 
           {isSelectingPlayer ? (
             <div className="bet-input-container">
@@ -306,9 +306,9 @@ export default function QuestionModal() {
       <div className="modal-overlay">
         <div className="modal-content daily-double">
           <h2>Daily Double!</h2>
-          <p>{currentQuestion.category} - ${currentQuestion.value}</p>
-          <p>Player: {currentQuestion.contestant}</p>
-          <p>Bet: ${currentQuestion.bet}</p>
+          <p className="daily-double-info">{currentQuestion.category} - ${currentQuestion.value}</p>
+          <p className="daily-double-info">Player: {currentQuestion.contestant}</p>
+          <p className="daily-double-info">Bet: ${currentQuestion.bet}</p>
           
           {playerName === currentQuestion.contestant ? (
             <p>Wait for the host to reveal the question...</p>
@@ -327,24 +327,19 @@ export default function QuestionModal() {
         {currentQuestion.daily_double && <h3 className="daily-double-banner">Daily Double!</h3>}
         <p className="question-text">{currentQuestion.text}</p>
         
-        {!currentQuestion.daily_double && !lastBuzzer && (
-          <div 
+        {!currentQuestion.daily_double && !lastBuzzer && !incorrectPlayers.includes(playerName) && (
+          <div
             className={`player-buzzer ${showActiveBuzzer ? 'active' : ''}`}
             onClick={handleBuzz}
           >
             {showActiveBuzzer ? 'BUZZ IN! (Space)' : 'Wait...'}
           </div>
         )}
-        
-        {lastBuzzer && (
-          <div className="timer-container answer-timer">
-            <div
-              className="timer-bar answer"
-              style={{ width: `${100 - answerTimerProgress}%` }}
-            ></div>
-          </div>
-        )}
 
+        {!currentQuestion.daily_double && !lastBuzzer && incorrectPlayers.includes(playerName) && (
+          <p className="waiting-message">You already answered this one. Waiting for other players...</p>
+        )}
+        
         {lastBuzzer && lastBuzzer === playerName && !answerSubmitted && (
           <div className="answer-input-container">
             <input
@@ -369,12 +364,12 @@ export default function QuestionModal() {
           <p className="answer-submitted-text">Answer submitted...</p>
         )}
         
-        {/* Buzzer timer - only show when buzzer is active */}
-        {showActiveBuzzer && (
+        {/* Unified bottom timer bar for buzzer countdown and answer countdown */}
+        {(showActiveBuzzer || (answerTimer.active && lastBuzzer)) && (
           <div className="timer-container">
-            <div 
-              className="timer-bar" 
-              style={{ width: `${100 - timerProgress}%` }}
+            <div
+              className="timer-bar"
+              style={{ width: `${100 - (answerTimer.active && lastBuzzer ? answerTimerProgress : timerProgress)}%` }}
             ></div>
           </div>
         )}

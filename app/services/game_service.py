@@ -218,6 +218,12 @@ class GameService:
             logger.warning(f"Buzz from {contestant.name} ignored - buzzer not active")
             return
 
+        # Reject buzz from players who already answered incorrectly on this clue
+        buzzer_mgr = self._get_buzzer_manager(game)
+        if contestant.name in buzzer_mgr.incorrect_players:
+            logger.warning(f"Buzz from {contestant.name} rejected - already answered incorrectly")
+            return
+
         logger.info(f"Buzz accepted from {contestant.name}")
 
         # Use the buzzer manager to handle the buzz event

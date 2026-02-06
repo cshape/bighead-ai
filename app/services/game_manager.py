@@ -157,6 +157,8 @@ class GameManager:
         # Register in game state
         registration_key = websocket_id if websocket_id else player_id
         game.state.register_contestant(registration_key, player_name, player_id=player_id)
+        if preferences and hasattr(game.ai_host, 'game_state_manager'):
+            game.ai_host.game_state_manager.add_player_preference(player_name, preferences)
         if websocket_id:
             game.add_client(websocket_id)
 

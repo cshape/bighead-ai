@@ -92,7 +92,7 @@ class BuzzerManager:
             if self.game_service:
                 await self.game_service.connection_manager.broadcast_message(
                     "com.sc2ctl.jeopardy.buzzer_status",
-                    {"active": True},
+                    {"active": True, "incorrect_players": list(self.incorrect_players)},
                     game_id=game_id
                 )
 
@@ -194,8 +194,34 @@ class BuzzerManager:
                     else:
                         # All players have attempted, dismiss the question
                         logger.debug("All players have attempted, dismissing question")
+
+                        # Capture the correct answer before dismiss clears it
+                        correct_answer = current_question.get("answer", "Unknown") if current_question else "Unknown"
+
                         if self.game_service:
                             await self.game_service.dismiss_question(game_id=self._get_game_id())
+
+                            # Restore board control
+                            controlling_player = None
+                            if self.game_state_manager:
+                                controlling_player = self.game_state_manager.get_player_with_control()
+                                if controlling_player:
+                                    await self.game_service.connection_manager.broadcast_message(
+                                        "com.sc2ctl.jeopardy.select_question",
+                                        {"contestant": controlling_player},
+                                        game_id=self._get_game_id()
+                                    )
+
+                            # Announce the correct answer
+                            if controlling_player:
+                                reveal_msg = f"Nobody got it! The correct answer was: {correct_answer}. {controlling_player}, you still have control of the board!"
+                            else:
+                                reveal_msg = f"Nobody got it! The correct answer was: {correct_answer}."
+
+                            if self.chat_processor:
+                                await self.chat_processor.send_chat_message(reveal_msg)
+                            if self.audio_manager:
+                                await self.audio_manager.synthesize_and_play_speech(reveal_msg)
 
                 return
 
@@ -312,6 +338,10 @@ class BuzzerManager:
                 logger.debug("All players have attempted, dismissing question")
                 self.expecting_reactivation = False  # Cancel reactivation expectation
 
+                # Capture the correct answer BEFORE dismiss clears the question
+                current_question = self._get_current_question()
+                correct_answer = current_question.get("answer", "Unknown") if current_question else "Unknown"
+
                 # Reset game_state_manager
                 if self.game_state_manager:
                     self.game_state_manager.reset_question()
@@ -320,6 +350,7 @@ class BuzzerManager:
                     await self.game_service.dismiss_question(game_id=self._get_game_id())
 
                     # Restore board control for the controlling player
+                    controlling_player = None
                     if self.game_state_manager:
                         controlling_player = self.game_state_manager.get_player_with_control()
                         if controlling_player:
@@ -329,10 +360,16 @@ class BuzzerManager:
                                 game_id=self._get_game_id()
                             )
 
-                            # Inform the player with control
-                            control_msg = f"{controlling_player}, you still have control of the board. Please select the next clue."
-                            if self.chat_processor:
-                                await self.chat_processor.send_chat_message(control_msg)
+                    # Announce the correct answer
+                    if controlling_player:
+                        reveal_msg = f"Nobody got it! The correct answer was: {correct_answer}. {controlling_player}, you still have control of the board!"
+                    else:
+                        reveal_msg = f"Nobody got it! The correct answer was: {correct_answer}."
+
+                    if self.chat_processor:
+                        await self.chat_processor.send_chat_message(reveal_msg)
+                    if self.audio_manager:
+                        await self.audio_manager.synthesize_and_play_speech(reveal_msg)
         else:
             # No game state manager, just reactivate the buzzer
             logger.warning("No game state manager available, just reactivating buzzer")
@@ -441,7 +478,7 @@ class BuzzerManager:
                 if self.game_state_manager:
                     controlling_player = self.game_state_manager.get_player_with_control()
                     if controlling_player:
-                        timeout_msg = f"Time's up! The correct answer was: {answer}. {controlling_player}, you still have control of the board. Please select the next clue."
+                        timeout_msg = f"Time's up! The correct answer was: {answer}. {controlling_player}, you still have control of the board!"
                     else:
                         timeout_msg = f"Time's up! The correct answer was: {answer}"
                 logger.debug(f"Revealing answer: {timeout_msg}")

@@ -8,8 +8,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #000;
-  color: #fff;
+  background-color: #EFE6D8;
+  color: #2B2B2B;
   overflow: hidden;
 }
 
@@ -30,91 +30,27 @@ body {
   margin-bottom: 20px;
 }
 
-/* 
- * Removing duplicate definition since it's defined in GameBoard.css
- * and causing grid conflicts
- */
-/* 
-.jeopardy-board {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-*/
-
-/* 
- * Commenting out duplicated GameBoard styles that are defined in component-specific CSS files
- */
-
-/*
-.category {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.category-title {
-  background-color: #060CE9;
-  color: white;
-  font-weight: bold;
-  padding: 15px;
-  text-align: center;
-  border-radius: 5px;
-  word-wrap: break-word;
-  hyphens: auto;
-}
-
-.question {
-  background-color: #060CE9;
-  color: #F7D74A;
-  padding: 20px;
-  text-align: center;
-  font-size: 24px;
-  font-weight: bold;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-}
-
-.question.used {
-  background-color: #1E1E1E;
-  color: #666;
-  cursor: not-allowed;
-}
-*/
-
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: rgba(20, 17, 12, 0.92);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .modal-content {
-  background-color: #060CE9;
-  padding: 40px;
-  border-radius: 8px;
+  background-color: #3E3328;
+  padding: 3rem;
+  border-radius: 10px;
   max-width: 80%;
   text-align: center;
+  border: 2px solid #5C4833;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 60px rgba(201, 168, 76, 0.08);
+  color: #EFE6D8;
 }
 
-.clue {
-  font-size: 32px;
-  color: #fff;
-  margin-bottom: 20px;
-}
-
-.answer {
-  font-size: 24px;
-  color: #F7D74A;
-  margin-top: 20px;
-}
-
-/* Admin controls styles moved to AdminControls.css */ 
+/* Admin controls styles moved to AdminControls.css */

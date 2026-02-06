@@ -25,7 +25,6 @@ class ChatProcessor:
         self.host_name = None
         self.game_service = None
         self.game_state_manager = None
-        self.clue_processor = None
         self.answer_evaluator = None
         self.game_instance = None
 
@@ -33,11 +32,10 @@ class ChatProcessor:
         """Set the host name for chat messages."""
         self.host_name = name
 
-    def set_dependencies(self, game_service, game_state_manager, clue_processor, answer_evaluator, game_instance=None):
+    def set_dependencies(self, game_service, game_state_manager, answer_evaluator, game_instance=None):
         """Set dependencies required for chat processing."""
         self.game_service = game_service
         self.game_state_manager = game_state_manager
-        self.clue_processor = clue_processor
         self.answer_evaluator = answer_evaluator
         self.game_instance = game_instance
 
@@ -116,15 +114,6 @@ class ChatProcessor:
         if has_active_question and buzzed_player and is_same_player(username, buzzed_player):
             logger.debug(f"Processing as answer from buzzed player: {username}")
             await self.process_player_answer(username, message)
-            return
-
-        # Check if this is from the player with board control (for clue selection)
-        if (controlling_player and
-            is_same_player(username, controlling_player) and
-            not has_active_question):
-
-            logger.debug(f"Processing as clue selection from controlling player: {username}")
-            await self.process_clue_selection(username, message)
             return
 
         logger.debug(f"Message not processed for action: {username}: {message}")
@@ -224,7 +213,7 @@ class ChatProcessor:
                 # Small delay to allow UI to update before prompting for next selection
                 await asyncio.sleep(0.5)
 
-                next_selection_msg = f"{username}, you have control of the board. Please select the next clue."
+                next_selection_msg = f"{username}, you have control of the board!"
                 await self.send_chat_message(next_selection_msg)
 
             else:
@@ -249,47 +238,3 @@ class ChatProcessor:
             import traceback
             logger.error(traceback.format_exc())
 
-    async def process_clue_selection(self, username: str, message: str):
-        """
-        Process a potential clue selection message from the player with control.
-
-        Args:
-            username: The player with control
-            message: The player's message containing potential clue selection
-        """
-        logger.debug(f"Processing potential clue selection from {username}: {message}")
-
-        try:
-            # Use the clue processor to handle the selection
-            if self.clue_processor:
-                selection_result = await self.clue_processor.process_clue_selection(username, message)
-
-                # If selection wasn't understood, provide guidance
-                if not selection_result.get("success", False):
-                    board_info = self.game_instance.board
-
-                    if board_info and "categories" in board_info:
-                        available_categories = []
-                        for cat_data in board_info["categories"]:
-                            cat_name = cat_data.get("name", "")
-                            if cat_name:
-                                available_categories.append(cat_name)
-
-                        if available_categories:
-                            categories_str = ", ".join([f'"{cat}"' for cat in available_categories])
-                            help_msg = (f"{username}, I didn't understand your clue selection. "
-                                     f"Please specify a category and value, such as "
-                                     f'"{available_categories[0]} for $200" or '
-                                     f'"I\'ll take {available_categories[-1]} for $400". '
-                                     f"Available categories are: {categories_str}.")
-                            await self.send_chat_message(help_msg)
-                        else:
-                            await self.send_chat_message(
-                                f"{username}, I couldn't understand your selection. Please specify a category and value, "
-                                f'like "History for $200" or "I\'ll take Science for $400".'
-                            )
-
-        except Exception as e:
-            logger.error(f"Error processing clue selection: {e}")
-            import traceback
-            logger.error(traceback.format_exc())

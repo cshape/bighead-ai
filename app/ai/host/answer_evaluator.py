@@ -83,7 +83,7 @@ class AnswerEvaluator:
             responses = [
                 f"That's correct, {player_name}! You have control of the board.",
                 f"Yes, {player_name}, that's right! You now have control of the board.",
-                f"Correct, {player_name}! You get to select the next clue.",
+                f"Correct, {player_name}! You have control of the board!",
                 f"Well done, {player_name}! The board is yours."
             ]
         else:

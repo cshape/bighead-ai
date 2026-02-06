@@ -15,7 +15,6 @@ from .audio_manager import AudioManager
 from .game_state_manager import GameStateManager
 from .answer_evaluator import AnswerEvaluator
 from .board_manager import BoardManager
-from .clue_processor import ClueProcessor
 from .chat_processor import ChatProcessor
 from .buzzer_manager import BuzzerManager
 from .game_flow_manager import GameFlowManager
@@ -51,7 +50,6 @@ class AIHostService:
         self.audio_manager = AudioManager(api_key=self.inworld_api_key, voice=self.tts_voice)
         self.answer_evaluator = AnswerEvaluator()
         self.board_manager = BoardManager()
-        self.clue_processor = ClueProcessor()
         self.chat_processor = ChatProcessor()
         self.buzzer_manager = BuzzerManager()
         self.question_manager = QuestionManager()
@@ -116,13 +114,11 @@ class AIHostService:
         # Propagate the game service to all components that need it
         self.audio_manager.set_game_service(game_service, game_instance=self.game_instance if hasattr(self, 'game_instance') else None)
         self.board_manager.set_game_service(game_service)
-        self.clue_processor.set_game_service(game_service)
 
         # Set up chat processor dependencies
         self.chat_processor.set_dependencies(
             game_service=game_service,
             game_state_manager=self.game_state_manager,
-            clue_processor=self.clue_processor,
             answer_evaluator=self.answer_evaluator,
             game_instance=self.game_instance if hasattr(self, 'game_instance') else None
         )
@@ -158,7 +154,6 @@ class AIHostService:
             self.game_flow_manager.game_instance = self.game_instance
             self.board_manager.game_instance = self.game_instance
             self.audio_manager.game_instance = self.game_instance
-            self.clue_processor.set_game_instance(self.game_instance)
             self.question_manager.game_instance = self.game_instance
 
         logger.info("Dependencies set for AI Host Service")

@@ -6,7 +6,7 @@
 }
 
 .player-score {
-  background-color: #060CE9;
+  background-color: #3E3328;
   padding: 1rem 2rem;
   border-radius: 8px;
   text-align: center;
@@ -15,10 +15,12 @@
 .player-name {
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
+  color: #D4C5A9;
 }
 
 .score {
   font-size: 2rem;
-  color: #F7D74A;
+  color: #C9A84C;
   font-weight: bold;
-} 
+  font-family: var(--font-game-display);
+}

@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class GameStateManager:
+class PlayerRegistry:
     """
     Per-game state manager. No longer a singleton - each game instance
     should create its own GameStateManager.

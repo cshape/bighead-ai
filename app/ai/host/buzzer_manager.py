@@ -71,7 +71,7 @@ class BuzzerManager:
             return self.game_instance.last_buzzer
         return None
 
-    async def activate_buzzer(self, game_id: Optional[str] = None):
+    async def activate_buzzer(self, game_id: str):
         """Activate the buzzer and broadcast state to all clients."""
         if not self.buzzer_active:
             logger.info("Activating buzzer")
@@ -99,7 +99,7 @@ class BuzzerManager:
             # Start timeout for buzzer
             self.start_timeout()
     
-    async def deactivate_buzzer(self, game_id: Optional[str] = None):
+    async def deactivate_buzzer(self, game_id: str):
         """Deactivate the buzzer and broadcast state to all clients."""
         if self.buzzer_active:
             logger.info("Deactivating buzzer")
@@ -249,7 +249,7 @@ class BuzzerManager:
             import traceback
             logger.error(traceback.format_exc())
     
-    async def handle_player_buzz(self, player_name: str, game_id: Optional[str] = None):
+    async def handle_player_buzz(self, player_name: str, game_id: str):
         """Handle when a player buzzes in."""
         logger.info(f"Player {player_name} buzzed in")
 
@@ -318,12 +318,15 @@ class BuzzerManager:
                 if self.game_service:
                     await self.game_service.dismiss_question(game_id=self._get_game_id())
 
-                    # Get the player with control after all incorrect answers
+                    # Restore board control for the controlling player
                     if self.game_state_manager:
                         controlling_player = self.game_state_manager.get_player_with_control()
                         if controlling_player:
-                            # Small delay for UI update
-                            await asyncio.sleep(0.5)
+                            await self.game_service.connection_manager.broadcast_message(
+                                "com.sc2ctl.jeopardy.select_question",
+                                {"contestant": controlling_player},
+                                game_id=self._get_game_id()
+                            )
 
                             # Inform the player with control
                             control_msg = f"{controlling_player}, you still have control of the board. Please select the next clue."
@@ -441,31 +444,16 @@ class BuzzerManager:
                     else:
                         timeout_msg = f"Time's up! The correct answer was: {answer}"
                 logger.info(f"Revealing answer: {timeout_msg}")
-                
-                # Send message and speak it
-                if self.chat_processor:
-                    await self.chat_processor.send_chat_message(timeout_msg)
-                
-                if self.audio_manager:
-                    await self.audio_manager.synthesize_and_play_speech(timeout_msg)
-                
-                # Dismiss the question in the UI
+
+                # Dismiss the question in the UI immediately (before TTS)
                 if self.game_service:
                     logger.info("Dismissing question after timeout")
                     await self.game_service.dismiss_question(game_id=self._get_game_id())
-                
-                # Get the player with control
+
+                # Restore board control for the controlling player
                 if self.game_state_manager:
                     controlling_player = self.game_state_manager.get_player_with_control()
-                    if controlling_player:
-                        # Small delay for UI update
-                        await asyncio.sleep(0.5)
-                        
-                        # Prompt the player with control to select the next clue
-                        next_clue_msg = f"{controlling_player}, you still have control of the board. Please select the next clue."
-                        if self.chat_processor:
-                            await self.chat_processor.send_chat_message(next_clue_msg)
-                    else:
+                    if not controlling_player:
                         # If no player has control, find the player with the highest score
                         if self.game_instance and self.game_instance.state:
                             best_player = None
@@ -477,20 +465,26 @@ class BuzzerManager:
                                     best_player = contestant.name
 
                             if best_player:
-                                # Set player with control in game state
                                 self.game_state_manager.set_player_with_control(best_player, set())
-
-                                # Small delay for UI update
-                                await asyncio.sleep(0.5)
-
-                                # Prompt the player with highest score to select the next clue
-                                next_clue_msg = f"{best_player}, you have the highest score and control of the board. Please select the next clue."
-                                if self.chat_processor:
-                                    await self.chat_processor.send_chat_message(next_clue_msg)
+                                controlling_player = best_player
                             else:
                                 logger.warning("No player found with highest score after buzzer timeout")
+
+                    if controlling_player and self.game_service:
+                        await self.game_service.connection_manager.broadcast_message(
+                            "com.sc2ctl.jeopardy.select_question",
+                            {"contestant": controlling_player},
+                            game_id=self._get_game_id()
+                        )
                 else:
                     logger.warning("No game state manager available during timeout, cannot determine controlling player")
+
+                # Send message and speak it (after dismiss so modal closes immediately)
+                if self.chat_processor:
+                    await self.chat_processor.send_chat_message(timeout_msg)
+
+                if self.audio_manager:
+                    await self.audio_manager.synthesize_and_play_speech(timeout_msg)
             else:
                 logger.info("Buzzer timeout not handled - no active question or someone already buzzed in")
                 
@@ -531,20 +525,13 @@ class BuzzerManager:
                 # Announce that time is up for this player
                 timeout_msg = f"Time's up, {player_name}! You didn't answer in time."
                 logger.info(f"Sending timeout message: {timeout_msg}")
-                
-                # Send message and speak it
-                if self.chat_processor:
-                    await self.chat_processor.send_chat_message(timeout_msg)
-                
-                if self.audio_manager:
-                    await self.audio_manager.synthesize_and_play_speech(timeout_msg)
-                
+
                 # Deduct points as if they answered incorrectly
                 value = question.get("value", 0)
-                
-                # Update score
+
+                # Update score and handle incorrect answer BEFORE TTS
+                # so the UI updates immediately
                 if self.game_service:
-                    # Mark incorrect without showing answer yet
                     await self.game_service.connection_manager.broadcast_message(
                         "com.sc2ctl.jeopardy.answer",
                         {
@@ -554,9 +541,16 @@ class BuzzerManager:
                         },
                         game_id=self._get_game_id()
                     )
-                
-                # Handle this as an incorrect answer to reactivate buzzer for others
+
+                # Handle as incorrect answer (may dismiss or reactivate buzzer)
                 await self.handle_incorrect_answer(player_name)
+
+                # Send chat message and TTS after UI is already updated
+                if self.chat_processor:
+                    await self.chat_processor.send_chat_message(timeout_msg)
+
+                if self.audio_manager:
+                    await self.audio_manager.synthesize_and_play_speech(timeout_msg)
                 
             else:
                 logger.info(f"Answer timeout not handled - no active question, or player {player_name} no longer has control")

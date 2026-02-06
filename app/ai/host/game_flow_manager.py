@@ -205,7 +205,8 @@ class GameFlowManager:
                 if self.game_service:
                     await self.game_service.connection_manager.broadcast_message(
                         "com.sc2ctl.jeopardy.game_ready",
-                        {"ready": True}
+                        {"ready": True},
+                        game_id=self._get_game_id()
                     )
             
             # Check if we're waiting for preferences and should generate board
@@ -301,8 +302,9 @@ class GameFlowManager:
             # Only do this if it's not already being shown (avoid duplicating)
             if self.game_service and not self.game_state_manager.game_state.board_generation_started:
                 await self.game_service.connection_manager.broadcast_message(
-                    "com.sc2ctl.jeopardy.start_board_generation", 
-                    {}
+                    "com.sc2ctl.jeopardy.start_board_generation",
+                    {},
+                    game_id=self._get_game_id()
                 )
                 self.game_state_manager.game_state.board_generation_started = True
             
@@ -359,12 +361,10 @@ class GameFlowManager:
             
             # Notify game service to update frontend state
             if self.game_service:
-                # Get game_id from game_instance if available (multi-game mode)
-                game_id = self.game_instance.game_id if self.game_instance else None
                 await self.game_service.connection_manager.broadcast_message(
                     "com.sc2ctl.jeopardy.select_question",
                     {"contestant": first_player},
-                    game_id=game_id
+                    game_id=self._get_game_id()
                 )
             
             # Announce that the first player has control

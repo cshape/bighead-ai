@@ -116,172 +116,19 @@ class GameService:
             cat_names = [category.name for category in board.categories]
         game.llm_state.update_categories(cat_names)
     
-    def find_question(self, category_name: str, value: int, board):
-        """Find a question in the specified board"""
-        if not board or "categories" not in board:
-            logger.error("No board loaded or invalid board format")
-            return None
-
-        # Log all categories for debugging
-        categories = [cat["name"] for cat in board["categories"]]
-        logger.debug(f"Looking for '{category_name}' in categories: {categories}")
-
-        # First try exact match
-        for category in board["categories"]:
-            if category["name"] == category_name:
-                for question in category["questions"]:
-                    if question["value"] == value:
-                        return question
-
-        # If no exact match, try case-insensitive match
-        for category in board["categories"]:
-            if category["name"].lower() == category_name.lower():
-                logger.info(f"Found case-insensitive match for category: {category['name']}")
-                for question in category["questions"]:
-                    if question["value"] == value:
-                        return question
-
-        # If still no match, try partial match (contains)
-        for category in board["categories"]:
-            if (category_name.lower() in category["name"].lower() or
-                category["name"].lower() in category_name.lower()):
-                logger.info(f"Found partial match for category: '{category_name}' -> '{category['name']}'")
-                for question in category["questions"]:
-                    if question["value"] == value:
-                        return question
-
-        logger.error(f"No question found in category '{category_name}' with value ${value}")
-        return None
-
-    def mark_question_used(self, category_name: str, value: int, board):
-        """Mark a question as used in the specified board"""
-        if not board or "categories" not in board:
-            return
-
-        for category in board["categories"]:
-            if category["name"] == category_name:
-                for question in category["questions"]:
-                    if question["value"] == value:
-                        question["used"] = True
-                        break
+    def _get_question_manager(self, game):
+        """Get the question manager for the game."""
+        return game.ai_host.question_manager
 
     async def display_question(self, category_name: str, value: int, game_id: str):
-        """Display a question to all clients"""
+        """Delegate to QuestionManager."""
         game = await self._get_game(game_id)
-        board = game.board
-        state = game.state
+        await self._get_question_manager(game).display_question(category_name, value, game_id)
 
-        if not game.game_ready:
-            logger.warning("Cannot display question - waiting for players")
-            await self.connection_manager.broadcast_message(
-                "com.sc2ctl.jeopardy.error",
-                {"message": f"Waiting for {self.REQUIRED_PLAYERS - len(state.contestants)} more players"},
-                game_id=game_id
-            )
-            return
-
-        try:
-            question = self.find_question(category_name, value, board)
-            if not question:
-                logger.error(f"Question not found: {category_name} ${value}")
-                return
-
-            # Mark as used in the board data
-            self.mark_question_used(category_name, value, board)
-
-            # Reset buzzer state for new question
-            game.last_buzzer = None
-            game.buzzer_active = False
-
-            # Check if it's a daily double
-            is_daily_double = question.get("daily_double", False)
-            logger.info(f"Question is daily double: {is_daily_double}")
-
-            # Set up the current question data
-            question_data = {
-                "category": category_name,
-                "value": value,
-                "text": question["clue"],
-                "answer": question["answer"],
-                "daily_double": is_daily_double
-            }
-
-            # Set current_question on game instance
-            game.current_question = question_data
-
-            # Handle daily double differently
-            if is_daily_double:
-                # For daily double, we don't show the question yet
-                # Just notify that it's a daily double with selecting player
-                logger.info(f"Broadcasting daily double: {category_name} ${value}")
-                await self.connection_manager.broadcast_message(
-                    "com.sc2ctl.jeopardy.daily_double",
-                    {
-                        "category": category_name,
-                        "value": value,
-                        "selecting_player": game.state.get_player_with_control() if hasattr(game.state, 'get_player_with_control') else None
-                    },
-                    game_id=game_id
-                )
-                logger.info(f"Displayed daily double: {category_name} ${value}")
-            else:
-                # For regular questions, proceed as normal
-                logger.info(f"Broadcasting regular question: {category_name} ${value}")
-
-                # Notify the BuzzerManager about the question display
-                await self._get_buzzer_manager(game).handle_question_display()
-
-                # Broadcast the question to all clients
-                await self.connection_manager.broadcast_message(
-                    self.QUESTION_DISPLAY_TOPIC,
-                    question_data,
-                    game_id=game_id
-                )
-                logger.info(f"Displayed question: {category_name} ${value}")
-
-                # Update LLM state for AI players
-                game.llm_state.question_displayed(
-                    category=category_name,
-                    value=value,
-                    question_text=question["clue"]
-                )
-
-        except Exception as e:
-            logger.error(f"Error displaying question: {e}")
-    
     async def dismiss_question(self, game_id: str):
-        """Dismiss the current question and broadcast to all clients"""
-        logger.info("Dismissing question")
-
+        """Delegate to QuestionManager."""
         game = await self._get_game(game_id)
-
-        # Deactivate buzzer
-        game.buzzer_active = False
-        await self._get_buzzer_manager(game).deactivate_buzzer(game_id=game_id)
-
-        # Clear buzzer manager state
-        buzzer_mgr = self._get_buzzer_manager(game)
-        buzzer_mgr.last_buzzer = None
-        buzzer_mgr.incorrect_players.clear()
-        buzzer_mgr.expecting_reactivation = False
-
-        # Reset AI host game state manager
-        if game.ai_host and game.ai_host.game_state_manager:
-            game.ai_host.game_state_manager.reset_question()
-
-        # Notify clients
-        await self.connection_manager.broadcast_message(
-            self.QUESTION_DISMISS_TOPIC,
-            {},
-            game_id=game_id
-        )
-
-        # Update LLM state
-        game.llm_state.question_dismissed()
-
-        # Clear game instance state
-        game.current_question = None
-        game.last_buzzer = None
+        await self._get_question_manager(game).dismiss_question(game_id)
     
     async def change_buzzer_status(self, active: bool, game_id: str):
         """Change buzzer status and broadcast to all clients"""
@@ -296,7 +143,7 @@ class GameService:
         else:
             await buzzer_mgr.deactivate_buzzer(game_id=game_id)
     
-    async def register_player(self, websocket: WebSocket, name: str, preferences: str = '', game_id: str = None):
+    async def register_player(self, websocket: WebSocket, name: str, preferences: str = '', game_id: str = ''):
         """Register a new player with the given name and preferences"""
         game = await self._get_game(game_id)
         state = game.state
@@ -387,152 +234,15 @@ class GameService:
         # Update LLM state for player buzzed in
         game.llm_state.player_buzzed_in(contestant.name)
     
-    async def answer_question(self, correct: bool, contestant_name=None, game_id: str = None):
-        """Handle an answer from a contestant"""
+    async def answer_question(self, correct: bool, contestant_name=None, game_id: str = ''):
+        """Delegate to QuestionManager."""
         game = await self._get_game(game_id)
-        state = game.state
-        board = game.board
-        current_question = game.current_question
-        last_buzzer = game.last_buzzer
-
-        if not current_question:
-            logger.warning("No current question to answer")
-            return
-
-        # If no contestant name provided, use the last person to buzz in
-        if not contestant_name:
-            contestant_name = last_buzzer
-
-        if not contestant_name:
-            logger.warning("No contestant to score")
-            return
-
-        logger.info(f"Processing answer from {contestant_name}: {'correct' if correct else 'incorrect'}")
-
-        score_delta = current_question["value"]
-        daily_double = current_question.get("daily_double", False)
-
-        contestant = self.find_contestant(contestant_name, state=state)
-        if not contestant:
-            logger.warning(f"Contestant {contestant_name} not found")
-            return
-
-        # Broadcast the answer result
-        await self.connection_manager.broadcast_message(
-            self.QUESTION_ANSWER_TOPIC,
-            {
-                "contestant": contestant_name,
-                "correct": correct,
-                "value": score_delta,
-                "answer": current_question["answer"]
-            },
-            game_id=game_id
-        )
-
-        # Handle correct answer
-        if correct:
-            logger.info(f"Correct answer from {contestant_name}")
-
-            # Award points
-            contestant.score += score_delta
-
-            # Use the buzzer manager to handle the correct answer
-            await self._get_buzzer_manager(game).handle_correct_answer(contestant_name)
-
-            # If this was a daily double or all questions have been answered, we're done
-            if daily_double or self.all_questions_answered(board):
-                await self.dismiss_question(game_id=game_id)
-            else:
-                # Let the contestant choose the next question
-                await self.connection_manager.broadcast_message(
-                    "com.sc2ctl.jeopardy.select_question",
-                    {"contestant": contestant_name},
-                    game_id=game_id
-                )
-
-                # Update LLM state for selecting question
-                game.llm_state.selecting_question(contestant_name)
-
-            # Broadcast score update
-            await self.send_contestant_scores(game_id)
-
-            # Update LLM state with new score
-            game.llm_state.update_player_score(contestant_name, contestant.score)
-
-        # Handle incorrect answer
-        else:
-            logger.info(f"Incorrect answer from {contestant_name}")
-
-            # Deduct points for incorrect answers
-            contestant.score -= score_delta
-
-            # Use the buzzer manager to handle incorrect answer
-            await self._get_buzzer_manager(game).handle_incorrect_answer(contestant_name)
-
-            # Broadcast score update
-            await self.send_contestant_scores(game_id)
-
-            # Update LLM state with new score
-            game.llm_state.update_player_score(contestant_name, contestant.score)
+        await self._get_question_manager(game).answer_question(correct, contestant_name, game_id)
 
     async def handle_daily_double_bet(self, contestant: str, bet: int, game_id: str):
-        """Handle a daily double bet from a contestant"""
-        logger.info(f"Daily double bet: {contestant} bets ${bet}")
-
+        """Delegate to QuestionManager."""
         game = await self._get_game(game_id)
-        state = game.state
-        current_question = game.current_question
-
-        if not current_question:
-            logger.warning("No current question for daily double bet")
-            return
-
-        # Validate bet is within allowed range
-        player = self.find_contestant(contestant, state=state)
-        if not player:
-            logger.warning(f"Contestant {contestant} not found")
-            return
-
-        max_bet = max(1000, player.score)
-        if bet < 5 or bet > max_bet:
-            logger.warning(f"Invalid bet amount: ${bet}. Must be between $5 and ${max_bet}")
-            return
-
-        # Store bet amount and contestant in current question
-        current_question["value"] = bet
-        current_question["contestant"] = contestant
-
-        # First send a response to confirm the bet was placed
-        await self.connection_manager.broadcast_message(
-            "com.sc2ctl.jeopardy.daily_double_bet_response",
-            {
-                "question": current_question,
-                "bet": bet,
-                "contestant": contestant
-            },
-            game_id=game_id
-        )
-
-        # Then display the question after the bet is confirmed
-        await self.connection_manager.broadcast_message(
-            self.QUESTION_DISPLAY_TOPIC,
-            current_question,
-            game_id=game_id
-        )
-
-        # For daily doubles, the contestant who selected it automatically gets to answer
-        # So we don't activate the buzzer for everyone
-        game.last_buzzer = contestant
-
-        # Update LLM state
-        game.llm_state.question_displayed(
-            category=current_question["category"],
-            value=bet,
-            question_text=current_question["text"]
-        )
-
-        # After showing the question, the next step is for the player to answer
-        game.llm_state.player_buzzed_in(contestant)
+        await self._get_question_manager(game).handle_daily_double_bet(contestant, bet, game_id)
     
     async def handle_final_jeopardy_request(self, content_type: str, game_id: str):
         """Handle a request for final jeopardy content"""
@@ -660,17 +370,6 @@ class GameService:
                 return contestant
         return None
 
-    def all_questions_answered(self, board) -> bool:
-        """Check if all questions have been answered in the specified board"""
-        if not board or "categories" not in board:
-            return False
-
-        for category in board["categories"]:
-            for question in category["questions"]:
-                if not question.get("used", False):
-                    return False
-        return True
-
     async def handle_audio_completed(self, audio_id: str, game_id: str):
         """Handle notification that audio playback has completed"""
         game = await self._get_game(game_id)
@@ -724,7 +423,7 @@ class GameService:
             game_id=game_id
         )
 
-    async def play_audio(self, audio_url: str, wait_for_completion: bool = True, audio_id: str = None, game_id: str = None):
+    async def play_audio(self, audio_url: str, wait_for_completion: bool = True, audio_id: str = None, game_id: str = ''):
         """
         Play audio on connected clients
 
@@ -747,13 +446,10 @@ class GameService:
 
         logger.info(f"🔊 Broadcasting audio playback: {audio_url} (ID: {audio_id}, wait: {wait_for_completion}, game: {game_id})")
 
-        # Support both message formats - keep as 'url' for backward compatibility with existing UI code
-        # but also include as audio_url for newer code
         await self.connection_manager.broadcast_message(
             self.AUDIO_PLAY_TOPIC,
             {
-                "url": audio_url,  # For backward compatibility
-                "audio_url": audio_url,  # For newer code
+                "audio_url": audio_url,
                 "audio_id": audio_id,
                 "wait_for_completion": wait_for_completion
             },

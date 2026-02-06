@@ -10,7 +10,7 @@ import logging
 from typing import Dict, Optional, Any, List, Set
 from datetime import datetime
 
-from ..models.game_state import GameStateManager
+from ..models.game_state import PlayerRegistry
 from ..models.board import Board
 from ..ai.host import AIHostService
 from ..ai.llm_state_manager import LLMStateManager
@@ -58,12 +58,12 @@ class GameInstance:
         self.created_at = datetime.utcnow()
 
         # Game state
-        self.state = GameStateManager(game_id=game_id, game_code=game_code)
+        self.state = PlayerRegistry(game_id=game_id, game_code=game_code)
         self.llm_state = LLMStateManager(game_id=game_id)
         self.board: Optional[Dict[str, Any]] = None
         self.current_question = None
-        self.buzzer_active = False
-        self.last_buzzer = None
+        self._buzzer_active = False
+        self._last_buzzer = None
         self.game_ready = False
         self.completed_audio_ids: Set[str] = set()
         self.audio_events: Dict[str, asyncio.Event] = {}  # For event-based completion signaling
@@ -81,6 +81,32 @@ class GameInstance:
         if self._ai_host is None:
             self._ai_host = AIHostService(name=f"AI Host ({self.game_code})")
         return self._ai_host
+
+    @property
+    def buzzer_active(self) -> bool:
+        """Delegate buzzer_active to BuzzerManager when AI host is initialized."""
+        if self._ai_host is not None:
+            return self._ai_host.buzzer_manager.buzzer_active
+        return self._buzzer_active
+
+    @buzzer_active.setter
+    def buzzer_active(self, value: bool):
+        if self._ai_host is not None:
+            self._ai_host.buzzer_manager.buzzer_active = value
+        self._buzzer_active = value
+
+    @property
+    def last_buzzer(self):
+        """Delegate last_buzzer to BuzzerManager when AI host is initialized."""
+        if self._ai_host is not None:
+            return self._ai_host.buzzer_manager.last_buzzer
+        return self._last_buzzer
+
+    @last_buzzer.setter
+    def last_buzzer(self, value):
+        if self._ai_host is not None:
+            self._ai_host.buzzer_manager.last_buzzer = value
+        self._last_buzzer = value
 
     @property
     def player_count(self) -> int:

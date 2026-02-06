@@ -1,7 +1,6 @@
 import logging
-import json
-from typing import List, Dict, Set, Optional
-from fastapi import WebSocket, WebSocketDisconnect
+from typing import Dict, Set, Optional
+from fastapi import WebSocket
 import uuid
 
 logger = logging.getLogger(__name__)
@@ -27,10 +26,6 @@ class ConnectionManager:
         # Reverse lookup: client_id -> game_id
         self.client_rooms: Dict[str, str] = {}
 
-        # Legacy support
-        self.admin_connections: List[WebSocket] = []
-        self.player_connections: List[WebSocket] = []
-        self.topic_subscriptions: Dict[str, List[WebSocket]] = {}
 
     async def connect(self, websocket: WebSocket, game_id: Optional[str] = None) -> str:
         """
@@ -168,37 +163,16 @@ class ConnectionManager:
                 websocket = self.active_connections[client_id]
                 await self.disconnect(websocket)
 
-    async def broadcast_message(self, topic: str, payload: dict, game_id: Optional[str] = None):
+    async def broadcast_message(self, topic: str, payload: dict, game_id: str):
         """
-        Broadcast a message to all clients, optionally filtered by game.
-
-        For backward compatibility, if game_id is None, broadcasts to ALL clients.
-        For multi-game support, provide game_id to scope the broadcast.
+        Broadcast a message to all clients in a specific game room.
 
         Args:
             topic: The message topic
             payload: The message payload
-            game_id: Optional game ID to scope the broadcast
+            game_id: The game ID to scope the broadcast
         """
-        if game_id:
-            await self.broadcast_to_room(game_id, topic, payload)
-            return
-
-        # Legacy: broadcast to all (for backwards compatibility during migration)
-        message = {"topic": topic, "payload": payload}
-        disconnected = []
-
-        for client_id, connection in self.active_connections.items():
-            try:
-                await connection.send_json(message)
-            except Exception:
-                disconnected.append(client_id)
-
-        # Clean up disconnected clients
-        for client_id in disconnected:
-            if client_id in self.active_connections:
-                websocket = self.active_connections[client_id]
-                await self.disconnect(websocket)
+        await self.broadcast_to_room(game_id, topic, payload)
 
     def get_room_client_count(self, game_id: str) -> int:
         """Get the number of clients in a game room."""
@@ -208,70 +182,3 @@ class ConnectionManager:
         """Get all client IDs in a game room."""
         return self.rooms.get(game_id, set()).copy()
 
-    async def broadcast_to_topic(self, topic: str, message: dict):
-        if topic not in self.topic_subscriptions:
-            return
-            
-        message_json = json.dumps(message)
-        subscribers = self.topic_subscriptions[topic].copy()
-        
-        for websocket in subscribers:
-            try:
-                await websocket.send_text(message_json)
-            except Exception as e:
-                logger.error(f"Failed to send to subscriber {id(websocket)}: {e}")
-                await self.disconnect(websocket)
-    
-    async def broadcast(self, data: dict):
-        json_data = json.dumps(data)
-        for connection in self.active_connections.values():
-            try:
-                await connection.send_text(json_data)
-            except Exception:
-                # Handle disconnections or errors
-                await self.disconnect(connection)
-
-    async def handle_message(self, websocket: WebSocket, message_data: str):
-        """Handle incoming WebSocket message and route to appropriate handler"""
-        try:
-            message = json.loads(message_data)
-            
-            # Get the topic and payload from the message
-            topic = message.get("topic")
-            payload = message.get("payload", {})
-            
-            logging.info(f"Received message on topic: {topic}")
-            
-            # Handle based on topic
-            if topic == "com.sc2ctl.jeopardy.buzzer":
-                await self.handle_buzzer(websocket, payload)
-            elif topic == "com.sc2ctl.jeopardy.chat":
-                await self.handle_chat(websocket, payload)
-            elif topic == "com.sc2ctl.jeopardy.register":
-                await self.handle_registration(websocket, payload)
-            elif topic == "com.sc2ctl.jeopardy.select_board":
-                await self.handle_board_selection(websocket, payload)
-            elif topic == "com.sc2ctl.jeopardy.select_question":
-                await self.handle_question_selection(websocket, payload)
-            elif topic == "com.sc2ctl.jeopardy.audio_complete":
-                await self.handle_audio_complete(websocket, payload)
-            else:
-                logging.warning(f"Unhandled message topic: {topic}")
-        except json.JSONDecodeError:
-            logging.error(f"Invalid message format: {message_data}")
-        except Exception as e:
-            logging.error(f"Error handling message: {e}")
-            
-    async def handle_audio_complete(self, websocket: WebSocket, payload: Dict):
-        """Handle audio completion notifications from clients.
-
-        Note: Audio completion is now handled through the WebSocket handler in main.py
-        which has proper game context. This method is kept for backwards compatibility
-        but simply logs the event.
-        """
-        audio_id = payload.get("audio_id")
-        if not audio_id:
-            logging.warning("Audio completion message missing audio_id")
-            return
-
-        logging.info(f"🔊 WebSocket audio completion received: {audio_id} (handled by main.py)") 

@@ -19,6 +19,7 @@ from .clue_processor import ClueProcessor
 from .chat_processor import ChatProcessor
 from .buzzer_manager import BuzzerManager
 from .game_flow_manager import GameFlowManager
+from .question_manager import QuestionManager
 from .utils.helpers import is_same_player, cleanup_audio_files
 
 logger = logging.getLogger(__name__)
@@ -53,6 +54,7 @@ class AIHostService:
         self.clue_processor = ClueProcessor()
         self.chat_processor = ChatProcessor()
         self.buzzer_manager = BuzzerManager()
+        self.question_manager = QuestionManager()
         self.game_flow_manager = GameFlowManager()
         
         # Set up the chat processor
@@ -125,6 +127,13 @@ class AIHostService:
             game_instance=self.game_instance if hasattr(self, 'game_instance') else None
         )
 
+        # Set up question manager dependencies
+        self.question_manager.set_dependencies(
+            game_service=game_service,
+            game_instance=self.game_instance if hasattr(self, 'game_instance') else None,
+            buzzer_manager=self.buzzer_manager,
+        )
+
         # Set up buzzer manager dependencies
         self.buzzer_manager.set_dependencies(
             game_service=game_service,
@@ -150,6 +159,7 @@ class AIHostService:
             self.board_manager.game_instance = self.game_instance
             self.audio_manager.game_instance = self.game_instance
             self.clue_processor.set_game_instance(self.game_instance)
+            self.question_manager.game_instance = self.game_instance
 
         logger.info("Dependencies set for AI Host Service")
     

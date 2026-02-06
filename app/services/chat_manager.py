@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List
 from ..websockets.connection_manager import ConnectionManager
 from datetime import datetime
 
@@ -10,7 +10,7 @@ class ChatManager:
     """
     ChatManager handles the chat functionality for the game.
     It stores chat messages and broadcasts them to all connected clients.
-    Supports multi-game with per-game chat history.
+    Per-game chat history only.
     """
 
     # Chat topic constant - should match the JavaScript client
@@ -24,21 +24,20 @@ class ChatManager:
             connection_manager: The websocket connection manager for sending messages
         """
         self.connection_manager = connection_manager
-        self.chat_history: List[Dict] = []  # Legacy single-game chat history
         self.game_chat_history: Dict[str, List[Dict]] = {}  # game_id -> chat history
         self.max_history_size = 100  # Maximum number of chat messages to store
 
     async def handle_message(
-        self, username: str, message: str, is_admin: bool = False, game_id: Optional[str] = None
+        self, username: str, message: str, is_admin: bool = False, game_id: str = ''
     ):
         """
-        Process and broadcast a chat message to all clients.
+        Process and broadcast a chat message to all clients in a game.
 
         Args:
             username: The name of the user sending the message
             message: The content of the chat message
             is_admin: Whether the message is from an admin (optional)
-            game_id: Optional game ID for multi-game support
+            game_id: Game ID for the game room
         """
         # Create the chat message object
         chat_message = {
@@ -48,41 +47,31 @@ class ChatManager:
             "is_admin": is_admin,
         }
 
-        # Add to appropriate history
-        if game_id:
-            if game_id not in self.game_chat_history:
-                self.game_chat_history[game_id] = []
-            self.game_chat_history[game_id].append(chat_message)
-            if len(self.game_chat_history[game_id]) > self.max_history_size:
-                self.game_chat_history[game_id] = self.game_chat_history[game_id][
-                    -self.max_history_size :
-                ]
-        else:
-            # Legacy single-game mode
-            self.chat_history.append(chat_message)
-            if len(self.chat_history) > self.max_history_size:
-                self.chat_history = self.chat_history[-self.max_history_size :]
+        # Add to game history
+        if game_id not in self.game_chat_history:
+            self.game_chat_history[game_id] = []
+        self.game_chat_history[game_id].append(chat_message)
+        if len(self.game_chat_history[game_id]) > self.max_history_size:
+            self.game_chat_history[game_id] = self.game_chat_history[game_id][
+                -self.max_history_size :
+            ]
 
         logger.debug(f"Chat message from {username}: {message}")
 
-        # Broadcast to appropriate clients
+        # Broadcast to game room
         await self.connection_manager.broadcast_message(
             self.CHAT_MESSAGE_TOPIC, chat_message, game_id=game_id
         )
 
-    async def send_chat_history(self, websocket, game_id: Optional[str] = None):
+    async def send_chat_history(self, websocket, game_id: str = ''):
         """
         Send chat history to a newly connected client.
 
         Args:
             websocket: The websocket connection of the client
-            game_id: Optional game ID for multi-game support
+            game_id: Game ID for the game room
         """
-        # Get appropriate history
-        if game_id:
-            history = self.game_chat_history.get(game_id, [])
-        else:
-            history = self.chat_history
+        history = self.game_chat_history.get(game_id, [])
 
         if not history:
             return

@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Shakespearean Villainy",
+      "questions": [
+        {
+          "clue": "This Moorish general is manipulated by Iago into believing his wife is unfaithful.",
+          "answer": "Othello",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This villainous king of Britain is misled by his daughters Goneril and Regan.",
+          "answer": "King Lear",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Lady Macbeth convinces her husband to murder this Scottish king.",
+          "answer": "Duncan",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Duke of Milan usurps his brother's throne in 'The Tempest'.",
+          "answer": "Antonio",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 'Richard III', this historical king famously declares he would trade his kingdom for a horse.",
+          "answer": "Richard III",
+          "value": 1000,
+          "daily_double": true,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Innovations of Ancient Civilizations",
+      "questions": [
+        {
+          "clue": "For 200 points: This ancient civilization is credited with developing the wheel around 3500 B.C.",
+          "answer": "Sumerians",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 400 points: Using a system of letters, this ancient culture created one of the first known alphabets around 1000 B.C.",
+          "answer": "Phoenicians",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 600 points: This ancient civilization built an extensive road network, including the Appian Way, completed in 312 B.C.",
+          "answer": "Romans",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 800 points: The implementation of this water-lifting device, used to raise water for irrigation, is attributed to the ancient Egyptians.",
+          "answer": "Shaduf",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 1000 points: This advanced mathematical concept, first used by the Babylonians, allowed them to calculate planetary cycles with remarkable precision.",
+          "answer": "Base 60 numeral system",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Jazz Around the World",
+      "questions": [
+        {
+          "clue": "Often called the birthplace of jazz, this American city hosts the New Orleans Jazz & Heritage Festival annually.",
+          "answer": "New Orleans",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Brazilian music genre, blending samba and jazz, was popularized by Antonio Carlos Jobim.",
+          "answer": "Bossa Nova",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Swedish pianist and composer, known for his jazz trio, is famous for albums like 'Vagabond' and 'When You Wish Upon A Star'.",
+          "answer": "Jan Lundgren",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Started in 1964, this Dutch city hosts the renowned North Sea Jazz Festival, one of the largest indoor jazz festivals in the world.",
+          "answer": "Rotterdam",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This South African jazz trumpeter and bandleader became internationally celebrated for his Afro-jazz sound and hits like 'Grazing in the Grass'.",
+          "answer": "Hugh Masekela",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Quantum Physics Fundamentals",
+      "questions": [
+        {
+          "clue": "For $200: This physicist's name is synonymous with the principle that restricts how precisely we can know a particle's position and momentum at the same time.",
+          "answer": "Heisenberg",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $400: This term describes the smallest possible discrete unit of any physical property, such as energy in a photon.",
+          "answer": "Quantum",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $600: Albert Einstein used this term meaning 'spooky action at a distance' to describe quantum entanglement.",
+          "answer": "Nonlocality",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $800: This thought experiment features a cat that is simultaneously alive and dead, highlighting the concept of superposition.",
+          "answer": "Schrodinger's Cat",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $1000: This complex function provides a probability amplitude for the quantum state of a particle.",
+          "answer": "Wave Function",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Legendary Myths and Their Origins",
+      "questions": [
+        {
+          "clue": "This king's legendary court at Camelot is a symbol of chivalric heroism and romance.",
+          "answer": "King Arthur",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This city, said to have been doomed to sink into the sea, has been the subject of countless stories since first mentioned by Plato.",
+          "answer": "Atlantis",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The Iliad, an epic narrative of the Trojan War, was passed down through oral tradition before being attributed to this ancient Greek poet.",
+          "answer": "Homer",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In Norse mythology, this world-spanning tree is central to the structure of the universe, encompassing nine realms.",
+          "answer": "Yggdrasil",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "According to Japanese mythology, this sword, one of the three imperial regalia, was found in the body of an eight-headed serpent by the god Susanoo.",
+          "answer": "Kusanagi-no-Tsurugi",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "World Capitals",
+    "clue": "This city, officially known as Kecamatan Menteng, became its nation's capital in 1949 after the end of colonial rule.",
+    "answer": "Jakarta"
+  }
+}

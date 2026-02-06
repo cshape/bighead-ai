@@ -645,6 +645,10 @@ export function GameProvider({ children }) {
           },
         });
         break;
+      case 'com.sc2ctl.jeopardy.answer_timer_stop':
+        console.log('Answer timer stopped — answer received');
+        dispatch({ type: 'CLEAR_ANSWER_TIMER' });
+        break;
       case 'com.sc2ctl.jeopardy.game_state':
         console.log('Received game state:', message.payload);
         dispatch({

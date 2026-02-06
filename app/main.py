@@ -4,16 +4,13 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, Depends, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Dict, Any, List, Optional
 import json
-import asyncio
 import logging
 from pathlib import Path
-import subprocess
 from fastapi.responses import FileResponse
 
 logging.basicConfig(level=logging.INFO)
@@ -22,6 +19,7 @@ logger = logging.getLogger(__name__)
 from .utils.file_loader import BoardFactory
 from .models.board import Board
 from .websockets.connection_manager import ConnectionManager
+from .websockets.handlers import router as ws_router, init_handlers
 from .services.game_service import GameService
 from .services.game_manager import GameManager
 from .services.chat_manager import ChatManager
@@ -102,300 +100,10 @@ app.state.game_service = game_service
 app.state.game_manager = game_manager
 app.state.chat_manager = chat_manager
 
-
-async def handle_websocket_message(
-    websocket: WebSocket,
-    client_id: str,
-    data: dict,
-    game_id: Optional[str] = None
-):
-    """Handle incoming WebSocket messages, optionally scoped to a game."""
-    topic = data.get('topic')
-    payload = data.get('payload', {})
-
-    # Get game instance if we have a game_id
-    game = None
-    if game_id:
-        game = await game_manager.get_game_by_id(game_id)
-
-    if topic == 'com.sc2ctl.jeopardy.register_player':
-        name = payload.get('name')
-        preferences = payload.get('preferences', '')
-        logger.info(f"Registering player: {name} with preferences: {preferences}")
-
-        if game:
-            # Multi-game: register in specific game
-            player_id = None
-            registration_success = False
-
-            # Check if player already exists in game state (reconnection after server restart)
-            existing_contestant = game.state.get_contestant_by_name(name)
-            if existing_contestant:
-                # Player is reconnecting - update their websocket key
-                logger.info(f"Player '{name}' is reconnecting (in game state), updating websocket key to {client_id}")
-                game.state.update_contestant_key(name, client_id)
-                game.add_client(client_id)
-
-                # Update websocket_id in database
-                await game_manager.player_repo.update_websocket_id(game.game_id, name, client_id)
-
-                # Get player_id from database for response
-                player_data = await game_manager.player_repo.get_player_by_name(game.game_id, name)
-                player_id = player_data["id"] if player_data else None
-                registration_success = True
-
-                await connection_manager.send_personal_message(
-                    websocket,
-                    "com.sc2ctl.jeopardy.register_player_response",
-                    {"success": True, "name": name, "player_id": player_id, "is_host": game.host_player_id == player_id, "reconnected": True}
-                )
-            else:
-                # Check if player exists in DB but not in game state (HTTP join case)
-                existing_player = await game_manager.player_repo.get_player_by_name(game.game_id, name)
-                if existing_player:
-                    # Player joined via HTTP, now connecting via websocket
-                    logger.info(f"Player '{name}' joined via HTTP, now registering in game state with {client_id}")
-                    player_id = existing_player["id"]
-
-                    # Register in game state with websocket client_id
-                    game.state.register_contestant(client_id, name)
-                    # Restore score if any
-                    contestant = game.state.get_contestant_by_websocket(client_id)
-                    if contestant and existing_player.get("score"):
-                        contestant.score = existing_player["score"]
-
-                    game.add_client(client_id)
-
-                    # Update websocket_id in database
-                    await game_manager.player_repo.update_websocket_id(game.game_id, name, client_id)
-                    registration_success = True
-
-                    await connection_manager.send_personal_message(
-                        websocket,
-                        "com.sc2ctl.jeopardy.register_player_response",
-                        {"success": True, "name": name, "player_id": player_id, "is_host": game.host_player_id == player_id}
-                    )
-                else:
-                    # Completely new player - create database record
-                    player_data = await game_manager.player_repo.create_player(
-                        game_id=game.game_id,
-                        name=name,
-                        preferences=preferences,
-                        websocket_id=client_id,
-                    )
-                    player_id = player_data["id"]
-
-                    # Register in game state using client_id as key (matches buzzer lookup)
-                    if game.state.register_contestant(client_id, name):
-                        game.add_client(client_id)
-
-                        # Store preferences in the game's AI host state manager
-                        if preferences and hasattr(game.ai_host, 'game_state_manager'):
-                            game.ai_host.game_state_manager.add_player_preference(name, preferences)
-
-                        # If this is the first player, make them the host
-                        if game.host_player_id is None:
-                            game.host_player_id = player_id
-                            await game_manager.game_repo.set_host_player(game.game_id, player_id)
-
-                        registration_success = True
-
-                        await connection_manager.send_personal_message(
-                            websocket,
-                            "com.sc2ctl.jeopardy.register_player_response",
-                            {"success": True, "name": name, "player_id": player_id, "is_host": game.host_player_id == player_id}
-                        )
-
-            # Broadcast player list for all successful registrations
-            if registration_success:
-                # Get player preferences for broadcast
-                player_prefs = {}
-                if hasattr(game.ai_host, 'game_state_manager'):
-                    player_prefs = game.ai_host.game_state_manager.player_preferences
-
-                # Build players dict with preferences
-                players_with_prefs = {
-                    c.name: {
-                        "score": c.score,
-                        "preferences": player_prefs.get(c.name, "")
-                    }
-                    for c in game.state.contestants.values()
-                }
-
-                # Broadcast updated player list to game room
-                await connection_manager.broadcast_to_room(
-                    game_id,
-                    "com.sc2ctl.jeopardy.player_list",
-                    {"players": players_with_prefs}
-                )
-                # Check if game is ready
-                if game.can_start():
-                    await connection_manager.broadcast_to_room(
-                        game_id,
-                        "com.sc2ctl.jeopardy.game_ready",
-                        {"ready": True}
-                    )
-        else:
-            # Legacy mode not supported - game_id required
-            logger.warning("register_player requires game_id")
-            await connection_manager.send_personal_message(
-                websocket,
-                "com.sc2ctl.jeopardy.register_player_response",
-                {"success": False, "error": "game_id is required"}
-            )
-
-    elif topic == 'com.sc2ctl.jeopardy.select_board':
-        board_id = payload.get('boardId') or payload.get('board_id')
-        logger.info(f"Selecting board: {board_id}")
-
-        if game_id:
-            await game_service.select_board(board_id, game_id=game_id)
-        else:
-            logger.warning("select_board requires game_id")
-
-    elif topic == game_service.QUESTION_DISPLAY_TOPIC:
-        category = payload.get('category')
-        value = payload.get('value')
-        logger.info(f"Displaying question: {category} - ${value}")
-        await game_service.display_question(category, value, game_id=game_id)
-
-    elif topic == 'com.sc2ctl.jeopardy.daily_double':
-        category = payload.get('category')
-        value = payload.get('value')
-        logger.info(f"Daily double selected: {category} - ${value}")
-        await game_service.display_question(category, value, game_id=game_id)
-
-    elif topic == game_service.BUZZER_TOPIC:
-        timestamp = payload.get('timestamp')
-        await game_service.handle_buzz(websocket, timestamp, game_id=game_id)
-
-    elif topic == game_service.QUESTION_ANSWER_TOPIC:
-        correct = payload.get('correct')
-        contestant = payload.get('contestant')
-        logger.info(f"Answering question: {'correct' if correct else 'incorrect'}")
-        await game_service.answer_question(correct, contestant, game_id=game_id)
-
-    elif topic == game_service.QUESTION_DISMISS_TOPIC:
-        await game_service.dismiss_question(game_id=game_id)
-
-    elif topic == game_service.BOARD_INIT_TOPIC:
-        await game_service.send_categories(game_id=game_id)
-
-    elif topic == game_service.DAILY_DOUBLE_BET_TOPIC:
-        contestant = payload.get('contestant')
-        bet = payload.get('bet')
-        logger.info(f"Daily double bet from {contestant}: ${bet}")
-        await game_service.handle_daily_double_bet(contestant, bet, game_id=game_id)
-
-    elif topic == 'com.sc2ctl.jeopardy.chat_message':
-        username = payload.get('username', 'Anonymous')
-        message_text = payload.get('message', '')
-
-        await chat_manager.handle_message(username, message_text, game_id=game_id)
-
-        if game_id:
-            await game_service.handle_chat_message(username, message_text, game_id=game_id)
-        else:
-            logger.warning("handle_chat_message requires game_id for AI host processing")
-
-    elif topic == 'com.sc2ctl.jeopardy.audio_complete':
-        audio_id = payload.get('audio_id')
-        if audio_id and game_id:
-            logger.info(f"Received audio completion via WebSocket: {audio_id}")
-            await game_service.handle_audio_completed(audio_id, game_id=game_id)
-        elif not audio_id:
-            logger.warning("Received audio completion message without audio_id")
-        else:
-            logger.warning("handle_audio_completed requires game_id")
-
-    elif topic == 'com.sc2ctl.jeopardy.start_ai_game':
-        logger.info("Starting AI game...")
-        num_players = payload.get("num_players", 3)
-        headless = payload.get("headless", True)
-
-        try:
-            project_root = Path(__file__).parent.parent
-            standalone_script = project_root / "standalone_ai_player.py"
-            os.chmod(standalone_script, 0o755)
-            headless_arg = "true" if headless else "false"
-            cmd = [str(standalone_script), str(num_players), headless_arg]
-
-            logger.info(f"Launching standalone AI player with: {' '.join(cmd)}")
-            process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                cwd=str(project_root)
-            )
-
-            await connection_manager.send_personal_message(
-                websocket,
-                "com.sc2ctl.jeopardy.ai_game_started",
-                {"status": "success"}
-            )
-            logger.info("AI game started successfully")
-        except Exception as e:
-            logger.error(f"Failed to start standalone AI player: {e}")
-            await connection_manager.send_personal_message(
-                websocket,
-                "com.sc2ctl.jeopardy.ai_game_started",
-                {"status": "error", "message": f"Failed to start AI game: {str(e)}"}
-            )
-
-    elif topic == 'com.sc2ctl.jeopardy.stop_ai_game':
-        logger.info("Stopping AI game...")
-        try:
-            if os.name == 'posix':
-                subprocess.run(["pkill", "-f", "standalone_ai_player.py"], check=False)
-            else:
-                subprocess.run(["taskkill", "/f", "/im", "python.exe"], check=False)
-
-            await connection_manager.send_personal_message(
-                websocket,
-                "com.sc2ctl.jeopardy.ai_game_stopped",
-                {"status": "success"}
-            )
-            logger.info("AI game stopped successfully")
-        except Exception as e:
-            logger.error(f"Failed to stop AI game: {e}")
-            await connection_manager.send_personal_message(
-                websocket,
-                "com.sc2ctl.jeopardy.ai_game_stopped",
-                {"status": "error", "message": f"Failed to stop AI game: {str(e)}"}
-            )
-
-    elif topic == 'com.sc2ctl.jeopardy.start_ai_host':
-        logger.info("Starting AI host...")
-        try:
-            await connection_manager.send_personal_message(
-                websocket,
-                "com.sc2ctl.jeopardy.ai_host_started",
-                {"status": "success"}
-            )
-            logger.info("AI host started successfully")
-        except Exception as e:
-            logger.error(f"Failed to start AI host: {e}")
-            await connection_manager.send_personal_message(
-                websocket,
-                "com.sc2ctl.jeopardy.ai_host_started",
-                {"status": "error", "message": f"Failed to start AI host: {str(e)}"}
-            )
-
-    elif topic == 'com.sc2ctl.jeopardy.start_game':
-        # Host requesting to start the game
-        if game:
-            player_id = payload.get('player_id')
-            if game.host_player_id == player_id or game.is_host(player_id):
-                success = await game_manager.start_game(game_id, game_service)
-                if success:
-                    await connection_manager.broadcast_to_room(
-                        game_id,
-                        "com.sc2ctl.jeopardy.game_started",
-                        {"status": "started"}
-                    )
+# Wire up WebSocket message handlers
+init_handlers(game_service, game_manager, connection_manager, chat_manager)
 
 
-# New WebSocket endpoint with game code
 @app.websocket("/ws/{game_code}")
 async def websocket_game_endpoint(websocket: WebSocket, game_code: str, player_name: str = None):
     """WebSocket endpoint for a specific game."""
@@ -438,7 +146,7 @@ async def websocket_game_endpoint(websocket: WebSocket, game_code: str, player_n
                 data = json.loads(message)
                 logger.debug(f"Received WebSocket message from {client_id}: {data}")
 
-                await handle_websocket_message(websocket, client_id, data, game_id=game.game_id)
+                await ws_router.dispatch(websocket, client_id, data, game_id=game.game_id, game=game)
 
             except json.JSONDecodeError as e:
                 logger.error(f"Failed to decode WebSocket message: {e}")
@@ -461,35 +169,6 @@ async def websocket_game_endpoint(websocket: WebSocket, game_code: str, player_n
             game.remove_client(client_id)
         await connection_manager.disconnect(websocket)
 
-
-# Legacy WebSocket endpoint (for backward compatibility)
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    """Legacy WebSocket endpoint without game code - deprecated, use /ws/{game_code} instead."""
-    logger.warning("Legacy WebSocket endpoint /ws is deprecated - use /ws/{game_code} instead")
-    try:
-        client_id = await connection_manager.connect(websocket)
-        await chat_manager.send_chat_history(websocket)
-
-        while True:
-            try:
-                message = await websocket.receive_text()
-                data = json.loads(message)
-                logger.debug(f"Received WebSocket message from {client_id}: {data}")
-
-                # Most operations now require game_id
-                await handle_websocket_message(websocket, client_id, data, game_id=None)
-
-            except json.JSONDecodeError as e:
-                logger.error(f"Failed to decode WebSocket message: {e}")
-                continue
-
-    except WebSocketDisconnect:
-        await connection_manager.disconnect(websocket)
-        logger.info(f"Client disconnected")
-    except Exception as e:
-        logger.error(f"Error in WebSocket connection: {e}")
-        await connection_manager.disconnect(websocket)
 
 
 # Routes for web pages - Define all HTTP routes before mounting static files
@@ -571,10 +250,11 @@ async def play_audio(request: dict):
     if not audio_url:
         raise HTTPException(status_code=400, detail="audio_url is required")
 
-    logger.info(f"Broadcasting audio playback request: {audio_url}")
-
-    # Get game_id if provided for room-scoped broadcast
     game_id = request.get("game_id")
+    if not game_id:
+        raise HTTPException(status_code=400, detail="game_id is required")
+
+    logger.info(f"Broadcasting audio playback request: {audio_url}")
 
     await connection_manager.broadcast_message(
         "com.sc2ctl.jeopardy.play_audio",

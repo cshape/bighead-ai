@@ -140,6 +140,21 @@ class ChatProcessor:
         logger.info(f"Processing answer from {username}: {message}")
 
         try:
+            # Cancel the answer timeout immediately — the player has submitted an answer,
+            # so we must not let the timeout fire while the AI evaluates it.
+            if (self.game_instance and self.game_instance.ai_host
+                    and self.game_instance.ai_host.buzzer_manager):
+                self.game_instance.ai_host.buzzer_manager.cancel_answer_timeout()
+                logger.info("Cancelled answer timeout — player submitted answer")
+
+            # Notify frontend to stop the answer timer visual
+            if self.game_service:
+                await self.game_service.connection_manager.broadcast_message(
+                    "com.sc2ctl.jeopardy.answer_timer_stop",
+                    {},
+                    game_id=self._game_id
+                )
+
             # Get the current question
             question = self.game_state_manager.game_state.current_question
             if not question:

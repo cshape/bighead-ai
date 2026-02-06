@@ -311,11 +311,11 @@ export default function QuestionModal() {
         
         {lastBuzzer && (
           <div className="timer-container answer-timer">
-          <div 
-            className="timer-bar answer" 
-            style={{ width: `${100 - answerTimerProgress}%` }}
-          ></div>
-        </div>
+            <div
+              className="timer-bar answer"
+              style={{ width: `${100 - answerTimerProgress}%` }}
+            ></div>
+          </div>
         )}
         
         {/* Buzzer timer - only show when buzzer is active */}

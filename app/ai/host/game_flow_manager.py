@@ -4,6 +4,7 @@ Game Flow Manager for handling game progression and state monitoring.
 
 import logging
 import asyncio
+import os
 import time
 from typing import Optional
 
@@ -91,11 +92,19 @@ class GameFlowManager:
                 
                 # Read the question if it hasn't been read yet
                 if not self.game_state_manager.has_question_been_read(question_data["text"]):
-                    speech_text = f"For {question_data['category']}, ${question_data['value']}. {question_data['text']}"
-                    logger.debug(f"Synthesizing speech: {speech_text}")
-                    
-                    await self.audio_manager.synthesize_and_play_speech(speech_text, is_question_audio=True)
                     self.game_state_manager.mark_question_read(question_data["text"])
+
+                    if os.environ.get("TEST_MODE"):
+                        # TEST_MODE: skip TTS, activate buzzer directly after short delay
+                        logger.info("TEST_MODE: Skipping question audio, activating buzzer directly")
+                        await asyncio.sleep(0.5)
+                        await self.buzzer_manager.activate_buzzer(game_id=self._get_game_id())
+                        if self.game_state_manager:
+                            self.game_state_manager.buzzer_active = True
+                    else:
+                        speech_text = f"For {question_data['category']}, ${question_data['value']}. {question_data['text']}"
+                        logger.debug(f"Synthesizing speech: {speech_text}")
+                        await self.audio_manager.synthesize_and_play_speech(speech_text, is_question_audio=True)
                 
             # Check if we need to handle a player's answer - improved to detect new buzzer events
             current_buzzer = self.game_instance.last_buzzer if self.game_instance else None
@@ -254,7 +263,7 @@ class GameFlowManager:
             
             # Send welcome message
             await self.chat_processor.send_chat_message(welcome_message)
-            if self.audio_manager:
+            if self.audio_manager and not os.environ.get("TEST_MODE"):
                 await self.audio_manager.synthesize_and_play_speech(welcome_message)
             
             # Mark welcome as completed
@@ -319,7 +328,8 @@ class GameFlowManager:
                 # Announce the game is starting
                 start_message = "The game board is ready! Let's play Jeopardy!"
                 await self.chat_processor.send_chat_message(start_message)
-                await self.audio_manager.synthesize_and_play_speech(start_message)
+                if not os.environ.get("TEST_MODE"):
+                    await self.audio_manager.synthesize_and_play_speech(start_message)
                 
                 # Start the game by assigning the first player control of the board
                 await self.assign_first_player()
@@ -334,7 +344,8 @@ class GameFlowManager:
                 # Notify players
                 error_message = "I had trouble generating a custom board. Let's use a default board instead!"
                 await self.chat_processor.send_chat_message(error_message)
-                await self.audio_manager.synthesize_and_play_speech(error_message)
+                if not os.environ.get("TEST_MODE"):
+                    await self.audio_manager.synthesize_and_play_speech(error_message)
                 
                 # Start the game by assigning the first player control of the board
                 await self.assign_first_player()
@@ -370,7 +381,8 @@ class GameFlowManager:
             # Announce that the first player has control
             control_message = f"{first_player}, you have control of the board!"
             await self.chat_processor.send_chat_message(control_message)
-            await self.audio_manager.synthesize_and_play_speech(control_message)
+            if not os.environ.get("TEST_MODE"):
+                await self.audio_manager.synthesize_and_play_speech(control_message)
             
         except Exception as e:
             logger.error(f"Error assigning first player: {e}")

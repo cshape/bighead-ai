@@ -45,6 +45,9 @@ class AudioManager:
         
     async def start(self):
         """Start the audio queue processor"""
+        if os.environ.get("TEST_MODE"):
+            logger.info("TEST_MODE: Skipping audio queue processor")
+            return
         self.is_playing_audio = True
         asyncio.create_task(self.process_audio_queue())
         logger.debug("Audio queue processor started")
@@ -91,12 +94,16 @@ class AudioManager:
     async def synthesize_and_play_speech(self, text: str, is_question_audio=False, is_incorrect_answer_audio=False):
         """
         Synthesize speech from text and play it to all clients.
-        
+
         Args:
             text: The text to convert to speech
             is_question_audio: Whether this is a question being read
             is_incorrect_answer_audio: Whether this is an incorrect answer response
         """
+        if os.environ.get("TEST_MODE"):
+            logger.info(f"TEST_MODE: Skipping TTS for: {text[:60]}...")
+            return
+
         try:
             logger.debug(f"Converting to speech: {text}")
             

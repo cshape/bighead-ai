@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getApiUrl, getWebSocketUrl } from '../config';
 import { useGame } from '../contexts/GameContext';
 import './LobbyPage.css';
@@ -7,7 +7,6 @@ import './LobbyPage.css';
 function LobbyPage() {
   const { code } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
   const { setGameCode } = useGame();
 
   // Set game code in GameContext so it connects to the correct WebSocket endpoint
@@ -23,13 +22,10 @@ function LobbyPage() {
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [ws, setWs] = useState(null);
-  const [playerName, setPlayerName] = useState('');
-  const [playerPreferences, setPlayerPreferences] = useState('');
-  const [isRegistering, setIsRegistering] = useState(false);
 
-  // Get player info from session storage or location state
+  // Get player info from session storage
   const playerInfo = JSON.parse(sessionStorage.getItem('playerInfo') || '{}');
-  const isHost = location.state?.isHost || playerInfo.isHost || false;
+  const isHost = playerInfo.isHost || false;
 
   // Fetch initial game state
   useEffect(() => {
@@ -105,23 +101,6 @@ function LobbyPage() {
           navigate(`/game/${code}`);
           break;
 
-        case 'com.sc2ctl.jeopardy.register_player_response':
-          if (message.payload.success) {
-            setIsRegistering(false);
-            // Store player info including player_id from backend
-            sessionStorage.setItem(
-              'playerInfo',
-              JSON.stringify({
-                ...playerInfo,
-                playerName: message.payload.name,
-                playerId: message.payload.player_id,
-                isHost: message.payload.is_host,
-                gameId: gameState?.game_id,
-              })
-            );
-          }
-          break;
-
         default:
           console.log('Unhandled lobby message:', message.topic);
       }
@@ -142,23 +121,6 @@ function LobbyPage() {
       websocket.close();
     };
   }, [code, navigate]);
-
-  const handleRegisterPlayer = useCallback(() => {
-    if (!ws || ws.readyState !== WebSocket.OPEN || !playerName.trim()) {
-      return;
-    }
-
-    setIsRegistering(true);
-    ws.send(
-      JSON.stringify({
-        topic: 'com.sc2ctl.jeopardy.register_player',
-        payload: {
-          name: playerName.trim(),
-          preferences: playerPreferences.trim(),
-        },
-      })
-    );
-  }, [ws, playerName, playerPreferences]);
 
   const handleStartGame = async () => {
     // Read fresh from sessionStorage to avoid stale closure
@@ -222,7 +184,6 @@ function LobbyPage() {
   }
 
   const canStart = players.length >= 3;
-  const needsRegistration = isHost && !playerInfo.playerName;
 
   return (
     <div className="lobby-page">
@@ -240,41 +201,9 @@ function LobbyPage() {
           <p className="game-code-hint">Share this code with other players to join</p>
         </div>
 
-        {needsRegistration && (
-          <div className="register-section">
-            <h3>Enter Your Name to Join</h3>
-            <div className="register-form">
-              <input
-                type="text"
-                value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
-                placeholder="Your name"
-                maxLength={100}
-                className="register-input"
-                disabled={isRegistering}
-              />
-              <input
-                type="text"
-                value={playerPreferences}
-                onChange={(e) => setPlayerPreferences(e.target.value)}
-                placeholder="Category preferences (optional)"
-                className="register-input"
-                disabled={isRegistering}
-              />
-              <button
-                className="register-button"
-                onClick={handleRegisterPlayer}
-                disabled={isRegistering || !playerName.trim()}
-              >
-                {isRegistering ? 'Joining...' : 'Join'}
-              </button>
-            </div>
-          </div>
-        )}
-
         <div className="players-section">
           <h2 className="players-title">
-            Players ({players.length}/3 minimum)
+            Players
           </h2>
           <ul className="players-list">
             {players.map((player, index) => (
@@ -301,12 +230,11 @@ function LobbyPage() {
               onClick={handleStartGame}
               disabled={!canStart || starting}
             >
-              {starting
-                ? 'Starting...'
-                : canStart
-                ? 'START GAME'
-                : `Need ${3 - players.length} more player(s)`}
+              {starting ? 'Starting...' : 'START GAME'}
             </button>
+            {!canStart && !starting && (
+              <p className="start-hint">Need {3 - players.length} more player(s)</p>
+            )}
           </div>
         )}
 

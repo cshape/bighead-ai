@@ -4,6 +4,7 @@ Buzzer Manager for handling buzzer-related functionality in the Jeopardy game.
 
 import logging
 import asyncio
+import os
 import time
 from typing import Set, Optional
 
@@ -25,12 +26,12 @@ class BuzzerManager:
         
         # Timeout management
         self.buzzer_timeout_task = None
-        self.buzzer_timeout_seconds = 5.0  # 5 second timeout
+        self.buzzer_timeout_seconds = 10.0 if os.environ.get("TEST_MODE") else 5.0
         self.is_timeout_active = False
-        
+
         # Answer timeout management
         self.answer_timeout_task = None
-        self.answer_timeout_seconds = 7.0  # 7 second timeout for answering
+        self.answer_timeout_seconds = 15.0 if os.environ.get("TEST_MODE") else 7.0
         self.answer_timeout_active = False
         
         # Dependencies (to be set later)

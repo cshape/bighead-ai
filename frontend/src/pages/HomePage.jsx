@@ -10,26 +10,65 @@ function HomePage() {
   const [preferences, setPreferences] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [joining, setJoining] = useState(false);
+  const [creating, setCreating] = useState(false);
 
-  const handleCreateGame = async () => {
-    setLoading(true);
+  const handleCreateGame = async (e) => {
+    e.preventDefault();
     setError('');
 
+    if (!playerName.trim()) {
+      setError('Please enter your name');
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const response = await fetch(getApiUrl('/api/games/create'), {
+      // Step 1: Create the game
+      const createResponse = await fetch(getApiUrl('/api/games/create'), {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
 
-      if (!response.ok) {
+      if (!createResponse.ok) {
         throw new Error('Failed to create game');
       }
 
-      const data = await response.json();
-      // Navigate to lobby with the game code
-      navigate(`/game/${data.code}/lobby`, { state: { isHost: true } });
+      const createData = await createResponse.json();
+      const code = createData.code;
+
+      // Step 2: Join the game as host
+      const joinResponse = await fetch(getApiUrl(`/api/games/join/${code}`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          player_name: playerName.trim(),
+          preferences: preferences.trim() || null,
+        }),
+      });
+
+      if (!joinResponse.ok) {
+        const errorData = await joinResponse.json();
+        throw new Error(errorData.detail || 'Failed to join game');
+      }
+
+      const joinData = await joinResponse.json();
+
+      // Store player info in session storage
+      sessionStorage.setItem(
+        'playerInfo',
+        JSON.stringify({
+          playerId: joinData.player_id,
+          playerName: joinData.player_name,
+          isHost: joinData.is_host,
+          gameId: joinData.game_id,
+          preferences: preferences.trim(),
+        })
+      );
+
+      // Navigate to lobby — host arrives fully registered
+      navigate(`/game/${joinData.code}/lobby`);
     } catch (err) {
       setError(err.message || 'Failed to create game');
     } finally {
@@ -93,75 +132,155 @@ function HomePage() {
     }
   };
 
+  const handleBack = () => {
+    setJoining(false);
+    setCreating(false);
+    setError('');
+    setPlayerName('');
+    setPreferences('');
+    setGameCode('');
+  };
+
   return (
     <div className="home-page">
       <div className="home-container">
         <h1 className="home-title">JEOPARDY AI</h1>
 
-        <div className="home-section">
-          <button
-            className="home-button create-button"
-            onClick={handleCreateGame}
-            disabled={loading}
-          >
-            {loading ? 'Creating...' : 'CREATE GAME'}
-          </button>
-        </div>
+        {!joining && !creating ? (
+          <>
+            <div className="home-section">
+              <button
+                className="home-button create-button"
+                onClick={() => setCreating(true)}
+                disabled={loading}
+              >
+                CREATE GAME
+              </button>
+            </div>
 
-        <div className="home-divider">
-          <span>OR</span>
-        </div>
+            <div className="home-divider">
+              <span>OR</span>
+            </div>
 
-        <form className="home-section join-form" onSubmit={handleJoinGame}>
-          <div className="input-group">
-            <label htmlFor="gameCode">Enter Game Code:</label>
-            <input
-              id="gameCode"
-              type="text"
-              value={gameCode}
-              onChange={(e) => setGameCode(e.target.value.toUpperCase())}
-              placeholder="ABC123"
-              maxLength={6}
-              className="home-input"
+            <div className="home-section">
+              <button
+                className="home-button join-button"
+                onClick={() => setJoining(true)}
+                disabled={loading}
+              >
+                JOIN GAME
+              </button>
+            </div>
+          </>
+        ) : creating ? (
+          <form className="home-section join-form" onSubmit={handleCreateGame}>
+            <div className="input-group">
+              <label htmlFor="playerName">Your Name</label>
+              <input
+                id="playerName"
+                type="text"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                placeholder="Enter your name"
+                maxLength={100}
+                className="home-input"
+                disabled={loading}
+                autoFocus
+              />
+            </div>
+
+            <div className="input-group">
+              <label htmlFor="preferences">Category Preferences (optional)</label>
+              <input
+                id="preferences"
+                type="text"
+                value={preferences}
+                onChange={(e) => setPreferences(e.target.value)}
+                placeholder="e.g., Science, History, 90s Movies"
+                className="home-input"
+                disabled={loading}
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="home-button create-button"
               disabled={loading}
-            />
-          </div>
+            >
+              {loading ? 'Creating...' : 'CREATE'}
+            </button>
 
-          <div className="input-group">
-            <label htmlFor="playerName">Your Name:</label>
-            <input
-              id="playerName"
-              type="text"
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-              placeholder="Enter your name"
-              maxLength={100}
-              className="home-input"
+            <button
+              type="button"
+              className="home-button back-button"
+              onClick={handleBack}
               disabled={loading}
-            />
-          </div>
+            >
+              BACK
+            </button>
+          </form>
+        ) : (
+          <form className="home-section join-form" onSubmit={handleJoinGame}>
+            <div className="input-group">
+              <label htmlFor="gameCode">Game Code</label>
+              <input
+                id="gameCode"
+                type="text"
+                value={gameCode}
+                onChange={(e) => setGameCode(e.target.value.toUpperCase())}
+                placeholder="ABC123"
+                maxLength={6}
+                className="home-input"
+                disabled={loading}
+                autoFocus
+              />
+            </div>
 
-          <div className="input-group">
-            <label htmlFor="preferences">Category Preferences (optional):</label>
-            <input
-              id="preferences"
-              type="text"
-              value={preferences}
-              onChange={(e) => setPreferences(e.target.value)}
-              placeholder="e.g., Science, History, 90s Movies"
-              className="home-input"
+            <div className="input-group">
+              <label htmlFor="playerName">Your Name</label>
+              <input
+                id="playerName"
+                type="text"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                placeholder="Enter your name"
+                maxLength={100}
+                className="home-input"
+                disabled={loading}
+              />
+            </div>
+
+            <div className="input-group">
+              <label htmlFor="preferences">Category Preferences (optional)</label>
+              <input
+                id="preferences"
+                type="text"
+                value={preferences}
+                onChange={(e) => setPreferences(e.target.value)}
+                placeholder="e.g., Science, History, 90s Movies"
+                className="home-input"
+                disabled={loading}
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="home-button join-button"
               disabled={loading}
-            />
-          </div>
+            >
+              {loading ? 'Joining...' : 'JOIN'}
+            </button>
 
-          <button
-            type="submit"
-            className="home-button join-button"
-            disabled={loading}
-          >
-            {loading ? 'Joining...' : 'JOIN GAME'}
-          </button>
-        </form>
+            <button
+              type="button"
+              className="home-button back-button"
+              onClick={handleBack}
+              disabled={loading}
+            >
+              BACK
+            </button>
+          </form>
+        )}
 
         {error && <div className="error-message">{error}</div>}
       </div>

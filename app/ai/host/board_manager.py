@@ -29,11 +29,36 @@ class BoardManager:
     async def generate_board_from_preferences(self, preference_messages: List[Dict[str, str]]):
         """
         Generate a board based on user preferences.
-        
+
         Args:
             preference_messages: List of messages containing user preferences
         """
         try:
+            # TEST_MODE: load static questions.json board instead of generating via LLM
+            if os.environ.get("TEST_MODE"):
+                logger.info("TEST_MODE: Skipping LLM board generation, loading questions.json")
+                if self.game_service and self.game_instance:
+                    await self.game_service.select_board("questions", game_id=self.game_instance.game_id)
+
+                    # Load questions.json to get categories for reveal animation
+                    questions_path = os.path.join("app/game_data", "questions.json")
+                    with open(questions_path, 'r') as f:
+                        board_data = json.load(f)
+
+                    # Reveal categories with short delay
+                    for i, cat_data in enumerate(board_data.get("categories", [])):
+                        await self.game_service.connection_manager.broadcast_message(
+                            "com.sc2ctl.jeopardy.reveal_category",
+                            {"index": i, "category": cat_data},
+                            game_id=self.game_instance.game_id
+                        )
+                        await asyncio.sleep(0.2)
+
+                    return "questions"
+                else:
+                    logger.error("TEST_MODE: Cannot select board - game_service or game_instance not set")
+                    return None
+
             # Extract user preferences from messages
             user_preferences = " ".join([msg["message"] for msg in preference_messages])
             

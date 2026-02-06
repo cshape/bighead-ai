@@ -4,6 +4,7 @@ Chat message processing for AI host
 
 import logging
 import asyncio
+import os
 import re
 from typing import Optional, Set, Dict, Any
 from datetime import datetime
@@ -166,13 +167,15 @@ class ChatProcessor:
             explanation = evaluation_result.get("explanation", "")
 
             # Send appropriate response based on correctness
+            test_mode = os.environ.get("TEST_MODE")
+
             if is_correct:
                 correct_msg = f"That's correct, {username}! {explanation}"
                 logger.info(f"Player {username} answered correctly")
                 await self.send_chat_message(correct_msg)
 
                 # If possible, provide audio feedback
-                if self.game_instance and self.game_instance.ai_host and hasattr(self.game_instance.ai_host, "audio_manager"):
+                if not test_mode and self.game_instance and self.game_instance.ai_host and hasattr(self.game_instance.ai_host, "audio_manager"):
                     await self.game_instance.ai_host.audio_manager.synthesize_and_play_speech(correct_msg)
             else:
                 incorrect_msg = f"I'm sorry, {username}, that's incorrect. {explanation}"
@@ -180,7 +183,7 @@ class ChatProcessor:
                 await self.send_chat_message(incorrect_msg)
 
                 # If possible, provide audio feedback
-                if self.game_instance and self.game_instance.ai_host and hasattr(self.game_instance.ai_host, "audio_manager"):
+                if not test_mode and self.game_instance and self.game_instance.ai_host and hasattr(self.game_instance.ai_host, "audio_manager"):
                     try:
                         await self.game_instance.ai_host.audio_manager.synthesize_and_play_speech(incorrect_msg, is_incorrect_answer_audio=True)
                     except TypeError as e:
@@ -225,13 +228,20 @@ class ChatProcessor:
                 self.game_instance.last_buzzer = None
                 logger.debug("Reset game instance buzzer state after incorrect answer")
 
-                # Don't activate buzzer yet - wait for audio to complete first
+                # Reactivate buzzer for remaining players
                 if self.game_instance.current_question:
-                    logger.debug("Will reactivate buzzer AFTER incorrect answer audio plays")
-
-                    if self.game_instance and self.game_instance.ai_host and self.game_instance.ai_host.buzzer_manager:
-                        self.game_instance.ai_host.buzzer_manager.expecting_reactivation = True
-                        logger.debug("Setting buzzer_manager.expecting_reactivation = True")
+                    if test_mode:
+                        # TEST_MODE: directly reactivate buzzer instead of waiting for audio
+                        logger.info("TEST_MODE: Directly reactivating buzzer after incorrect answer")
+                        if self.game_instance and self.game_instance.ai_host and self.game_instance.ai_host.buzzer_manager:
+                            bm = self.game_instance.ai_host.buzzer_manager
+                            bm.expecting_reactivation = False
+                            await bm.activate_buzzer(game_id=self._game_id)
+                    else:
+                        logger.debug("Will reactivate buzzer AFTER incorrect answer audio plays")
+                        if self.game_instance and self.game_instance.ai_host and self.game_instance.ai_host.buzzer_manager:
+                            self.game_instance.ai_host.buzzer_manager.expecting_reactivation = True
+                            logger.debug("Setting buzzer_manager.expecting_reactivation = True")
 
         except Exception as e:
             logger.error(f"Error processing player answer: {e}")

@@ -130,8 +130,6 @@ async def websocket_game_endpoint(websocket: WebSocket, game_code: str, player_n
                 # Update the contestant's key to the new websocket client_id
                 logger.info(f"Linking websocket {client_id} to player '{player_name}'")
                 game.state.update_contestant_key(player_name, client_id)
-                # Update websocket_id in database
-                await game_manager.player_repo.update_websocket_id(game.game_id, player_name, client_id)
 
         # Send current game state
         await connection_manager.send_personal_message(

@@ -16,7 +16,7 @@ class PlayerRegistry:
         Initialize a new game state manager.
 
         Args:
-            game_id: The unique game UUID (from database)
+            game_id: The unique game UUID
             game_code: The 6-digit game code for joining
         """
         self.game_id = game_id
@@ -27,13 +27,13 @@ class PlayerRegistry:
         self.last_buzzer = None
         self.used_questions: Set[str] = set()  # Track used questions as "category:value"
 
-    def register_contestant(self, websocket_id: str, name: str) -> bool:
+    def register_contestant(self, websocket_id: str, name: str, player_id: str = "") -> bool:
         """Register a new contestant if name is available"""
         if any(c.name == name for c in self.contestants.values()):
             return False
 
         from ..models.contestant import Contestant
-        self.contestants[websocket_id] = Contestant(name=name, score=0)
+        self.contestants[websocket_id] = Contestant(name=name, score=0, player_id=player_id)
         logger.info(f"Registered contestant '{name}' with key '{websocket_id}' (game: {self.game_code})")
         logger.debug(f"Current contestants keys: {list(self.contestants.keys())}")
         return True

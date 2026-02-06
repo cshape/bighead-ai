@@ -210,7 +210,7 @@ async def delete_game(game_id: str, request: Request):
     """
     Delete a game completely.
 
-    This removes the game from both memory and the database.
+    This removes the game from memory.
     """
     game_manager = request.app.state.game_manager
 

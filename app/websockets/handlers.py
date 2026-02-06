@@ -9,6 +9,7 @@ import os
 import subprocess
 import logging
 from pathlib import Path
+from uuid import uuid4
 from fastapi import WebSocket
 
 from .message_router import MessageRouter
@@ -67,17 +68,14 @@ async def handle_register_player(ws: WebSocket, client_id: str, payload: Registe
     player_id = None
     registration_success = False
 
-    # Check if player already exists in game state (reconnection after server restart)
+    # Check if player already exists in game state (reconnection or HTTP-join case)
     existing_contestant = game.state.get_contestant_by_name(name)
     if existing_contestant:
-        logger.info(f"Player '{name}' is reconnecting (in game state), updating websocket key to {client_id}")
+        logger.info(f"Player '{name}' is reconnecting, updating websocket key to {client_id}")
         game.state.update_contestant_key(name, client_id)
         game.add_client(client_id)
 
-        await game_manager.player_repo.update_websocket_id(game.game_id, name, client_id)
-
-        player_data = await game_manager.player_repo.get_player_by_name(game.game_id, name)
-        player_id = player_data["id"] if player_data else None
+        player_id = existing_contestant.player_id
         registration_success = True
 
         await connection_manager.send_personal_message(
@@ -87,20 +85,18 @@ async def handle_register_player(ws: WebSocket, client_id: str, payload: Registe
              "is_host": game.host_player_id == player_id, "reconnected": True}
         )
     else:
-        # Check if player exists in DB but not in game state (HTTP join case)
-        existing_player = await game_manager.player_repo.get_player_by_name(game.game_id, name)
-        if existing_player:
-            logger.info(f"Player '{name}' joined via HTTP, now registering in game state with {client_id}")
-            player_id = existing_player["id"]
+        # Completely new player
+        player_id = str(uuid4())
 
-            game.state.register_contestant(client_id, name)
-            contestant = game.state.get_contestant_by_websocket(client_id)
-            if contestant and existing_player.get("score"):
-                contestant.score = existing_player["score"]
-
+        if game.state.register_contestant(client_id, name, player_id=player_id):
             game.add_client(client_id)
 
-            await game_manager.player_repo.update_websocket_id(game.game_id, name, client_id)
+            if preferences and hasattr(game.ai_host, 'game_state_manager'):
+                game.ai_host.game_state_manager.add_player_preference(name, preferences)
+
+            if game.host_player_id is None:
+                game.host_player_id = player_id
+
             registration_success = True
 
             await connection_manager.send_personal_message(
@@ -109,34 +105,6 @@ async def handle_register_player(ws: WebSocket, client_id: str, payload: Registe
                 {"success": True, "name": name, "player_id": player_id,
                  "is_host": game.host_player_id == player_id}
             )
-        else:
-            # Completely new player
-            player_data = await game_manager.player_repo.create_player(
-                game_id=game.game_id,
-                name=name,
-                preferences=preferences,
-                websocket_id=client_id,
-            )
-            player_id = player_data["id"]
-
-            if game.state.register_contestant(client_id, name):
-                game.add_client(client_id)
-
-                if preferences and hasattr(game.ai_host, 'game_state_manager'):
-                    game.ai_host.game_state_manager.add_player_preference(name, preferences)
-
-                if game.host_player_id is None:
-                    game.host_player_id = player_id
-                    await game_manager.game_repo.set_host_player(game.game_id, player_id)
-
-                registration_success = True
-
-                await connection_manager.send_personal_message(
-                    ws,
-                    "com.sc2ctl.jeopardy.register_player_response",
-                    {"success": True, "name": name, "player_id": player_id,
-                     "is_host": game.host_player_id == player_id}
-                )
 
     if registration_success:
         player_prefs = {}

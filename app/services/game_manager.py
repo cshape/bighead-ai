@@ -2,15 +2,17 @@
 GameManager - Central manager for multiple concurrent game instances.
 
 Handles game creation, lookup, and lifecycle management.
+All state is in-memory — games are ephemeral.
 """
 
 import asyncio
 import logging
+import random
 from typing import Dict, Optional, Any, List
 from datetime import datetime, timedelta
+from uuid import uuid4
 
 from .game_instance import GameInstance
-from ..database.repositories import GameRepository, PlayerRepository
 
 logger = logging.getLogger(__name__)
 
@@ -31,13 +33,21 @@ class GameManager:
     # Time after which completed games are cleaned up
     COMPLETED_TIMEOUT_HOURS = 1
 
+    # Characters for game codes (excluding confusing ones like 0/O, 1/I/L)
+    _CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
     def __init__(self):
         """Initialize the game manager."""
         self.active_games: Dict[str, GameInstance] = {}  # game_id -> GameInstance
         self.code_to_id: Dict[str, str] = {}  # game_code -> game_id
-        self.game_repo = GameRepository()
-        self.player_repo = PlayerRepository()
         self._cleanup_task: Optional[asyncio.Task] = None
+
+    def _generate_game_code(self) -> str:
+        """Generate a unique 6-digit alphanumeric game code."""
+        while True:
+            code = "".join(random.choices(self._CODE_CHARS, k=6))
+            if code not in self.code_to_id:
+                return code
 
     async def start(self):
         """Start the game manager background tasks."""
@@ -66,10 +76,8 @@ class GameManager:
         Returns:
             The newly created GameInstance
         """
-        # Create in database
-        game_data = await self.game_repo.create_game()
-        game_id = game_data["id"]
-        game_code = game_data["code"]
+        game_id = str(uuid4())
+        game_code = self._generate_game_code()
 
         # Create in-memory instance
         game = GameInstance(game_id=game_id, game_code=game_code)
@@ -92,17 +100,9 @@ class GameManager:
             GameInstance or None if not found
         """
         code = code.upper()
-
-        # Check in-memory first
         game_id = self.code_to_id.get(code)
         if game_id:
             return self.active_games.get(game_id)
-
-        # Check database and load if found
-        game_data = await self.game_repo.get_game_by_code(code)
-        if game_data:
-            return await self._load_game_from_db(game_data)
-
         return None
 
     async def get_game_by_id(self, game_id: str) -> Optional[GameInstance]:
@@ -115,60 +115,7 @@ class GameManager:
         Returns:
             GameInstance or None if not found
         """
-        # Check in-memory first
-        if game_id in self.active_games:
-            return self.active_games[game_id]
-
-        # Check database and load if found
-        game_data = await self.game_repo.get_game_by_id(game_id)
-        if game_data:
-            return await self._load_game_from_db(game_data)
-
-        return None
-
-    async def _load_game_from_db(self, game_data: Dict[str, Any]) -> GameInstance:
-        """
-        Load a game from database data into memory.
-
-        Args:
-            game_data: The game record from database
-
-        Returns:
-            The loaded GameInstance
-        """
-        game_id = game_data["id"]
-        game_code = game_data["code"]
-
-        # Check if already loaded
-        if game_id in self.active_games:
-            return self.active_games[game_id]
-
-        # Create instance
-        game = GameInstance(
-            game_id=game_id,
-            game_code=game_code,
-            host_player_id=game_data.get("host_player_id"),
-        )
-        game.status = game_data.get("status", GameInstance.STATUS_LOBBY)
-        game.board = game_data.get("board_data")
-        game.current_question = game_data.get("current_question")
-        game.buzzer_active = game_data.get("buzzer_active", False)
-
-        # Load players
-        players = await self.player_repo.get_players_in_game(game_id)
-        for player in players:
-            # Register player in state (using player ID as pseudo-websocket-id for now)
-            game.state.register_contestant(player["id"], player["name"])
-            contestant = game.state.get_contestant_by_websocket(player["id"])
-            if contestant:
-                contestant.score = player["score"]
-
-        # Store references
-        self.active_games[game_id] = game
-        self.code_to_id[game_code] = game_id
-
-        logger.info(f"Loaded game from database: {game_code} (ID: {game_id})")
-        return game
+        return self.active_games.get(game_id)
 
     async def join_game(
         self,
@@ -203,26 +150,19 @@ class GameManager:
         if game.state.get_contestant_by_name(player_name):
             raise ValueError(f"Player name '{player_name}' is already taken")
 
-        # Create player in database
-        player_data = await self.player_repo.create_player(
-            game_id=game.game_id,
-            name=player_name,
-            preferences=preferences,
-            websocket_id=websocket_id,
-        )
+        # Generate player ID locally
+        player_id = str(uuid4())
+        player_data = {"id": player_id, "name": player_name}
 
         # Register in game state
-        # Use websocket_id if available, otherwise use player_id as temporary key
-        # The key will be updated when websocket connects and sends register_player
-        registration_key = websocket_id if websocket_id else player_data["id"]
-        game.state.register_contestant(registration_key, player_name)
+        registration_key = websocket_id if websocket_id else player_id
+        game.state.register_contestant(registration_key, player_name, player_id=player_id)
         if websocket_id:
             game.add_client(websocket_id)
 
         # If this is the first player, make them the host
         if game.host_player_id is None:
-            game.host_player_id = player_data["id"]
-            await self.game_repo.set_host_player(game.game_id, player_data["id"])
+            game.host_player_id = player_id
 
         logger.info(f"Player {player_name} joined game {game_code}")
         return game, player_data
@@ -254,7 +194,6 @@ class GameManager:
 
         # Update status
         game.start_game()
-        await self.game_repo.update_game_status(game_id, GameInstance.STATUS_ACTIVE)
 
         # Start AI host
         await game.start_ai_host(game_service)
@@ -273,12 +212,11 @@ class GameManager:
             return
 
         game.complete_game()
-        await self.game_repo.update_game_status(game_id, GameInstance.STATUS_COMPLETED)
         await game.stop_ai_host()
 
     async def remove_game(self, game_id: str):
         """
-        Remove a game from memory (database record persists).
+        Remove a game from memory.
 
         Args:
             game_id: The game UUID
@@ -295,14 +233,13 @@ class GameManager:
 
     async def delete_game(self, game_id: str):
         """
-        Completely delete a game (memory and database).
+        Completely delete a game.
 
         Args:
             game_id: The game UUID
         """
         await self.remove_game(game_id)
-        await self.game_repo.delete_game(game_id)
-        logger.info(f"Deleted game {game_id} from database")
+        logger.info(f"Deleted game {game_id}")
 
     def get_game_for_client(self, client_id: str) -> Optional[GameInstance]:
         """

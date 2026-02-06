@@ -211,9 +211,13 @@ class GameManager:
             websocket_id=websocket_id,
         )
 
-        # Register in game state (using player ID as key, not websocket_id which may be None)
-        game.state.register_contestant(player_data["id"], player_name)
-        game.add_client(websocket_id)
+        # Register in game state
+        # Use websocket_id if available, otherwise use player_id as temporary key
+        # The key will be updated when websocket connects and sends register_player
+        registration_key = websocket_id if websocket_id else player_data["id"]
+        game.state.register_contestant(registration_key, player_name)
+        if websocket_id:
+            game.add_client(websocket_id)
 
         # If this is the first player, make them the host
         if game.host_player_id is None:

@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Mysteries in Mathematics",
+      "questions": [
+        {
+          "clue": "This famous Greek mathematician is known for his theorem about right triangles.",
+          "answer": "Who is Pythagoras?",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This series, defined by each term being the sum of the two preceding ones, is named after an Italian mathematician.",
+          "answer": "What is the Fibonacci sequence?",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The existence of this largest known prime number remains an ongoing quest in mathematics.",
+          "answer": "What are Mersenne primes?",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Despite much study, this problem concerning the distribution of prime numbers remains unsolved.",
+          "answer": "What is the Riemann Hypothesis?",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Named after a French mathematician, this unsolved conjecture aims to categorize all even integers greater than 2.",
+          "answer": "What is Goldbach's Conjecture?",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Ancient Civilizations Revisited",
+      "questions": [
+        {
+          "clue": "This civilization is famous for developing cuneiform, one of the earliest writing systems.",
+          "answer": "Sumerians",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Known for their pyramids and hieroglyphs, this civilization flourished along a famous river.",
+          "answer": "Ancient Egyptians",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Mesoamerican civilization built the magnificent city of Tikal and used a complex calendar system.",
+          "answer": "Maya",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This ancient civilization, located in what is now Peru, is famous for its unique geoglyphs known as the Nazca Lines.",
+          "answer": "Nazca Civilization",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The Qin Dynasty, known for unifying China and creating the first version of the Great Wall, belonged to this larger civilization.",
+          "answer": "Ancient Chinese Civilization",
+          "value": 1000,
+          "daily_double": true,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Global Cuisine: A Tasting Tour",
+      "questions": [
+        {
+          "clue": "This spicy, red paste is a staple in Korean cooking, often used to make kimchi.",
+          "answer": "Gochujang",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Hailing from Italy, this long, flat pasta is typically used in a Bolognese sauce.",
+          "answer": "Tagliatelle",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "A staple in Egyptian cuisine, this dish comprises fava beans, often paired with olive oil and spices.",
+          "answer": "Ful medames",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Japanese cooking technique involves battering and deep-frying seafood or vegetables.",
+          "answer": "Tempura",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Originating from Oman, 'shuwa' is a traditional dish made by marinating meat and slow-cooking it over several days.",
+          "answer": "Pork or lamb marinated and pit-cooked",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Unusual Animals & Their Habitats",
+      "questions": [
+        {
+          "clue": "This black and white flightless bird is native to Antarctica and known for its tuxedo-like appearance.",
+          "answer": "What is a penguin?",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Native to Madagascar, this unique primate has large eyes adapted to nocturnal life in its rainforest habitat.",
+          "answer": "What is a lemur?",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Capable of changing its color to match its surroundings in the forests of Yemen and Saudi Arabia, this reptile is a master of disguise.",
+          "answer": "What is a chameleon?",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Found in the freshwater rivers of South America, this notorious fish is known for its sharp teeth and voracious appetite.",
+          "answer": "What is a piranha?",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In Australia, this monotreme lays eggs despite being a mammal and is known for its spiny coat and long tongue used for picking up ants.",
+          "answer": "What is an echidna?",
+          "value": 1000,
+          "daily_double": true,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Iconic Film Scores",
+      "questions": [
+        {
+          "clue": "This composer delivered the magical score for the 2001 film 'Harry Potter and the Sorcerer's Stone'.",
+          "answer": "John Williams",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The eerie theme for the film 'Jaws', released in 1975, became instantly recognizable and was composed by this musician.",
+          "answer": "John Williams",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Maurice Jarre won an Oscar for his work on the 1962 historical epic film, 'Lawrence of Arabia'.",
+          "answer": "Maurice Jarre",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Ennio Morricone score elevated Sergio Leone's 1966 'The Good, the Bad and the Ugly' to legendary status.",
+          "answer": "The Good, the Bad and the Ugly Theme",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Written by Max Steiner, the sweeping score of this 1939 historical romance set in the American South includes 'Tara's Theme'.",
+          "answer": "Gone with the Wind",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "U.S. Geography",
+    "clue": "This state, the only one with a unicameral legislature, was admitted to the Union on March 1, 1867.",
+    "answer": "What is Nebraska?"
+  }
+}

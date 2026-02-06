@@ -137,7 +137,6 @@ async def select_question(request: Request, data: Dict[str, Any]):
         
         # Display the question
         await game_service.display_question(category_name, value)
-        await game_service.change_buzzer_status(True)
         
         return {
             "status": "success", 

@@ -50,20 +50,18 @@ class LLMStateManager:
     This class maps game events to LLM states and maintains context
     for each AI player in the game.
     """
-    _instance = None
-    
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(LLMStateManager, cls).__new__(cls)
-            cls._instance.initialize()
-        return cls._instance
-    
-    def initialize(self):
-        """Initialize the state manager."""
+
+    def __init__(self, game_id: Optional[str] = None):
+        """Initialize the state manager.
+
+        Args:
+            game_id: Optional game ID for debugging/logging purposes
+        """
+        self.game_id = game_id
         self.player_states: Dict[str, AIPlayerState] = {}
         self.available_categories: List[str] = []
         self.available_values: List[int] = [200, 400, 600, 800, 1000]
-        logger.info("LLM State Manager initialized")
+        logger.info(f"LLM State Manager initialized{f' for game {game_id}' if game_id else ''}")
     
     def register_ai_player(self, name: str) -> None:
         """Register a new AI player."""

@@ -1,11 +1,12 @@
 import React from 'react';
 import { useGame } from '../../contexts/GameContext';
 
-export default function QuestionCell({ question, categoryName, isAdmin, isPlaceholder }) {
+export default function QuestionCell({ question, categoryName, isAdmin, isPlaceholder, canSelect }) {
   const { sendMessage } = useGame();
 
   const handleClick = () => {
-    if (!isAdmin || question.used || isPlaceholder) return;
+    // Allow admin OR controlling player to select clues
+    if ((!isAdmin && !canSelect) || question.used || isPlaceholder) return;
 
     // If it's a daily double, use a different message
     if (question.daily_double) {
@@ -22,7 +23,7 @@ export default function QuestionCell({ question, categoryName, isAdmin, isPlaceh
   };
 
   return (
-    <div 
+    <div
       className={`question ${question.used ? 'used' : ''} ${isPlaceholder ? 'placeholder' : ''}`}
       onClick={handleClick}
     >

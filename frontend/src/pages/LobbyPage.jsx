@@ -56,17 +56,14 @@ function LobbyPage() {
   useEffect(() => {
     if (!code) return;
 
-    const wsUrl = getWebSocketUrl(code);
+    // Include player_name for HTTP-joined players so backend can link the websocket
+    const wsUrl = getWebSocketUrl(code, playerInfo.playerName || null);
+    console.log('Connecting to WebSocket:', wsUrl);
     const websocket = new WebSocket(wsUrl);
 
     websocket.onopen = () => {
       console.log('WebSocket connected to lobby');
       setError(''); // Clear any connection errors
-
-      // If we have stored player info, we might need to re-register
-      if (playerInfo.playerName && !isHost) {
-        // Player already registered via API
-      }
     };
 
     websocket.onmessage = (event) => {

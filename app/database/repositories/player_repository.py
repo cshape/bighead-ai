@@ -198,6 +198,30 @@ class PlayerRepository:
 
         return len(result.data) > 0
 
+    async def update_websocket_id(
+        self, game_id: str, name: str, websocket_id: str
+    ) -> bool:
+        """
+        Update a player's WebSocket ID by game and name.
+
+        Args:
+            game_id: The game UUID
+            name: The player's name
+            websocket_id: The new WebSocket ID
+
+        Returns:
+            True if updated successfully
+        """
+        result = (
+            self.client.table("players")
+            .update({"websocket_id": websocket_id})
+            .eq("game_id", game_id)
+            .eq("name", name)
+            .execute()
+        )
+
+        return len(result.data) > 0
+
     async def update_player_preferences(
         self, player_id: str, preferences: str
     ) -> bool:

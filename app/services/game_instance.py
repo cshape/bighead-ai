@@ -14,7 +14,6 @@ from ..models.game_state import GameStateManager
 from ..models.board import Board
 from ..ai.host import AIHostService
 from ..ai.llm_state_manager import LLMStateManager
-from ..ai.host.buzzer_manager import BuzzerManager
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +59,7 @@ class GameInstance:
 
         # Game state
         self.state = GameStateManager(game_id=game_id, game_code=game_code)
-        self.llm_state = LLMStateManager()
+        self.llm_state = LLMStateManager(game_id=game_id)
         self.board: Optional[Dict[str, Any]] = None
         self.current_question = None
         self.buzzer_active = False
@@ -70,9 +69,6 @@ class GameInstance:
 
         # Connected clients for this game (websocket_id -> websocket)
         self.connected_clients: Set[str] = set()
-
-        # Buzzer manager
-        self.buzzer_manager = BuzzerManager()
 
         # AI Host (created on demand)
         self._ai_host: Optional[AIHostService] = None
@@ -137,7 +133,6 @@ class GameInstance:
 
         # Set up dependencies - pass both game_service and this game_instance
         self.ai_host.set_game_service(game_service, game_instance=self)
-        self.buzzer_manager.set_dependencies(game_service=game_service)
 
         # Start the AI host task
         self._ai_host_task = asyncio.create_task(self.ai_host.run())

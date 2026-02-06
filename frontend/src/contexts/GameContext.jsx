@@ -25,6 +25,7 @@ const initialState = {
     player: null,
     seconds: 0,
   },
+  controllingPlayer: null, // Player who has control to select the next clue
   // Multi-game state
   gameCode: null,
   gameId: null,
@@ -95,16 +96,17 @@ function gameReducer(state, action) {
         gameReady: true // Ensure gameReady stays true
       };
     case 'SHOW_QUESTION':
-      return { 
-        ...state, 
+      return {
+        ...state,
         currentQuestion: action.payload,
+        controllingPlayer: null, // Clear controlling player when question is displayed
         buzzerActive: false,  // Keep buzzer inactive when showing question
         answerTimer: { active: false, player: null, seconds: 0 }, // Reset answer timer
         board: {
           ...state.board,
           categories: state.board.categories.map(cat => ({
             ...cat,
-            questions: cat.questions.map(q => 
+            questions: cat.questions.map(q =>
               q.value === action.payload.value && cat.name === action.payload.category
                 ? { ...q, used: true }
                 : q
@@ -284,6 +286,11 @@ function gameReducer(state, action) {
       // Audio playback is now fully handled by the WebSocket message handler
       // Just ensure buzzer is disabled during audio playback
       return { ...state, buzzerActive: false };
+    case 'SET_CONTROLLING_PLAYER':
+      return {
+        ...state,
+        controllingPlayer: action.payload.contestant,
+      };
     case 'com.sc2ctl.jeopardy.question_selected':
       return {
         ...state,
@@ -598,6 +605,13 @@ export function GameProvider({ children }) {
           console.error('Error setting up audio playback:', err);
         }
         break;
+      case 'com.sc2ctl.jeopardy.select_question':
+        console.log('Player has control:', message.payload.contestant);
+        dispatch({
+          type: 'SET_CONTROLLING_PLAYER',
+          payload: { contestant: message.payload.contestant }
+        });
+        break;
       case 'com.sc2ctl.jeopardy.question_selected':
         dispatch({ type: 'QUESTION_SELECTED', payload: message.payload });
         break;
@@ -651,9 +665,14 @@ export function GameProvider({ children }) {
     }
   }, [dispatch]);
   
-  // Determine WebSocket URL based on game code
+  // Get player name from session storage for HTTP-joined players
+  const playerInfo = typeof window !== 'undefined'
+    ? JSON.parse(sessionStorage.getItem('playerInfo') || '{}')
+    : {};
+
+  // Determine WebSocket URL based on game code, include player_name for linking
   const wsUrl = currentGameCode
-    ? getWebSocketUrl(currentGameCode)
+    ? getWebSocketUrl(currentGameCode, playerInfo.playerName || null)
     : getLegacyWebSocketUrl();
 
   // Use the refactored WebSocket hook with our message handler
@@ -689,10 +708,15 @@ export function GameProvider({ children }) {
   // Function to send chat messages
   const sendChatMessage = (message) => {
     if (message.trim() === '') return;
-    
+
     const isAdmin = state.adminMode;
-    const username = state.playerName || 'Anonymous';
-    
+    // Try state first, then sessionStorage as fallback
+    let username = state.playerName;
+    if (!username) {
+      const playerInfo = JSON.parse(sessionStorage.getItem('playerInfo') || '{}');
+      username = playerInfo.playerName || 'Anonymous';
+    }
+
     // Send message to server
     sendMessage({
       topic: 'com.sc2ctl.jeopardy.chat_message',

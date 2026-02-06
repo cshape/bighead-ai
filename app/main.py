@@ -125,35 +125,89 @@ async def handle_websocket_message(
 
         if game:
             # Multi-game: register in specific game
-            # Create a database player record (like HTTP join does)
-            player_data = await game_manager.player_repo.create_player(
-                game_id=game.game_id,
-                name=name,
-                preferences=preferences,
-                websocket_id=client_id,
-            )
-            player_id = player_data["id"]
+            player_id = None
+            registration_success = False
 
-            # Register in game state using player_id as key (consistent with HTTP join)
-            success = game.state.register_contestant(player_id, name)
-            if success:
+            # Check if player already exists in game state (reconnection after server restart)
+            existing_contestant = game.state.get_contestant_by_name(name)
+            if existing_contestant:
+                # Player is reconnecting - update their websocket key
+                logger.info(f"Player '{name}' is reconnecting (in game state), updating websocket key to {client_id}")
+                game.state.update_contestant_key(name, client_id)
                 game.add_client(client_id)
 
-                # Store preferences in the game's AI host state manager
-                if preferences and hasattr(game.ai_host, 'game_state_manager'):
-                    game.ai_host.game_state_manager.add_player_preference(name, preferences)
+                # Update websocket_id in database
+                await game_manager.player_repo.update_websocket_id(game.game_id, name, client_id)
 
-                # If this is the first player, make them the host
-                if game.host_player_id is None:
-                    game.host_player_id = player_id
-                    await game_manager.game_repo.set_host_player(game.game_id, player_id)
+                # Get player_id from database for response
+                player_data = await game_manager.player_repo.get_player_by_name(game.game_id, name)
+                player_id = player_data["id"] if player_data else None
+                registration_success = True
 
                 await connection_manager.send_personal_message(
                     websocket,
                     "com.sc2ctl.jeopardy.register_player_response",
-                    {"success": True, "name": name, "player_id": player_id, "is_host": game.host_player_id == player_id}
+                    {"success": True, "name": name, "player_id": player_id, "is_host": game.host_player_id == player_id, "reconnected": True}
                 )
+            else:
+                # Check if player exists in DB but not in game state (HTTP join case)
+                existing_player = await game_manager.player_repo.get_player_by_name(game.game_id, name)
+                if existing_player:
+                    # Player joined via HTTP, now connecting via websocket
+                    logger.info(f"Player '{name}' joined via HTTP, now registering in game state with {client_id}")
+                    player_id = existing_player["id"]
 
+                    # Register in game state with websocket client_id
+                    game.state.register_contestant(client_id, name)
+                    # Restore score if any
+                    contestant = game.state.get_contestant_by_websocket(client_id)
+                    if contestant and existing_player.get("score"):
+                        contestant.score = existing_player["score"]
+
+                    game.add_client(client_id)
+
+                    # Update websocket_id in database
+                    await game_manager.player_repo.update_websocket_id(game.game_id, name, client_id)
+                    registration_success = True
+
+                    await connection_manager.send_personal_message(
+                        websocket,
+                        "com.sc2ctl.jeopardy.register_player_response",
+                        {"success": True, "name": name, "player_id": player_id, "is_host": game.host_player_id == player_id}
+                    )
+                else:
+                    # Completely new player - create database record
+                    player_data = await game_manager.player_repo.create_player(
+                        game_id=game.game_id,
+                        name=name,
+                        preferences=preferences,
+                        websocket_id=client_id,
+                    )
+                    player_id = player_data["id"]
+
+                    # Register in game state using client_id as key (matches buzzer lookup)
+                    if game.state.register_contestant(client_id, name):
+                        game.add_client(client_id)
+
+                        # Store preferences in the game's AI host state manager
+                        if preferences and hasattr(game.ai_host, 'game_state_manager'):
+                            game.ai_host.game_state_manager.add_player_preference(name, preferences)
+
+                        # If this is the first player, make them the host
+                        if game.host_player_id is None:
+                            game.host_player_id = player_id
+                            await game_manager.game_repo.set_host_player(game.game_id, player_id)
+
+                        registration_success = True
+
+                        await connection_manager.send_personal_message(
+                            websocket,
+                            "com.sc2ctl.jeopardy.register_player_response",
+                            {"success": True, "name": name, "player_id": player_id, "is_host": game.host_player_id == player_id}
+                        )
+
+            # Broadcast player list for all successful registrations
+            if registration_success:
                 # Get player preferences for broadcast
                 player_prefs = {}
                 if hasattr(game.ai_host, 'game_state_manager'):
@@ -206,7 +260,6 @@ async def handle_websocket_message(
         value = payload.get('value')
         logger.info(f"Displaying question: {category} - ${value}")
         await game_service.display_question(category, value, game_id=game_id)
-        await game_service.change_buzzer_status(True, game_id=game_id)
 
     elif topic == 'com.sc2ctl.jeopardy.daily_double':
         category = payload.get('category')
@@ -344,9 +397,9 @@ async def handle_websocket_message(
 
 # New WebSocket endpoint with game code
 @app.websocket("/ws/{game_code}")
-async def websocket_game_endpoint(websocket: WebSocket, game_code: str):
+async def websocket_game_endpoint(websocket: WebSocket, game_code: str, player_name: str = None):
     """WebSocket endpoint for a specific game."""
-    logger.debug(f"New WebSocket connection request for game {game_code}")
+    logger.debug(f"New WebSocket connection request for game {game_code}, player_name={player_name}")
 
     # Find the game
     game = await game_manager.get_game_by_code(game_code)
@@ -358,6 +411,16 @@ async def websocket_game_endpoint(websocket: WebSocket, game_code: str):
         # Connect and join the game room
         client_id = await connection_manager.connect(websocket, game_id=game.game_id)
         game.add_client(client_id)
+
+        # If player_name provided (HTTP-joined player connecting), link their game state entry
+        if player_name:
+            existing_contestant = game.state.get_contestant_by_name(player_name)
+            if existing_contestant:
+                # Update the contestant's key to the new websocket client_id
+                logger.info(f"Linking websocket {client_id} to player '{player_name}'")
+                game.state.update_contestant_key(player_name, client_id)
+                # Update websocket_id in database
+                await game_manager.player_repo.update_websocket_id(game.game_id, player_name, client_id)
 
         # Send current game state
         await connection_manager.send_personal_message(

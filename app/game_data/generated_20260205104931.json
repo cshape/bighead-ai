@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Ancient Civilizations: Beyond Egypt & Rome",
+      "questions": [
+        {
+          "clue": "This ancient civilization is known for its cuneiform writing system and the myth of Gilgamesh.",
+          "answer": "Sumerians",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Located in modern-day Mexico, this civilization is renowned for its pyramids and the city of Teotihuacan.",
+          "answer": "Teotihuacan",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This empire, established by Cyrus the Great, was known for its road systems and tolerance of conquered peoples.",
+          "answer": "Persian Empire",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Mesoamerican civilization is famous for the ball game and advanced calendar system.",
+          "answer": "Maya",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Known for the iconic Moai statues, this Polynesian civilization thrived on Rapa Nui.",
+          "answer": "Rapa Nui civilization",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Innovative Foods: Culinary Firsts",
+      "questions": [
+        {
+          "clue": "In 1905, 11-year-old Frank Epperson accidentally invented this popular frozen treat when he left a cup of powdered soda and water with a stick in it outside overnight.",
+          "answer": "Popsicle",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1928, candy company Reese's created their iconic peanut butter cups, combining these two common flavors.",
+          "answer": "Chocolate and peanut butter",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1930, Ruth Wakefield invented this dessert by accident when pieces of a semi-sweet chocolate bar didn't melt into the dough of her cookies.",
+          "answer": "Chocolate chip cookies",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1943, the war-time innovation by Dr. Percy Spencer led to the invention of this kitchen appliance, which cooks food using electromagnetic waves.",
+          "answer": "Microwave oven",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 1963, this spreadable cheese in an aerosol can was first introduced, making it a quick and easy snack topping.",
+          "answer": "Cheez Whiz",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Mathematics in Nature: Patterns & Phenomena",
+      "questions": [
+        {
+          "clue": "For $200: Known for their symmetrical shape, these six-sided crystalline forms can be found in snowflakes.",
+          "answer": "Hexagons",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $400: This sequence, found in sunflower seed arrangements and pinecones, starts 0, 1, 1, 2, 3, 5, 8...",
+          "answer": "Fibonacci sequence",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $600: The spiral patterns observed in nautilus shells are often examples of this type of logarithmic spiral.",
+          "answer": "Golden spiral",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For $800: These distinctive shapes, formed by repeated addition, create the fractal coastlines and are present in broccoli.",
+          "answer": "Self-similar patterns",
+          "value": 800,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "For $1000: Named after a 19th-century mathematician, this mathematical model explains the branching of trees and circulatory systems.",
+          "answer": "L-systems (Lindenmayer systems)",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Literary Villains: Motives & Monologues",
+      "questions": [
+        {
+          "clue": "In William Shakespeare's 'Macbeth,' this character's ambition and manipulation lead him to murder the king.",
+          "answer": "Macbeth",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In J.K. Rowling's 'Harry Potter' series, this dark wizard seeks immortality and power over both wizards and Muggles.",
+          "answer": "Lord Voldemort",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This Herman Melville character is driven by a monomaniacal quest for revenge against a giant white whale.",
+          "answer": "Captain Ahab",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In Arthur Conan Doyle's 'Sherlock Holmes' stories, this criminal mastermind's motive is to control the criminal underworld of London.",
+          "answer": "Professor Moriarty",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In Mary Shelley's 'Frankenstein,' this creature\u2019s monologues reveal his desire for acceptance and vengeance against his creator.",
+          "answer": "Frankenstein's monster",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Artistic Movements: Revolution & Reaction",
+      "questions": [
+        {
+          "clue": "Emerging in the late 18th century, this movement emphasized emotion over reason, a reaction to the Industrial Revolution.",
+          "answer": "Romanticism",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This 19th-century French artist led the Impressionist movement, which defied traditional subject matter and style.",
+          "answer": "Claude Monet",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The harsh lines and geometric shapes of this 20th-century movement were inspired by African art and led by Picasso and Braque.",
+          "answer": "Cubism",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This artistic movement of the early 20th century originated in Italy, emphasizing speed and modern technology.",
+          "answer": "Futurism",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Emerging as a reaction to World War I, this avant-garde movement rejected logic and embraced chaos and irrationality.",
+          "answer": "Dadaism",
+          "value": 1000,
+          "daily_double": true,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Historic Inventions",
+    "clue": "Patented in 1843, this invention by Sir Charles Wheatstone was crucial in developing long-distance communication, laying groundwork for the modern telecommunications we use today.",
+    "answer": "What is the telegraph?"
+  }
+}

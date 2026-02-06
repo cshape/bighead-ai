@@ -1,0 +1,223 @@
+{
+  "contestants": [
+    {
+      "name": "Player 1",
+      "score": 0
+    },
+    {
+      "name": "Player 2",
+      "score": 0
+    },
+    {
+      "name": "Player 3",
+      "score": 0
+    }
+  ],
+  "categories": [
+    {
+      "name": "Epic Sports Moments",
+      "questions": [
+        {
+          "clue": "In 1999, this U.S. Women's Soccer player scored the winning penalty kick to secure the World Cup against China at the Rose Bowl.",
+          "answer": "Brandi Chastain",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In 2004, this baseball team broke an 86-year-old 'curse' by winning the World Series, coming back from a 3-0 deficit against the New York Yankees in the ALCS.",
+          "answer": "Boston Red Sox",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Known as the 'Shot Heard 'Round the World,' this player's home run sent the New York Giants to the 1951 World Series.",
+          "answer": "Bobby Thomson",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In an ice hockey game during the 1980 Winter Olympics, the U.S. team achieved this 'Miracle on Ice,' defeating a seemingly unbeatable Soviet Union team.",
+          "answer": "United States victory over Soviet Union",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In the 1997 Masters Tournament, this golfer won by a record 12 strokes, marking an iconic moment as he became the tournament's youngest-ever winner at age 21.",
+          "answer": "Tiger Woods",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "World Capitals: Off the Beaten Path",
+      "questions": [
+        {
+          "clue": "For 200 points: Known for its green spaces and rugby culture, this capital of New Zealand hosted the 2011 Rugby World Cup final.",
+          "answer": "Wellington",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 400 points: Sports fans in this Bolivian capital can enjoy watching matches at the highest professional stadium in the world.",
+          "answer": "La Paz",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 600 points: This Central Asian capital boasts a striking Soviet-era circus building, attracting acrobatic enthusiasts.",
+          "answer": "Tashkent",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "For 800 points: The capital of Namibia, known for its German colonial architecture, hosts an annual cycling event that draws international competitors.",
+          "answer": "Windhoek",
+          "value": 800,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "For 1000 points: Famous for its off-road motor racing, this Mauritanian capital is a key stopover on the winding routes of the Dakar Rally.",
+          "answer": "Nouakchott",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "The Wonders of Chemistry",
+      "questions": [
+        {
+          "clue": "This element is essential for strong bones and is often found in milk.",
+          "answer": "Calcium",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The chemical symbol for this element, crucial for muscle function, is 'K'.",
+          "answer": "Potassium",
+          "value": 400,
+          "daily_double": true,
+          "type": "text"
+        },
+        {
+          "clue": "Like baseball players, these metals on the periodic table are known for their abilities to conduct electricity.",
+          "answer": "Metals or transition metals",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "These molecules, known for their support in muscle building, are made of chains of amino acids.",
+          "answer": "Proteins",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The process in which a liquid absorbs enough heat to become a gas, similar to how athletes 'vaporize' calories during exercise.",
+          "answer": "Evaporation",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Classical Music Innovations",
+      "questions": [
+        {
+          "clue": "For a more dramatic sports highlight, the NFL might choose to use the bombastic opening known as 'Ode to Joy' from this composer's 9th Symphony.",
+          "answer": "Ludwig van Beethoven",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The FIFA World Cup theme uses elements from this Bohemian composer's Symphony No. 9, commonly known as the 'New World Symphony'.",
+          "answer": "Anton\u00edn Dvo\u0159\u00e1k",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Just like a tactical shift in soccer, this composer's 12-tone technique altered the 'rules' of melody composition.",
+          "answer": "Arnold Schoenberg",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "Much like a game-changing strategy, this Russian composer's 'Rite of Spring' altered ballet with its avant-garde style and caused a riot at its 1913 premiere.",
+          "answer": "Igor Stravinsky",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This minimalist composer used phasing techniques in works like 'It's Gonna Rain', similar to maintaining a rhythm in a marathon.",
+          "answer": "Steve Reich",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Ancient Civilizations Uncovered",
+      "questions": [
+        {
+          "clue": "This ancient civilization built pyramids as burial places for their pharaohs, much like modern sports stadiums honor champions.",
+          "answer": "Ancient Egypt",
+          "value": 200,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "The Mesoamerican ballgame, played by this civilization, was one of the world's oldest team sports, predating even the Olympics.",
+          "answer": "Maya",
+          "value": 400,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This ancient civilization, known for its city-state Sparta, introduced the concept of athletic competition as training for war.",
+          "answer": "Ancient Greece",
+          "value": 600,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "In the Andes, this civilization built terraced mountainsides, similar to how modern sports venues maximize seating space.",
+          "answer": "Inca",
+          "value": 800,
+          "daily_double": false,
+          "type": "text"
+        },
+        {
+          "clue": "This civilization's chariot races in the Circus Maximus were extravagant events akin to today's major sporting spectacles.",
+          "answer": "Ancient Rome",
+          "value": 1000,
+          "daily_double": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "final": {
+    "category": "Olympic Records",
+    "clue": "As of 2023, this athlete holds the record for the most Olympic gold medals won by a single individual, with 23 golds.",
+    "answer": "Who is Michael Phelps?"
+  }
+}

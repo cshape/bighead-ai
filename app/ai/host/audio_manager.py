@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class AudioManager:
     """Manages audio queue and playback for the AI host"""
-    
+
     def __init__(self, api_key=None, voice="Timothy"):
         """Initialize the audio manager"""
         self.tts_client = TTSClient(api_key=api_key)
@@ -25,15 +25,23 @@ class AudioManager:
         self.audio_queue = []
         self.is_playing_audio = False
         self.game_service = None
+        self.game_instance = None
         self.question_audio_id = None
         self.incorrect_answer_audio_id = None
         self.recent_audio_files = set()
         self.max_recent_files = 10
-        
-    def set_game_service(self, game_service):
-        """Set the game service reference"""
+
+    @property
+    def game_id(self):
+        """Get the game_id from game_instance if available."""
+        return self.game_instance.game_id if self.game_instance else None
+
+    def set_game_service(self, game_service, game_instance=None):
+        """Set the game service and optional game instance reference"""
         self.game_service = game_service
-        logger.info("Game service set for AudioManager")
+        if game_instance:
+            self.game_instance = game_instance
+        logger.info(f"Game service set for AudioManager (game_id: {self.game_id})")
         
     async def start(self):
         """Start the audio queue processor"""
@@ -140,11 +148,13 @@ class AudioManager:
             if os.path.exists(result_file) and os.path.getsize(result_file) > 0:
                 # Add to audio queue instead of playing immediately
                 public_url = f"/static/audio/{filename}"
-                logger.info(f"Adding audio to queue: {public_url}")
-                
-                # Check if this audio file is already in the queue to prevent duplicates
-                if public_url not in self.audio_queue:
-                    self.audio_queue.append(public_url)
+                logger.info(f"Adding audio to queue: {public_url} (id: {audio_id})")
+
+                # Check if this audio URL is already in the queue to prevent duplicates
+                existing_urls = [item[0] for item in self.audio_queue]
+                if public_url not in existing_urls:
+                    # Store (url, audio_id) tuple so we use the same ID throughout
+                    self.audio_queue.append((public_url, audio_id))
                 else:
                     logger.warning(f"Skipping duplicate audio in queue: {public_url}")
                 
@@ -170,37 +180,47 @@ class AudioManager:
                     continue
                 
                 # Get the next audio file from the queue
-                audio_url = self.audio_queue.pop(0) if self.audio_queue else None
-                if not audio_url:
+                item = self.audio_queue.pop(0) if self.audio_queue else None
+                if not item:
                     continue
-                
-                logger.info(f"Processing audio from queue: {audio_url}")
-                
+
+                # Unpack the (url, audio_id) tuple
+                audio_url, stored_audio_id = item
+                # Use stored ID if available, otherwise generate one as fallback
+                audio_id = stored_audio_id or f"audio_{int(time.time() * 1000)}"
+
+                logger.info(f"Processing audio from queue: {audio_url} (id: {audio_id})")
+
                 # If game service is available, use it to play the audio
                 if self.game_service:
-                    # Use unique audio ID to track completion
-                    audio_id = f"audio_{int(time.time() * 1000)}"
-                    
                     # Play the audio through the game service
                     await self.game_service.play_audio(
                         audio_url=audio_url,
                         wait_for_completion=True,
-                        audio_id=audio_id
+                        audio_id=audio_id,
+                        game_id=self.game_id
                     )
-                    
+
                     # Wait for the audio to complete - timeout after 30 seconds
                     max_wait_time = 30
                     wait_time = 0
                     while wait_time < max_wait_time:
                         # Check if audio playback has completed
-                        if self.game_service.check_audio_completed(audio_id):
+                        # Use game_instance if available (multi-game mode), fallback to game_service
+                        audio_completed = False
+                        if self.game_instance:
+                            audio_completed = self.game_instance.is_audio_completed(audio_id)
+                        else:
+                            audio_completed = self.game_service.check_audio_completed(audio_id)
+
+                        if audio_completed:
                             logger.info(f"Audio playback completed: {audio_id}")
                             break
-                            
+
                         # Wait a bit before checking again
-                        await asyncio.sleep(1)
-                        wait_time += 1
-                        
+                        await asyncio.sleep(0.5)
+                        wait_time += 0.5
+
                     if wait_time >= max_wait_time:
                         logger.warning(f"Timed out waiting for audio completion: {audio_id}")
                 else:

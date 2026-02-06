@@ -1,5 +1,8 @@
 from typing import Dict, Optional, List, Set
 from pydantic import BaseModel
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class GameStateManager:
@@ -31,10 +34,40 @@ class GameStateManager:
 
         from ..models.contestant import Contestant
         self.contestants[websocket_id] = Contestant(name=name, score=0)
+        logger.info(f"Registered contestant '{name}' with key '{websocket_id}' (game: {self.game_code})")
+        logger.info(f"Current contestants keys: {list(self.contestants.keys())}")
         return True
 
     def get_contestant_by_websocket(self, websocket_id: str) -> Optional['Contestant']:
-        return self.contestants.get(websocket_id)
+        contestant = self.contestants.get(websocket_id)
+        if not contestant:
+            logger.warning(f"Lookup failed for key '{websocket_id}' (game: {self.game_code})")
+            logger.warning(f"Available keys: {list(self.contestants.keys())}")
+        return contestant
+
+    def update_contestant_key(self, name: str, new_websocket_id: str) -> bool:
+        """Update a contestant's key (for reconnection handling)"""
+        # Find the contestant by name and get their current key
+        old_key = None
+        contestant = None
+        for key, c in self.contestants.items():
+            if c.name == name:
+                old_key = key
+                contestant = c
+                break
+
+        if not contestant:
+            return False
+
+        if old_key == new_websocket_id:
+            # Already using the correct key
+            return True
+
+        # Re-key the contestant
+        del self.contestants[old_key]
+        self.contestants[new_websocket_id] = contestant
+        logger.info(f"Updated contestant '{name}' key from '{old_key}' to '{new_websocket_id}' (game: {self.game_code})")
+        return True
 
     def get_contestant_by_name(self, name: str) -> Optional['Contestant']:
         """Get a contestant by their name"""

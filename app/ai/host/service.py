@@ -112,7 +112,7 @@ class AIHostService:
         self.game_service = game_service
 
         # Propagate the game service to all components that need it
-        self.audio_manager.set_game_service(game_service)
+        self.audio_manager.set_game_service(game_service, game_instance=self.game_instance if hasattr(self, 'game_instance') else None)
         self.board_manager.set_game_service(game_service)
         self.clue_processor.set_game_service(game_service)
 
@@ -121,7 +121,8 @@ class AIHostService:
             game_service=game_service,
             game_state_manager=self.game_state_manager,
             clue_processor=self.clue_processor,
-            answer_evaluator=self.answer_evaluator
+            answer_evaluator=self.answer_evaluator,
+            game_instance=self.game_instance if hasattr(self, 'game_instance') else None
         )
 
         # Set up buzzer manager dependencies
@@ -129,7 +130,8 @@ class AIHostService:
             game_service=game_service,
             game_state_manager=self.game_state_manager,
             chat_processor=self.chat_processor,
-            audio_manager=self.audio_manager
+            audio_manager=self.audio_manager,
+            game_instance=self.game_instance if hasattr(self, 'game_instance') else None
         )
 
         # Set up game flow manager dependencies
@@ -142,10 +144,11 @@ class AIHostService:
             board_manager=self.board_manager
         )
 
-        # Pass game_instance to game_flow_manager and board_manager
+        # Pass game_instance to components that need it
         if hasattr(self, 'game_instance') and self.game_instance:
             self.game_flow_manager.game_instance = self.game_instance
             self.board_manager.game_instance = self.game_instance
+            self.audio_manager.game_instance = self.game_instance
 
         logger.info("Dependencies set for AI Host Service")
     
@@ -183,7 +186,12 @@ class AIHostService:
     async def run(self):
         """Main game loop for monitoring the game and managing interactions."""
         logger.info("Starting AI host game loop")
-        
+
+        # Initialize the AI host (starts audio queue processor)
+        if not await self.start():
+            logger.error("Failed to start AI host service")
+            return
+
         try:
             game_error_count = 0
             max_errors = 5

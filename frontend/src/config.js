@@ -27,19 +27,28 @@ export function getApiUrl(path) {
 /**
  * Get the WebSocket URL for a specific game.
  * @param {string} gameCode - The 6-digit game code
+ * @param {string} playerName - Optional player name for HTTP-joined players
  * @returns {string} The full WebSocket URL
  */
-export function getWebSocketUrl(gameCode) {
+export function getWebSocketUrl(gameCode, playerName = null) {
+  let url;
   if (WS_URL) {
     // Production: use the configured WebSocket URL
     const protocol = WS_URL.startsWith('wss') ? 'wss:' : 'ws:';
     const host = WS_URL.replace(/^wss?:\/\//, '');
-    return `${protocol}//${host}/ws/${gameCode}`;
+    url = `${protocol}//${host}/ws/${gameCode}`;
+  } else {
+    // Development: use current host with WebSocket protocol
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    url = `${protocol}//${window.location.host}/ws/${gameCode}`;
   }
 
-  // Development: use current host with WebSocket protocol
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  return `${protocol}//${window.location.host}/ws/${gameCode}`;
+  // Add player_name query param if provided (for HTTP-joined players)
+  if (playerName) {
+    url += `?player_name=${encodeURIComponent(playerName)}`;
+  }
+
+  return url;
 }
 
 /**

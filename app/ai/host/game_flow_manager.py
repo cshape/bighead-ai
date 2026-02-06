@@ -5,6 +5,7 @@ Game Flow Manager for handling game progression and state monitoring.
 import logging
 import asyncio
 import time
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,11 @@ class GameFlowManager:
             self.buzzer_manager = buzzer_manager
         if board_manager:
             self.board_manager = board_manager
-    
+
+    def _get_game_id(self) -> Optional[str]:
+        """Get the game_id from game_instance if available."""
+        return self.game_instance.game_id if self.game_instance else None
+
     async def monitor_game_state(self):
         """Monitor the game state and respond to changes."""
         try:
@@ -62,7 +67,13 @@ class GameFlowManager:
                 return
                 
             # Check if there's a current question
-            current_question = self.game_instance.current_question if self.game_instance else self.game_service.current_question
+            # Check both game_instance and game_service since display_question() may set on either
+            current_question = None
+            if self.game_instance and self.game_instance.current_question:
+                current_question = self.game_instance.current_question
+            elif self.game_service and self.game_service.current_question:
+                current_question = self.game_service.current_question
+
             if current_question and not self.game_state_manager.game_state.current_question:
                 # We have a new question to process
                 # Cancel any existing timer when a new question appears
@@ -118,20 +129,26 @@ class GameFlowManager:
             if buzzer_active and not self.game_state_manager.buzzer_active:
                 logger.info("Buzzer has been activated")
                 self.game_state_manager.buzzer_active = True
-                asyncio.create_task(self.buzzer_manager.activate_buzzer())
+                asyncio.create_task(self.buzzer_manager.activate_buzzer(game_id=self._get_game_id()))
             elif not buzzer_active and self.game_state_manager.buzzer_active:
                 logger.info("Buzzer has been deactivated")
                 self.game_state_manager.buzzer_active = False
-                asyncio.create_task(self.buzzer_manager.deactivate_buzzer())
+                asyncio.create_task(self.buzzer_manager.deactivate_buzzer(game_id=self._get_game_id()))
                 
             # Check if the question has been dismissed
-            current_question_check = self.game_instance.current_question if self.game_instance else self.game_service.current_question
+            # Check both game_instance and game_service since display_question() may set on either
+            current_question_check = None
+            if self.game_instance and self.game_instance.current_question:
+                current_question_check = self.game_instance.current_question
+            elif self.game_service and self.game_service.current_question:
+                current_question_check = self.game_service.current_question
+
             if not current_question_check and self.game_state_manager.game_state.current_question:
                 # Question has been dismissed, reset our state
                 logger.info("Question was dismissed, resetting state")
                 self.game_state_manager.reset_question()
                 self.buzzer_manager.last_buzzer = None
-                asyncio.create_task(self.buzzer_manager.deactivate_buzzer())
+                asyncio.create_task(self.buzzer_manager.deactivate_buzzer(game_id=self._get_game_id()))
                 self.game_state_manager.buzzer_active = False
                 
                 # Cancel any buzzer timeout if question was dismissed
@@ -345,9 +362,12 @@ class GameFlowManager:
             
             # Notify game service to update frontend state
             if self.game_service:
+                # Get game_id from game_instance if available (multi-game mode)
+                game_id = self.game_instance.game_id if self.game_instance else None
                 await self.game_service.connection_manager.broadcast_message(
                     "com.sc2ctl.jeopardy.select_question",
-                    {"contestant": first_player}
+                    {"contestant": first_player},
+                    game_id=game_id
                 )
             
             # Announce that the first player has control

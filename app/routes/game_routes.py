@@ -34,6 +34,7 @@ class JoinGameResponse(BaseModel):
     is_host: bool
     status: str
     players: list
+    reconnected: bool = False
 
 
 class GameStateResponse(BaseModel):
@@ -118,6 +119,7 @@ async def join_game(code: str, body: JoinGameRequest, request: Request):
                 {"name": c.name, "score": c.score}
                 for c in game.state.contestants.values()
             ],
+            reconnected=player_data.get("reconnected", False),
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -203,6 +205,48 @@ async def start_game(game_id: str, body: StartGameRequest, request: Request):
         raise HTTPException(status_code=400, detail="Failed to start game")
 
     return {"status": "started", "game_id": game_id}
+
+
+@router.post("/{game_id}/restart")
+async def restart_game(game_id: str, request: Request):
+    """
+    Restart a completed game with the same players.
+
+    Resets scores, generates a new board, and starts a fresh round.
+    """
+    game_manager = request.app.state.game_manager
+    game_service = request.app.state.game_service
+
+    game = await game_manager.get_game_by_id(game_id)
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    if game.status != "completed":
+        raise HTTPException(status_code=400, detail="Game is not completed")
+
+    # Store current preferences before stopping AI host
+    if game._ai_host and game._ai_host.game_state_manager:
+        game.stored_preferences = dict(game._ai_host.game_state_manager.player_preferences)
+
+    # Stop any lingering AI host task
+    await game.stop_ai_host()
+
+    # Reset game state
+    game.restart_game()
+
+    # Start a fresh AI host
+    await game.start_ai_host(game_service)
+
+    # Broadcast score reset to all clients
+    scores = {c.name: c.score for c in game.state.contestants.values()}
+    connection_manager = request.app.state.connection_manager
+    await connection_manager.broadcast_to_room(
+        game_id,
+        "com.sc2ctl.jeopardy.contestant_score",
+        {"scores": scores}
+    )
+
+    return {"status": "restarted", "game_id": game_id}
 
 
 @router.delete("/{game_id}")

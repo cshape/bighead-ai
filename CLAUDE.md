@@ -4,9 +4,9 @@ A web app that lets players play Jeopardy against each other with an AI host. Th
 
 ## After Major Changes
 
-Run the end-to-end tests to make sure nothing is broken:
+Run the end-to-end tests to make sure nothing is broken. Kill any running backend server first (the test harness starts its own on port 8000):
 
 ```bash
-cd frontend && npm run test:e2e
+lsof -ti:8000 | xargs kill -9 2>/dev/null; cd frontend && npm run test:e2e
 ```
 Check TODOs.md and update if necessary.

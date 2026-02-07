@@ -6,11 +6,11 @@ export default function QuestionModal() {
   const { state, sendMessage, submitAnswer } = useGame();
   const { currentQuestion, buzzerActive, lastBuzzer, answerTimer, answerSubmitted, players, incorrectPlayers } = state;
 
-  // Get playerName from state OR sessionStorage as fallback (registration
+  // Get playerName from state OR localStorage as fallback (registration
   // happens on LobbyPage's WebSocket, so state.playerName may still be null)
   let playerName = state.playerName;
   if (!playerName) {
-    const info = JSON.parse(sessionStorage.getItem('playerInfo') || '{}');
+    const info = JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}');
     playerName = info.playerName;
   }
   const [showDailyDoubleQuestion, setShowDailyDoubleQuestion] = useState(false);

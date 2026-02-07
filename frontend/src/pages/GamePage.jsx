@@ -5,13 +5,14 @@ import GameBoard from '../components/GameBoard';
 import QuestionModal from '../components/Modals/QuestionModal';
 import ScoreBoard from '../components/ScoreBoard/ScoreBoard';
 import ChatWindow from '../components/Chat/ChatWindow';
+import EndGameScreen from '../components/EndGameScreen/EndGameScreen';
 import '../styles/layout.css';
 
 function GamePage() {
   const { code } = useParams();
   const navigate = useNavigate();
   const { state, setGameCode } = useGame();
-  const { board, gameReady, boardGenerating } = state;
+  const { board, gameReady, boardGenerating, gameStatus } = state;
 
   // Set the game code in context when the page loads
   useEffect(() => {
@@ -21,7 +22,7 @@ function GamePage() {
   }, [code, setGameCode]);
 
   // Get player info from session storage
-  const playerInfo = JSON.parse(sessionStorage.getItem('playerInfo') || '{}');
+  const playerInfo = JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}');
 
   // If no player info and not in admin mode, redirect to lobby
   useEffect(() => {
@@ -30,6 +31,10 @@ function GamePage() {
       navigate(`/game/${code}/lobby`);
     }
   }, [playerInfo.playerName, state.adminMode, code, navigate]);
+
+  if (gameStatus === 'completed') {
+    return <EndGameScreen />;
+  }
 
   return (
     <div className="app">

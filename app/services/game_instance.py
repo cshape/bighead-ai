@@ -35,7 +35,7 @@ class GameInstance:
     STATUS_COMPLETED = "completed"
 
     # Required players to start (can be overridden)
-    REQUIRED_PLAYERS = 3
+    REQUIRED_PLAYERS = 1
 
     def __init__(
         self,
@@ -70,6 +70,10 @@ class GameInstance:
 
         # Connected clients for this game (websocket_id -> websocket)
         self.connected_clients: Set[str] = set()
+
+        # Restart support
+        self.is_restart = False
+        self.stored_preferences: Optional[Dict[str, str]] = None
 
         # AI Host (created on demand)
         self._ai_host: Optional[AIHostService] = None
@@ -151,6 +155,24 @@ class GameInstance:
         self.status = self.STATUS_COMPLETED
         logger.info(f"Game {self.game_code} completed")
 
+    def restart_game(self):
+        """Reset game state for a new round, preserving players and preferences."""
+        self.board = None
+        self.current_question = None
+        self.status = self.STATUS_ACTIVE
+        self.game_ready = True
+        self.is_restart = True
+
+        # Reset scores
+        for contestant in self.state.contestants.values():
+            contestant.score = 0
+
+        # Clear used questions tracking
+        if hasattr(self.state, 'used_questions'):
+            self.state.used_questions.clear()
+
+        logger.info(f"Game {self.game_code} restarted")
+
     async def start_ai_host(self, game_service):
         """
         Start the AI host for this game.
@@ -222,6 +244,9 @@ class GameInstance:
 
     def get_state_for_client(self) -> Dict[str, Any]:
         """Get the game state to send to a new client."""
+        controlling_player = None
+        if self._ai_host and self._ai_host.game_state_manager:
+            controlling_player = self._ai_host.game_state_manager.get_player_with_control()
         return {
             "game_id": self.game_id,
             "game_code": self.game_code,
@@ -233,6 +258,7 @@ class GameInstance:
             "last_buzzer": self.last_buzzer,
             "game_ready": self.game_ready,
             "is_host": False,  # Will be set by caller based on client
+            "controlling_player": controlling_player,
         }
 
     def get_lobby_state(self) -> Dict[str, Any]:

@@ -23,8 +23,8 @@ function LobbyPage() {
   const [starting, setStarting] = useState(false);
   const [ws, setWs] = useState(null);
 
-  // Get player info from session storage
-  const playerInfo = JSON.parse(sessionStorage.getItem('playerInfo') || '{}');
+  // Get player info from sessionStorage (per-tab, no cross-tab conflicts)
+  const playerInfo = JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}');
   const isHost = playerInfo.isHost || false;
 
   // Fetch initial game state
@@ -123,8 +123,8 @@ function LobbyPage() {
   }, [code, navigate]);
 
   const handleStartGame = async () => {
-    // Read fresh from sessionStorage to avoid stale closure
-    const currentPlayerInfo = JSON.parse(sessionStorage.getItem('playerInfo') || '{}');
+    // Read fresh from localStorage to avoid stale closure
+    const currentPlayerInfo = JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}');
     if (!currentPlayerInfo.playerId) {
       setError('Player information not found. Please rejoin the game.');
       return;
@@ -183,7 +183,7 @@ function LobbyPage() {
     );
   }
 
-  const canStart = players.length >= 3;
+  const canStart = players.length >= 1;
 
   return (
     <div className="lobby-page">
@@ -233,7 +233,7 @@ function LobbyPage() {
               {starting ? 'Starting...' : 'START GAME'}
             </button>
             {!canStart && !starting && (
-              <p className="start-hint">Need {3 - players.length} more player(s)</p>
+              <p className="start-hint">Need {1 - players.length} more player(s)</p>
             )}
           </div>
         )}

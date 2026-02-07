@@ -126,3 +126,9 @@ class BuzzerStatusPayload(BaseModel):
 
 class ContestantScorePayload(BaseModel):
     scores: Dict[str, int]
+
+
+class GameCompletedPayload(BaseModel):
+    scores: Dict[str, int]
+    winner: str
+    winner_score: int

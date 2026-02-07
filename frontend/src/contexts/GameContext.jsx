@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, useCallback, useState } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useState, useRef } from 'react';
 import useWebSocket from '../hooks/useWebSocket';
 import { getLegacyWebSocketUrl, getWebSocketUrl } from '../config';
 
@@ -28,6 +28,7 @@ const initialState = {
   answerSubmitted: false,
   incorrectPlayers: [], // Players who answered incorrectly on the current clue
   controllingPlayer: null, // Player who has control to select the next clue
+  finalResults: null, // End-of-game results {scores, winner, winnerScore}
   // Multi-game state
   gameCode: null,
   gameId: null,
@@ -243,7 +244,7 @@ function gameReducer(state, action) {
       return {
         ...state,
         players: action.payload.players,
-        gameReady: Object.keys(action.payload.players).length >= 3
+        gameReady: Object.keys(action.payload.players).length >= 1
       };
     case 'GAME_READY':
       return {
@@ -417,6 +418,7 @@ function gameReducer(state, action) {
         lastBuzzer: action.payload.last_buzzer,
         gameReady: action.payload.game_ready,
         isHost: action.payload.is_host,
+        controllingPlayer: action.payload.controlling_player || state.controllingPlayer,
       };
     case 'GAME_STARTED':
       return {
@@ -428,6 +430,33 @@ function gameReducer(state, action) {
       return {
         ...state,
         incorrectPlayers: action.payload,
+      };
+    case 'GAME_COMPLETED':
+      return {
+        ...state,
+        gameStatus: 'completed',
+        finalResults: {
+          scores: action.payload.scores,
+          winner: action.payload.winner,
+          winnerScore: action.payload.winner_score,
+        },
+      };
+    case 'GAME_RESTART':
+      return {
+        ...state,
+        gameStatus: 'active',
+        finalResults: null,
+        board: null,
+        currentQuestion: null,
+        dailyDouble: null,
+        buzzerActive: false,
+        lastBuzzer: null,
+        answerTimer: { active: false, player: null, seconds: 0 },
+        answerSubmitted: false,
+        incorrectPlayers: [],
+        controllingPlayer: null,
+        boardGenerating: false,
+        revealedCategories: new Set(),
       };
     default:
       return state;
@@ -442,6 +471,9 @@ export function GameProvider({ children }) {
 
   // Track current game code for WebSocket URL
   const [currentGameCode, setCurrentGameCode] = useState(null);
+
+  // Track active audio streams for MSE/blob-based playback
+  const audioStreamsRef = useRef({});
 
   // Handle all WebSocket messages in a single callback function
   const handleWebSocketMessage = useCallback((message) => {
@@ -691,6 +723,136 @@ export function GameProvider({ children }) {
         console.log('Game started');
         dispatch({ type: 'GAME_STARTED' });
         break;
+      case 'com.sc2ctl.jeopardy.game_completed':
+        console.log('Game completed:', message.payload);
+        dispatch({ type: 'GAME_COMPLETED', payload: message.payload });
+        break;
+
+      // ---- Streaming TTS handlers (Web Audio API progressive decode) ----
+      case 'com.sc2ctl.jeopardy.audio_stream_start': {
+        const { audio_id } = message.payload;
+        console.log(`Audio stream start: ${audio_id}`);
+        // Disable buzzer while audio streams
+        dispatch({ type: 'SET_BUZZER_STATUS', payload: false });
+
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        audioStreamsRef.current[audio_id] = {
+          audioContext,
+          chunks: [],            // raw Uint8Array chunks accumulated
+          lastDecodedDuration: 0,
+          nextScheduleTime: null,  // deferred to first successful decode
+          isPlaying: false,
+          lastSource: null,      // last scheduled BufferSourceNode (for onended)
+          processingChain: Promise.resolve(), // serializes async decode calls
+        };
+        break;
+      }
+
+      case 'com.sc2ctl.jeopardy.audio_stream_chunk': {
+        const { audio_id, chunk } = message.payload;
+        const stream = audioStreamsRef.current[audio_id];
+        if (!stream) {
+          console.warn(`Received chunk for unknown stream: ${audio_id}`);
+          break;
+        }
+
+        // Decode base64 to Uint8Array
+        const binaryStr = atob(chunk);
+        const bytes = new Uint8Array(binaryStr.length);
+        for (let i = 0; i < binaryStr.length; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+        stream.chunks.push(bytes);
+
+        // Chain an async decode attempt to ensure serial processing
+        stream.processingChain = stream.processingChain.then(async () => {
+          const s = audioStreamsRef.current[audio_id];
+          if (!s) return;
+
+          // Combine ALL accumulated chunks into one buffer
+          const totalLength = s.chunks.reduce((sum, c) => sum + c.length, 0);
+          const combined = new Uint8Array(totalLength);
+          let offset = 0;
+          for (const c of s.chunks) {
+            combined.set(c, offset);
+            offset += c.length;
+          }
+
+          try {
+            // decodeAudioData needs a copy (.slice) since it detaches the buffer
+            const audioBuffer = await s.audioContext.decodeAudioData(combined.buffer.slice(0));
+            const newDuration = audioBuffer.duration - s.lastDecodedDuration;
+
+            if (newDuration > 0.01) {
+              s.isPlaying = true;
+              // Initialize schedule time on first successful decode so it's
+              // not stale from when the stream started (avoids overlap)
+              if (s.nextScheduleTime === null) {
+                s.nextScheduleTime = s.audioContext.currentTime;
+              }
+              const startSample = Math.floor(s.lastDecodedDuration * audioBuffer.sampleRate);
+              const newSampleCount = audioBuffer.length - startSample;
+
+              if (newSampleCount > 0) {
+                const newBuffer = s.audioContext.createBuffer(
+                  audioBuffer.numberOfChannels,
+                  newSampleCount,
+                  audioBuffer.sampleRate
+                );
+                for (let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
+                  const channelData = audioBuffer.getChannelData(ch);
+                  newBuffer.getChannelData(ch).set(channelData.subarray(startSample));
+                }
+
+                const source = s.audioContext.createBufferSource();
+                source.buffer = newBuffer;
+                source.connect(s.audioContext.destination);
+                source.start(s.nextScheduleTime);
+                s.nextScheduleTime += newBuffer.duration;
+                s.lastSource = source;
+              }
+
+              s.lastDecodedDuration = audioBuffer.duration;
+            }
+          } catch (e) {
+            // Not enough data to decode yet — will succeed with more chunks
+          }
+        });
+        break;
+      }
+
+      case 'com.sc2ctl.jeopardy.audio_stream_end': {
+        const { audio_id, total_chunks } = message.payload;
+        console.log(`Audio stream end: ${audio_id} (${total_chunks} chunks)`);
+        const stream = audioStreamsRef.current[audio_id];
+        if (!stream) {
+          console.warn(`Received stream end for unknown stream: ${audio_id}`);
+          break;
+        }
+
+        // Wait for all decode operations to finish, then signal when audio ends
+        stream.processingChain.then(() => {
+          const s = audioStreamsRef.current[audio_id];
+          if (!s) return;
+
+          const cleanup = () => {
+            console.log(`Streaming audio ${audio_id} playback completed`);
+            sendMessage('com.sc2ctl.jeopardy.audio_complete', { audio_id });
+            s.audioContext.close();
+            delete audioStreamsRef.current[audio_id];
+          };
+
+          if (s.isPlaying && s.lastSource) {
+            // Listen for the last scheduled buffer to finish playing
+            s.lastSource.onended = cleanup;
+          } else {
+            // No audio was decoded/played — just signal completion
+            cleanup();
+          }
+        });
+        break;
+      }
+
       default:
         console.log('Unhandled message topic:', message.topic);
     }
@@ -698,7 +860,7 @@ export function GameProvider({ children }) {
   
   // Get player name from session storage for HTTP-joined players
   const playerInfo = typeof window !== 'undefined'
-    ? JSON.parse(sessionStorage.getItem('playerInfo') || '{}')
+    ? JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}')
     : {};
 
   // Determine WebSocket URL based on game code, include player_name for linking
@@ -725,24 +887,25 @@ export function GameProvider({ children }) {
     }
   }, [state.adminMode]);
 
-  // Initialize playerName from sessionStorage
+  // Initialize playerName from localStorage (re-runs when game code changes,
+  // e.g. after navigating from lobby to game page where localStorage is populated)
   useEffect(() => {
-    const playerInfo = JSON.parse(sessionStorage.getItem('playerInfo') || '{}');
+    const playerInfo = JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}');
     if (playerInfo.playerName && !state.playerName) {
       dispatch({
         type: 'REGISTER_PLAYER',
         payload: { name: playerInfo.playerName }
       });
     }
-  }, []);
+  }, [currentGameCode]);
 
   // Function to submit an answer from the QuestionModal
   const submitAnswer = useCallback((answer) => {
     // state.playerName may be null (registration happens on LobbyPage's WS),
-    // so fall back to sessionStorage like other components do.
+    // so fall back to localStorage like other components do.
     let name = state.playerName;
     if (!name) {
-      const info = JSON.parse(sessionStorage.getItem('playerInfo') || '{}');
+      const info = JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}');
       name = info.playerName;
     }
     sendMessage('com.sc2ctl.jeopardy.submit_answer', {
@@ -757,10 +920,10 @@ export function GameProvider({ children }) {
     if (message.trim() === '') return;
 
     const isAdmin = state.adminMode;
-    // Try state first, then sessionStorage as fallback
+    // Try state first, then localStorage as fallback
     let username = state.playerName;
     if (!username) {
-      const playerInfo = JSON.parse(sessionStorage.getItem('playerInfo') || '{}');
+      const playerInfo = JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}');
       username = playerInfo.playerName || 'Anonymous';
     }
 

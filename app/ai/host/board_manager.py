@@ -113,7 +113,7 @@ class BoardManager:
                         game_id=game_id
                     )
                 # Small delay between reveals for visual effect
-                await asyncio.sleep(1.5)
+                await asyncio.sleep(0.5)
             
             # Add daily doubles if requested
             daily_double_count = random.randint(1, 2)

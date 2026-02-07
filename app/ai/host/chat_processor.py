@@ -174,61 +174,49 @@ class ChatProcessor:
                 logger.info(f"Player {username} answered correctly")
                 await self.send_chat_message(correct_msg)
 
-                # If possible, provide audio feedback
+                # Update scores and dismiss question BEFORE TTS (which blocks until audio_complete)
+                logger.debug(f"Notifying game service about answer: player={username}, correct=True, game_id={self._game_id}")
+                await self.game_service.answer_question(True, username, game_id=self._game_id)
+                logger.debug("Explicitly dismissing question after correct answer")
+                await self.game_service.dismiss_question(game_id=self._game_id)
+
+                self.game_state_manager.reset_buzzed_player()
+                logger.debug(f"Reset buzzed player state after correct answer from {username}")
+                self.game_state_manager.reset_question()
+                self.game_state_manager.set_player_with_control(username, set())
+                logger.debug(f"Player {username} gets control of the board")
+
+                # Fire-and-forget TTS for correct answer + board control messages.
+                # The _stream_lock serializes playback, but we don't block the game flow.
                 if not test_mode and self.game_instance and self.game_instance.ai_host and hasattr(self.game_instance.ai_host, "audio_manager"):
-                    await self.game_instance.ai_host.audio_manager.synthesize_and_play_speech(correct_msg)
+                    audio_mgr = self.game_instance.ai_host.audio_manager
+
+                    async def _play_correct_sequence():
+                        await audio_mgr.synthesize_and_stream_speech(correct_msg)
+                        await self.send_chat_message(f"{username}, you have control of the board!")
+                        await audio_mgr.synthesize_and_stream_speech(f"{username}, you have control of the board!")
+
+                    asyncio.create_task(_play_correct_sequence())
+                else:
+                    await asyncio.sleep(0.5)
+                    await self.send_chat_message(f"{username}, you have control of the board!")
+
             else:
                 incorrect_msg = f"I'm sorry, {username}, that's incorrect. {explanation}"
                 logger.info(f"Player {username} answered incorrectly")
                 await self.send_chat_message(incorrect_msg)
 
-                # If possible, provide audio feedback
-                if not test_mode and self.game_instance and self.game_instance.ai_host and hasattr(self.game_instance.ai_host, "audio_manager"):
-                    try:
-                        await self.game_instance.ai_host.audio_manager.synthesize_and_play_speech(incorrect_msg, is_incorrect_answer_audio=True)
-                    except TypeError as e:
-                        logger.error(f"Error synthesizing incorrect answer speech: {e}")
-                        logger.info("Falling back to regular speech synthesis without incorrect answer flag")
-                        await self.game_instance.ai_host.audio_manager.synthesize_and_play_speech(incorrect_msg)
-                    except Exception as e:
-                        logger.error(f"Error synthesizing speech: {e}")
+                # Update scores BEFORE TTS (which blocks until audio_complete)
+                logger.debug(f"Notifying game service about answer: player={username}, correct=False, game_id={self._game_id}")
+                await self.game_service.answer_question(False, username, game_id=self._game_id)
 
-            # Notify the game service to update scores and UI
-            logger.debug(f"Notifying game service about answer: player={username}, correct={is_correct}, game_id={self._game_id}")
-            await self.game_service.answer_question(is_correct, username, game_id=self._game_id)
-
-            # For correct answers, explicitly dismiss the question to ensure clean state
-            if is_correct:
-                logger.debug("Explicitly dismissing question after correct answer")
-                await self.game_service.dismiss_question(game_id=self._game_id)
-
-            # Reset our state
-            if is_correct:
-                self.game_state_manager.reset_buzzed_player()
-                logger.debug(f"Reset buzzed player state after correct answer from {username}")
-
-                self.game_state_manager.reset_question()
-
-                # Give control to the player who answered correctly
-                self.game_state_manager.set_player_with_control(username, set())
-                logger.debug(f"Player {username} gets control of the board")
-
-                # Small delay to allow UI to update before prompting for next selection
-                await asyncio.sleep(0.5)
-
-                next_selection_msg = f"{username}, you have control of the board!"
-                await self.send_chat_message(next_selection_msg)
-
-            else:
-                # For incorrect answers, track the player who answered
+                # Reset state so handle_audio_completed sees correct flags
                 self.game_state_manager.track_incorrect_attempt(username)
                 self.game_state_manager.reset_buzzed_player()
-
-                # Reset buzzer state to allow others to buzz in
                 self.game_instance.last_buzzer = None
                 logger.debug("Reset game instance buzzer state after incorrect answer")
 
-                # Reactivate buzzer for remaining players
+                # Set reactivation flag BEFORE TTS so handle_audio_completed can act on it
                 if self.game_instance.current_question:
                     if test_mode:
                         # TEST_MODE: directly reactivate buzzer instead of waiting for audio
@@ -242,6 +230,19 @@ class ChatProcessor:
                         if self.game_instance and self.game_instance.ai_host and self.game_instance.ai_host.buzzer_manager:
                             self.game_instance.ai_host.buzzer_manager.expecting_reactivation = True
                             logger.debug("Setting buzzer_manager.expecting_reactivation = True")
+
+                # TTS blocks until frontend sends audio_complete.
+                # Skip if the question was already dismissed (all players wrong) —
+                # buzzer_manager.handle_incorrect_answer already did TTS for "Nobody got it".
+                if self.game_instance.current_question and not test_mode and self.game_instance.ai_host and hasattr(self.game_instance.ai_host, "audio_manager"):
+                    try:
+                        await self.game_instance.ai_host.audio_manager.synthesize_and_stream_speech(incorrect_msg, is_incorrect_answer_audio=True)
+                    except TypeError as e:
+                        logger.error(f"Error synthesizing incorrect answer speech: {e}")
+                        logger.info("Falling back to regular speech synthesis without incorrect answer flag")
+                        await self.game_instance.ai_host.audio_manager.synthesize_and_stream_speech(incorrect_msg)
+                    except Exception as e:
+                        logger.error(f"Error synthesizing speech: {e}")
 
         except Exception as e:
             logger.error(f"Error processing player answer: {e}")

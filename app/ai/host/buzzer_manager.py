@@ -222,7 +222,7 @@ class BuzzerManager:
                             if self.chat_processor:
                                 await self.chat_processor.send_chat_message(reveal_msg)
                             if self.audio_manager:
-                                await self.audio_manager.synthesize_and_play_speech(reveal_msg)
+                                asyncio.create_task(self.audio_manager.synthesize_and_stream_speech(reveal_msg))
 
                 return
 
@@ -261,6 +261,16 @@ class BuzzerManager:
                 # Update game state manager buzzer state
                 if self.game_state_manager:
                     self.game_state_manager.buzzer_active = True
+            elif was_question_audio and current_question and last_buzzer and current_question.get("daily_double", False):
+                # Daily double: player already has the buzzer, start answer timer
+                logger.debug(f"Daily double audio completed, starting answer timer for {last_buzzer}")
+                self.start_answer_timeout(last_buzzer)
+                if self.game_service:
+                    await self.game_service.connection_manager.broadcast_message(
+                        "com.sc2ctl.jeopardy.answer_timer_start",
+                        {"player": last_buzzer, "seconds": self.answer_timeout_seconds},
+                        game_id=self._get_game_id()
+                    )
             else:
                 if not was_question_audio:
                     logger.debug("Not activating buzzer - not a question audio")
@@ -373,7 +383,7 @@ class BuzzerManager:
                     if self.chat_processor:
                         await self.chat_processor.send_chat_message(reveal_msg)
                     if self.audio_manager:
-                        await self.audio_manager.synthesize_and_play_speech(reveal_msg)
+                        asyncio.create_task(self.audio_manager.synthesize_and_stream_speech(reveal_msg))
         else:
             # No game state manager, just reactivate the buzzer
             logger.warning("No game state manager available, just reactivating buzzer")
@@ -526,7 +536,7 @@ class BuzzerManager:
                     await self.chat_processor.send_chat_message(timeout_msg)
 
                 if self.audio_manager:
-                    await self.audio_manager.synthesize_and_play_speech(timeout_msg)
+                    asyncio.create_task(self.audio_manager.synthesize_and_stream_speech(timeout_msg))
             else:
                 logger.debug("Buzzer timeout not handled - no active question or someone already buzzed in")
                 
@@ -592,7 +602,7 @@ class BuzzerManager:
                     await self.chat_processor.send_chat_message(timeout_msg)
 
                 if self.audio_manager:
-                    await self.audio_manager.synthesize_and_play_speech(timeout_msg)
+                    await self.audio_manager.synthesize_and_stream_speech(timeout_msg)
                 
             else:
                 logger.debug(f"Answer timeout not handled - no active question, or player {player_name} no longer has control")

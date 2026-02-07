@@ -55,14 +55,15 @@ function HomePage() {
 
       const joinData = await joinResponse.json();
 
-      // Store player info in session storage
+      // Store player info in sessionStorage (per-tab, no cross-tab conflicts)
       sessionStorage.setItem(
-        'playerInfo',
+        'jeopardy_playerInfo',
         JSON.stringify({
           playerId: joinData.player_id,
           playerName: joinData.player_name,
           isHost: joinData.is_host,
           gameId: joinData.game_id,
+          gameCode: joinData.code,
           preferences: preferences.trim(),
         })
       );
@@ -111,14 +112,15 @@ function HomePage() {
 
       const data = await response.json();
 
-      // Store player info in session storage for the lobby/game pages
+      // Store player info in sessionStorage (per-tab, no cross-tab conflicts)
       sessionStorage.setItem(
-        'playerInfo',
+        'jeopardy_playerInfo',
         JSON.stringify({
           playerId: data.player_id,
           playerName: data.player_name,
           isHost: data.is_host,
           gameId: data.game_id,
+          gameCode: data.code,
           preferences: preferences.trim(),
         })
       );

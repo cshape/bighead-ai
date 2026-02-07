@@ -15,8 +15,8 @@ class GameStateManager:
     def __init__(self):
         """Initialize the game state manager"""
         self.game_state = GameState()
-        # Set the expected player count to 3 to trigger welcome once all players have joined
-        self.game_state.expected_player_count = 3
+        # Set the expected player count to 1 to trigger welcome once all players have joined
+        self.game_state.expected_player_count = 1
 
         # Last-known buzzer state (used for change detection in game_flow_manager)
         self.buzzer_active = False

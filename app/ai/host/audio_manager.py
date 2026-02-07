@@ -22,7 +22,7 @@ class AudioManager:
         """Initialize the audio manager"""
         self.tts_client = TTSClient(api_key=api_key)
         self.tts_voice = voice
-        self.audio_queue = []
+        self.audio_queue = asyncio.Queue()
         self.is_playing_audio = False
         self.game_service = None
         self.game_instance = None
@@ -30,6 +30,7 @@ class AudioManager:
         self.incorrect_answer_audio_id = None
         self.recent_audio_files = set()
         self.max_recent_files = 10
+        self._stream_lock = asyncio.Lock()
 
     @property
     def game_id(self):
@@ -55,6 +56,8 @@ class AudioManager:
     def shutdown(self):
         """Shut down the audio manager"""
         self.is_playing_audio = False
+        # Schedule cleanup of the aiohttp session
+        asyncio.ensure_future(self.tts_client.close())
         logger.debug("Audio manager shutting down")
         
     def is_audio_playing(self) -> bool:
@@ -157,13 +160,8 @@ class AudioManager:
                 public_url = f"/static/audio/{filename}"
                 logger.debug(f"Adding audio to queue: {public_url} (id: {audio_id})")
 
-                # Check if this audio URL is already in the queue to prevent duplicates
-                existing_urls = [item[0] for item in self.audio_queue]
-                if public_url not in existing_urls:
-                    # Store (url, audio_id) tuple so we use the same ID throughout
-                    self.audio_queue.append((public_url, audio_id))
-                else:
-                    logger.warning(f"Skipping duplicate audio in queue: {public_url}")
+                # Store (url, audio_id) tuple so we use the same ID throughout
+                await self.audio_queue.put((public_url, audio_id))
                 
                 # Clean up old audio files
                 await cleanup_audio_files(static_dir, 5)
@@ -175,24 +173,86 @@ class AudioManager:
             import traceback
             logger.error(traceback.format_exc())
     
+    async def synthesize_and_stream_speech(self, text: str, is_question_audio=False, is_incorrect_answer_audio=False):
+        """
+        Stream TTS audio chunks directly to clients via WebSocket.
+
+        Acquires _stream_lock so that only one utterance plays at a time.
+        Falls back to synthesize_and_play_speech() on any error.
+        """
+        if os.environ.get("TEST_MODE"):
+            logger.info(f"TEST_MODE: Skipping TTS for: {text[:60]}...")
+            return
+
+        async with self._stream_lock:
+            try:
+                timestamp = int(time.time() * 1000)
+                if is_incorrect_answer_audio:
+                    audio_id = f"audio_incorrect_{timestamp}"
+                else:
+                    audio_id = f"audio_{timestamp}"
+
+                if is_question_audio:
+                    self.question_audio_id = audio_id
+                    logger.debug(f"Setting question audio ID to {audio_id}")
+
+                if not self.game_service:
+                    logger.warning("No game_service for streaming, falling back to file-based")
+                    await self.synthesize_and_play_speech(text, is_question_audio, is_incorrect_answer_audio)
+                    return
+
+                # 1. Broadcast stream start
+                await self.game_service.connection_manager.broadcast_message(
+                    "com.sc2ctl.jeopardy.audio_stream_start",
+                    {"audio_id": audio_id, "encoding": "ogg_opus"},
+                    game_id=self.game_id
+                )
+
+                # 2. Stream chunks — the generator yields base64 strings directly
+                chunk_index = 0
+                async for chunk_b64 in self.tts_client.generate_speech_streaming(
+                    text=text,
+                    voice_name=self.tts_voice,
+                ):
+                    await self.game_service.connection_manager.broadcast_message(
+                        "com.sc2ctl.jeopardy.audio_stream_chunk",
+                        {"audio_id": audio_id, "chunk": chunk_b64, "index": chunk_index},
+                        game_id=self.game_id
+                    )
+                    chunk_index += 1
+
+                # 3. Broadcast stream end
+                await self.game_service.connection_manager.broadcast_message(
+                    "com.sc2ctl.jeopardy.audio_stream_end",
+                    {"audio_id": audio_id, "total_chunks": chunk_index},
+                    game_id=self.game_id
+                )
+
+                logger.debug(f"Streamed {chunk_index} audio chunks for {audio_id}")
+
+                # 4. Wait for frontend audio_complete signal
+                if self.game_instance:
+                    completed = await self.game_instance.wait_for_audio_completion(audio_id, timeout=30)
+                    if completed:
+                        logger.debug(f"Streaming audio playback completed: {audio_id}")
+                    else:
+                        logger.warning(f"Timed out waiting for streaming audio completion: {audio_id}")
+                else:
+                    logger.warning(f"No game_instance to wait for streaming audio completion: {audio_id}")
+
+            except Exception as e:
+                logger.error(f"Error in streaming TTS, falling back to file-based: {e}")
+                import traceback
+                logger.error(traceback.format_exc())
+                await self.synthesize_and_play_speech(text, is_question_audio, is_incorrect_answer_audio)
+
     async def process_audio_queue(self):
         """Process the audio queue and play audio files"""
         while self.is_playing_audio:
             try:
-                # Sleep briefly to avoid tight polling
-                await asyncio.sleep(0.5)
-                
-                # Skip if the queue is empty
-                if not self.audio_queue:
-                    continue
-                
-                # Get the next audio file from the queue
-                item = self.audio_queue.pop(0) if self.audio_queue else None
-                if not item:
-                    continue
+                # Block until an item is available (no polling)
+                audio_url, stored_audio_id = await self.audio_queue.get()
 
-                # Unpack the (url, audio_id) tuple
-                audio_url, stored_audio_id = item
                 # Use stored ID if available, otherwise generate one as fallback
                 audio_id = stored_audio_id or f"audio_{int(time.time() * 1000)}"
 

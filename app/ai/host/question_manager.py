@@ -6,6 +6,7 @@ GameService acts as a thin broadcaster.
 """
 
 import logging
+import os
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -95,6 +96,17 @@ class QuestionManager:
                     return False
         return True
 
+    def get_unused_clues(self, board):
+        """Return list of (category_name, value) tuples for all unused questions."""
+        unused = []
+        if not board or "categories" not in board:
+            return unused
+        for category in board["categories"]:
+            for question in category["questions"]:
+                if not question.get("used", False):
+                    unused.append((category["name"], question["value"]))
+        return unused
+
     # ------------------------------------------------------------------
     # Display / Dismiss
     # ------------------------------------------------------------------
@@ -112,7 +124,7 @@ class QuestionManager:
             logger.warning("Cannot display question - waiting for players")
             await self.game_service.connection_manager.broadcast_message(
                 "com.sc2ctl.jeopardy.error",
-                {"message": f"Waiting for {3 - len(state.contestants)} more players"},
+                {"message": f"Waiting for more players"},
                 game_id=game_id
             )
             return
@@ -207,6 +219,36 @@ class QuestionManager:
         game.llm_state.question_dismissed()
         game.current_question = None
         game.last_buzzer = None
+
+        # Check if all questions have been answered — trigger game completion
+        if self.all_questions_answered(game.board):
+            await self._complete_game(game, game_id)
+
+    async def _complete_game(self, game, game_id: str):
+        """Handle game completion: set status, broadcast results, stop AI host."""
+        game.complete_game()
+
+        # Build final scores
+        scores = {c.name: c.score for c in game.state.contestants.values()}
+        winner = max(scores, key=scores.get) if scores else None
+        winner_score = scores.get(winner, 0) if winner else 0
+
+        # Broadcast game_completed message
+        await self.game_service.connection_manager.broadcast_message(
+            "com.sc2ctl.jeopardy.game_completed",
+            {"scores": scores, "winner": winner, "winner_score": winner_score},
+            game_id=game_id
+        )
+
+        # Send congratulations chat message + TTS
+        congrats_msg = f"Congratulations, {winner}! You won Jeopardy with ${winner_score}!"
+        if game.ai_host and game.ai_host.chat_processor:
+            await game.ai_host.chat_processor.send_chat_message(congrats_msg)
+        if game.ai_host and game.ai_host.audio_manager and not os.environ.get("TEST_MODE"):
+            await game.ai_host.audio_manager.synthesize_and_stream_speech(congrats_msg)
+
+        # Stop the AI host task
+        await game.stop_ai_host()
 
     # ------------------------------------------------------------------
     # Answer / Daily Double Bet

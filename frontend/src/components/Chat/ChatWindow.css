@@ -79,9 +79,14 @@
 .chat-input input {
   flex: 1;
   padding: 8px;
-  border: none;
+  border: 1px solid #5C4833;
   border-radius: 4px 0 0 4px;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: #4A3F30;
+  color: #D4C5A9;
+}
+
+.chat-input input::placeholder {
+  color: #8A8078;
 }
 
 .chat-input button {

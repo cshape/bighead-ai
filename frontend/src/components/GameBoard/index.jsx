@@ -17,10 +17,10 @@ export default function GameBoard() {
   }
 
   // Check if current player has control to select clues
-  // Get playerName from state OR sessionStorage as fallback for race condition
+  // Get playerName from state OR localStorage as fallback for race condition
   let playerName = state.playerName;
   if (!playerName) {
-    const playerInfo = JSON.parse(sessionStorage.getItem('playerInfo') || '{}');
+    const playerInfo = JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}');
     playerName = playerInfo.playerName;
   }
 

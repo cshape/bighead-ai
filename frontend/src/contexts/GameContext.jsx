@@ -7,11 +7,11 @@ const GameContext = createContext();
 const initialState = {
   board: null,
   currentQuestion: null,
-  dailyDouble: null,
+  doubleBigHead: null,
   contestants: [],
   buzzerActive: false,
   adminMode: window.location.search.includes('admin=true'),
-  finalJeopardy: null,
+  finalBigHead: null,
   lastBuzzer: null,
   registered: false,
   playerName: null,
@@ -57,7 +57,7 @@ function gameReducer(state, action) {
           value: 200 * (j + 1),
           clue: "?????",
           answer: "?????",
-          daily_double: false,
+          double_big_head: false,
           used: false,
           type: "text",
           isPlaceholder: true
@@ -119,12 +119,12 @@ function gameReducer(state, action) {
           }))
         }
       };
-    case 'DAILY_DOUBLE':
+    case 'DOUBLE_BIG_HEAD':
       // Just mark the question as used, but don't display it yet
-      console.log('Setting dailyDouble state:', action.payload);
+      console.log('Setting doubleBigHead state:', action.payload);
       return {
         ...state,
-        dailyDouble: {
+        doubleBigHead: {
           ...action.payload,
           selectingPlayer: action.payload.selecting_player
         },
@@ -140,26 +140,26 @@ function gameReducer(state, action) {
           }))
         }
       };
-    case 'DAILY_DOUBLE_BET':
+    case 'DOUBLE_BIG_HEAD_BET':
       // Now we have a bet amount, so we can show the question
       console.log('Processing daily double bet:', action.payload);
       return {
         ...state,
-        dailyDouble: null, // Clear the dailyDouble state since we're moving to currentQuestion
+        doubleBigHead: null, // Clear the doubleBigHead state since we're moving to currentQuestion
         lastBuzzer: action.payload.contestant, // Set lastBuzzer so answer input shows for the contestant
         currentQuestion: {
           ...action.payload.question,
           bet: action.payload.bet,
           contestant: action.payload.contestant,
-          daily_double: true
+          double_big_head: true
         }
       };
     case 'DISMISS_QUESTION':
-      console.log('Dismissing question and clearing dailyDouble state');
+      console.log('Dismissing question and clearing doubleBigHead state');
       return {
         ...state,
         currentQuestion: null,
-        dailyDouble: null,
+        doubleBigHead: null,
         lastBuzzer: null,  // Clear the last buzzer
         answerTimer: { active: false, player: null, seconds: 0 }, // Reset answer timer
         answerSubmitted: false,
@@ -300,7 +300,7 @@ function gameReducer(state, action) {
       console.log('Setting buzzer inactive while audio plays');
       // Always ensure buzzer is disabled during audio playback
       return { ...state, buzzerActive: false };
-    case 'com.sc2ctl.jeopardy.play_audio':
+    case 'com.sc2ctl.bighead.play_audio':
       console.log('Audio message received in reducer - deferring to WebSocket handler');
       // Audio playback is now fully handled by the WebSocket message handler
       // Just ensure buzzer is disabled during audio playback
@@ -310,11 +310,11 @@ function gameReducer(state, action) {
         ...state,
         controllingPlayer: action.payload.contestant,
       };
-    case 'com.sc2ctl.jeopardy.question_selected':
+    case 'com.sc2ctl.bighead.question_selected':
       return {
         ...state,
         currentQuestion: null,
-        dailyDouble: null,
+        doubleBigHead: null,
         lastBuzzer: null,
         players: {
           ...state.players,
@@ -324,13 +324,13 @@ function gameReducer(state, action) {
           }
         }
       };
-    case 'com.sc2ctl.jeopardy.game_ready':
+    case 'com.sc2ctl.bighead.game_ready':
       console.log('Game ready status:', action.payload);
       return {
         ...state,
         gameReady: action.payload.ready
       };
-    case 'com.sc2ctl.jeopardy.start_board_generation':
+    case 'com.sc2ctl.bighead.start_board_generation':
       console.log('Starting board generation with placeholders');
       
       // Create a placeholder board with question marks
@@ -340,7 +340,7 @@ function gameReducer(state, action) {
           value: 200 * (j + 1),
           clue: "?????",
           answer: "?????",
-          daily_double: false,
+          double_big_head: false,
           used: false,
           type: "text",
           isPlaceholder: true
@@ -356,7 +356,7 @@ function gameReducer(state, action) {
         revealedCategories: new Set(),
         gameReady: true // Set gameReady to true so the board displays
       };
-    case 'com.sc2ctl.jeopardy.reveal_category':
+    case 'com.sc2ctl.bighead.reveal_category':
       console.log('Revealing category:', action.payload);
       
       if (!state.board) {
@@ -381,16 +381,16 @@ function gameReducer(state, action) {
         boardGenerating: wsRevealedCategories.size < 5,
         gameReady: true // Ensure gameReady stays true
       };
-    case 'com.sc2ctl.jeopardy.error':
+    case 'com.sc2ctl.bighead.error':
       console.error('Game error:', action.payload.message);
       return state;
-    case 'com.sc2ctl.jeopardy.audio_complete':
+    case 'com.sc2ctl.bighead.audio_complete':
       console.log('Audio playback complete:', action.payload.audio_id);
       // Do not try to set buzzer status here - the server will send a separate buzzer_status message
       // Just log that we received the audio completion
       console.log('Waiting for server to send buzzer status update after audio completion');
       return state;
-    case 'com.sc2ctl.jeopardy.answer_timer_start':
+    case 'com.sc2ctl.bighead.answer_timer_start':
       console.log('Answer timer started for player:', action.payload.player);
       return {
         ...state,
@@ -448,7 +448,7 @@ function gameReducer(state, action) {
         finalResults: null,
         board: null,
         currentQuestion: null,
-        dailyDouble: null,
+        doubleBigHead: null,
         buzzerActive: false,
         lastBuzzer: null,
         answerTimer: { active: false, player: null, seconds: 0 },
@@ -480,10 +480,10 @@ export function GameProvider({ children }) {
     console.log('Processing WebSocket message:', message);
     
     switch (message.topic) {
-      case 'com.sc2ctl.jeopardy.board_init':
+      case 'com.sc2ctl.bighead.board_init':
         dispatch({ type: 'INIT_BOARD', payload: message.payload.categories });
         break;
-      case 'com.sc2ctl.jeopardy.question_display':
+      case 'com.sc2ctl.bighead.question_display':
         console.log('Showing question:', message.payload);
         dispatch({ 
           type: 'SHOW_QUESTION', 
@@ -491,10 +491,10 @@ export function GameProvider({ children }) {
         });
         // Don't set buzzer to active here - it should stay inactive until audio completes
         break;
-      case 'com.sc2ctl.jeopardy.question_dismiss':
+      case 'com.sc2ctl.bighead.question_dismiss':
         dispatch({ type: 'DISMISS_QUESTION' });
         break;
-      case 'com.sc2ctl.jeopardy.buzzer_status':
+      case 'com.sc2ctl.bighead.buzzer_status':
         // Always trust the server state for buzzer status
         console.log('Server buzzer status update:', message.payload.active);
         dispatch({ type: 'SET_BUZZER_STATUS', payload: message.payload.active });
@@ -503,10 +503,10 @@ export function GameProvider({ children }) {
           dispatch({ type: 'SET_INCORRECT_PLAYERS', payload: message.payload.incorrect_players });
         }
         break;
-      case 'com.sc2ctl.jeopardy.contestant_score':
+      case 'com.sc2ctl.bighead.contestant_score':
         dispatch({ type: 'UPDATE_SCORE', payload: message.payload });
         break;
-      case 'com.sc2ctl.jeopardy.buzzer':
+      case 'com.sc2ctl.bighead.buzzer':
         console.log('Buzzer pressed by:', message.payload.contestant);
         dispatch({ 
           type: 'SET_BUZZER', 
@@ -514,14 +514,14 @@ export function GameProvider({ children }) {
         });
         dispatch({ type: 'SET_BUZZER_STATUS', payload: false });
         break;
-      case 'com.sc2ctl.jeopardy.player_list':
+      case 'com.sc2ctl.bighead.player_list':
         console.log('Updating player list:', message.payload);
         dispatch({
           type: 'PLAYER_LIST',
           payload: { players: message.payload.players }
         });
         break;
-      case 'com.sc2ctl.jeopardy.register_player_response':
+      case 'com.sc2ctl.bighead.register_player_response':
         if (message.payload.success) {
           dispatch({
             type: 'REGISTER_PLAYER',
@@ -529,41 +529,41 @@ export function GameProvider({ children }) {
           });
         }
         break;
-      case 'com.sc2ctl.jeopardy.board_selected':
+      case 'com.sc2ctl.bighead.board_selected':
         console.log('Board selected:', message.payload);
         dispatch({ 
           type: 'INIT_BOARD', 
           payload: message.payload.categories 
         });
         break;
-      case 'com.sc2ctl.jeopardy.game_ready':
+      case 'com.sc2ctl.bighead.game_ready':
         console.log('Game ready status:', message.payload);
         dispatch({
           type: 'GAME_READY',
           payload: { ready: message.payload.ready }
         });
         break;
-      case 'com.sc2ctl.jeopardy.error':
+      case 'com.sc2ctl.bighead.error':
         console.error('Game error:', message.payload.message);
         break;
-      case 'com.sc2ctl.jeopardy.answer':
+      case 'com.sc2ctl.bighead.answer':
         console.log('Question answered:', message.payload);
         dispatch({
           type: 'ANSWER_QUESTION',
           payload: message.payload
         });
         break;
-      case 'com.sc2ctl.jeopardy.daily_double':
-        console.log('Daily Double selected:', message.payload);
+      case 'com.sc2ctl.bighead.double_big_head':
+        console.log('Double Big Head selected:', message.payload);
         dispatch({
-          type: 'DAILY_DOUBLE',
+          type: 'DOUBLE_BIG_HEAD',
           payload: message.payload
         });
         break;
-      case 'com.sc2ctl.jeopardy.daily_double_bet_response':
+      case 'com.sc2ctl.bighead.double_big_head_bet_response':
         console.log('Received daily double bet response:', message.payload);
         dispatch({
-          type: 'DAILY_DOUBLE_BET',
+          type: 'DOUBLE_BIG_HEAD_BET',
           payload: {
             question: message.payload.question,
             bet: message.payload.bet,
@@ -571,7 +571,7 @@ export function GameProvider({ children }) {
           }
         });
         break;
-      case 'com.sc2ctl.jeopardy.chat_message':
+      case 'com.sc2ctl.bighead.chat_message':
         dispatch({
           type: 'CHAT_MESSAGE',
           payload: {
@@ -582,7 +582,7 @@ export function GameProvider({ children }) {
           }
         });
         break;
-      case 'com.sc2ctl.jeopardy.chat_history':
+      case 'com.sc2ctl.bighead.chat_history':
         // Process chat history messages
         const formattedMessages = message.payload.messages.map(msg => ({
           user: msg.username,
@@ -596,7 +596,7 @@ export function GameProvider({ children }) {
           payload: formattedMessages
         });
         break;
-      case 'com.sc2ctl.jeopardy.play_audio':
+      case 'com.sc2ctl.bighead.play_audio':
         console.log('Playing audio message received:', message.payload);
         // Ensure buzzer is disabled during audio playback
         dispatch({ type: 'PLAY_AUDIO' });
@@ -651,7 +651,7 @@ export function GameProvider({ children }) {
             console.log(`Audio ${audioId} playback COMPLETED, notifying backend`);
             
             // Use the sendMessage function from our useWebSocket hook
-            sendMessage('com.sc2ctl.jeopardy.audio_complete', { audio_id: audioId });
+            sendMessage('com.sc2ctl.bighead.audio_complete', { audio_id: audioId });
             console.log(`Audio completion for ${audioId} sent via sendMessage`);
           });
           
@@ -664,34 +664,34 @@ export function GameProvider({ children }) {
           console.error('Error setting up audio playback:', err);
         }
         break;
-      case 'com.sc2ctl.jeopardy.select_question':
+      case 'com.sc2ctl.bighead.select_question':
         console.log('Player has control:', message.payload.contestant);
         dispatch({
           type: 'SET_CONTROLLING_PLAYER',
           payload: { contestant: message.payload.contestant }
         });
         break;
-      case 'com.sc2ctl.jeopardy.question_selected':
+      case 'com.sc2ctl.bighead.question_selected':
         dispatch({ type: 'QUESTION_SELECTED', payload: message.payload });
         break;
-      case 'com.sc2ctl.jeopardy.start_board_generation':
+      case 'com.sc2ctl.bighead.start_board_generation':
         console.log('Starting board generation with placeholders');
         dispatch({ type: 'START_BOARD_GENERATION' });
         break;
-      case 'com.sc2ctl.jeopardy.reveal_category':
+      case 'com.sc2ctl.bighead.reveal_category':
         console.log('Revealing category:', message.payload);
         dispatch({
           type: 'REVEAL_CATEGORY',
           payload: message.payload
         });
         break;
-      case 'com.sc2ctl.jeopardy.audio_complete':
+      case 'com.sc2ctl.bighead.audio_complete':
         console.log('Audio playback complete:', message.payload.audio_id);
         // Do not try to set buzzer status here - the server will send a separate buzzer_status message
         // Just log that we received the audio completion
         console.log('Waiting for server to send buzzer status update after audio completion');
         break;
-      case 'com.sc2ctl.jeopardy.answer_timer_start':
+      case 'com.sc2ctl.bighead.answer_timer_start':
         console.log('Answer timer started for player:', message.payload.player);
         dispatch({
           type: 'SET_ANSWER_TIMER',
@@ -701,11 +701,11 @@ export function GameProvider({ children }) {
           },
         });
         break;
-      case 'com.sc2ctl.jeopardy.answer_timer_stop':
+      case 'com.sc2ctl.bighead.answer_timer_stop':
         console.log('Answer timer stopped — answer received');
         dispatch({ type: 'CLEAR_ANSWER_TIMER' });
         break;
-      case 'com.sc2ctl.jeopardy.game_state':
+      case 'com.sc2ctl.bighead.game_state':
         console.log('Received game state:', message.payload);
         dispatch({
           type: 'SET_GAME_STATE',
@@ -719,17 +719,17 @@ export function GameProvider({ children }) {
           });
         }
         break;
-      case 'com.sc2ctl.jeopardy.game_started':
+      case 'com.sc2ctl.bighead.game_started':
         console.log('Game started');
         dispatch({ type: 'GAME_STARTED' });
         break;
-      case 'com.sc2ctl.jeopardy.game_completed':
+      case 'com.sc2ctl.bighead.game_completed':
         console.log('Game completed:', message.payload);
         dispatch({ type: 'GAME_COMPLETED', payload: message.payload });
         break;
 
       // ---- Streaming TTS handlers (Web Audio API progressive decode) ----
-      case 'com.sc2ctl.jeopardy.audio_stream_start': {
+      case 'com.sc2ctl.bighead.audio_stream_start': {
         const { audio_id } = message.payload;
         console.log(`Audio stream start: ${audio_id}`);
         // Disable buzzer while audio streams
@@ -748,7 +748,7 @@ export function GameProvider({ children }) {
         break;
       }
 
-      case 'com.sc2ctl.jeopardy.audio_stream_chunk': {
+      case 'com.sc2ctl.bighead.audio_stream_chunk': {
         const { audio_id, chunk } = message.payload;
         const stream = audioStreamsRef.current[audio_id];
         if (!stream) {
@@ -821,7 +821,7 @@ export function GameProvider({ children }) {
         break;
       }
 
-      case 'com.sc2ctl.jeopardy.audio_stream_end': {
+      case 'com.sc2ctl.bighead.audio_stream_end': {
         const { audio_id, total_chunks } = message.payload;
         console.log(`Audio stream end: ${audio_id} (${total_chunks} chunks)`);
         const stream = audioStreamsRef.current[audio_id];
@@ -837,7 +837,7 @@ export function GameProvider({ children }) {
 
           const cleanup = () => {
             console.log(`Streaming audio ${audio_id} playback completed`);
-            sendMessage('com.sc2ctl.jeopardy.audio_complete', { audio_id });
+            sendMessage('com.sc2ctl.bighead.audio_complete', { audio_id });
             s.audioContext.close();
             delete audioStreamsRef.current[audio_id];
           };
@@ -860,7 +860,7 @@ export function GameProvider({ children }) {
   
   // Get player name from session storage for HTTP-joined players
   const playerInfo = typeof window !== 'undefined'
-    ? JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}')
+    ? JSON.parse(sessionStorage.getItem('bighead_playerInfo') || '{}')
     : {};
 
   // Determine WebSocket URL based on game code, include player_name for linking
@@ -890,7 +890,7 @@ export function GameProvider({ children }) {
   // Initialize playerName from localStorage (re-runs when game code changes,
   // e.g. after navigating from lobby to game page where localStorage is populated)
   useEffect(() => {
-    const playerInfo = JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}');
+    const playerInfo = JSON.parse(sessionStorage.getItem('bighead_playerInfo') || '{}');
     if (playerInfo.playerName && !state.playerName) {
       dispatch({
         type: 'REGISTER_PLAYER',
@@ -905,10 +905,10 @@ export function GameProvider({ children }) {
     // so fall back to localStorage like other components do.
     let name = state.playerName;
     if (!name) {
-      const info = JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}');
+      const info = JSON.parse(sessionStorage.getItem('bighead_playerInfo') || '{}');
       name = info.playerName;
     }
-    sendMessage('com.sc2ctl.jeopardy.submit_answer', {
+    sendMessage('com.sc2ctl.bighead.submit_answer', {
       contestant: name,
       answer: answer
     });
@@ -923,13 +923,13 @@ export function GameProvider({ children }) {
     // Try state first, then localStorage as fallback
     let username = state.playerName;
     if (!username) {
-      const playerInfo = JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}');
+      const playerInfo = JSON.parse(sessionStorage.getItem('bighead_playerInfo') || '{}');
       username = playerInfo.playerName || 'Anonymous';
     }
 
     // Send message to server
     sendMessage({
-      topic: 'com.sc2ctl.jeopardy.chat_message',
+      topic: 'com.sc2ctl.bighead.chat_message',
       payload: {
         username: username,
         message: message,

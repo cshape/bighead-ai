@@ -21,35 +21,35 @@
                     "clue": "Remarkably, the odds of making two consecutive, this kind of shot, is at edge of possibility itself, with odds up to 65,000,000 to 1, but it's been done.",
                     "answer": "Hole-in-one",
                     "value": 400,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Sinking the ball two strokes below par is commonly referred to this",
                     "answer": "An Eagle",
                     "value": 800,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "The term for piece of turf that is cut out of the ground in the course of playing a stroke",
                     "answer": "Divot",
                     "value": 1200,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "On February 6, 1971, This Apollo 14 member hit a ball on the moon with a six-iron",
                     "answer": "Alan Shepard",
                     "value": 1600,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Golf was invented over 500 years ago in Scotland, however it's claimed that this distant Asian country developed a similar game as far back as 943 A.D.",
                     "answer": "China",
                     "value": 2000,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 }
             ]
@@ -61,35 +61,35 @@
                     "clue": "Swipe enough these from hotels and you can start your own congregation",
                     "answer": "Bibles",
                     "value": 400,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "It's what you tell to prove you didn't do that bad thing",
                     "answer": "Alibi",
                     "value": 800,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "A type of contract that is enforceable by law",
                     "answer": "Binding",
                     "value": 1200,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "A large naturally occurring community of flora and fauna occupying a major habitat",
                     "answer": "Biome",
                     "value": 1600,
-                    "daily_double": true,
+                    "double_big_head": true,
                     "type": "text"
                 },
                 {
                     "clue": "Two roads that diverge in a yellow wood also do this",
                     "answer": "Bifurcate",
                     "value": 2000,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 }
             ]
@@ -101,35 +101,35 @@
                     "clue": "Kings of Leon and Queen",
                     "answer": "Use Somebody To Love",
                     "value": 400,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "AC/DC and Sound Garden",
                     "answer": "Back in Black Hole Sun",
                     "value": 800,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Maroon 5 and Frank Sinatra",
                     "answer": "This Love and Marriage",
                     "value": 1200,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Eminem and Bob Marley",
                     "answer": "My Name Is This Love",
                     "value": 1600,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Led Zeppelin and K-Os",
                     "answer": "Stairway to Heaven Only Knows",
                     "value": 2000,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 }
             ]
@@ -141,35 +141,35 @@
                     "clue": "This loin cloth sporting tycoon is feeling the heat after several sexual misconduct allegations and a scathing Netflix doc.",
                     "answer": "Bikram Choudhury",
                     "value": 400,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Formerly known as Richard Alpert, this psychonaut collaborated with East Forest in 2019 on an eponymously titled album.",
                     "answer": "Ram Dass",
                     "value": 800,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "The 'spiritual materialist' Bagwan Shri Rajneesh is lovingly referred to by his devotees as this name ",
                     "answer": "Osho",
                     "value": 1200,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Mata Amritanandamayi or 'Ama' travels around the world doing this to her followers.",
                     "answer": "Hugging",
                     "value": 1600,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "The spiritual influence of this transcendentalist can be heard in the chorus of Across the Universe, with the mantra \"Jai guru deva, om\" ",
                     "answer": "Maharishi Mahesh Yogi",
                     "value": 2000,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 }
             ]
@@ -181,35 +181,35 @@
                     "clue": "Deeply loyal and often nomadic follower of The Grateful Dead",
                     "answer": "Dead Head",
                     "value": 400,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "To have hesitated too long before making a decision",
                     "answer": "Dithered or Dilly Dallied",
                     "value": 800,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Member of a ship’s crew who does maintenance and handles cargo",
                     "answer": "Deck hand",
                     "value": 1200,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "To have revealed private or sensitive information",
                     "answer": "Divulged",
                     "value": 1600,
-                    "daily_double": true,
+                    "double_big_head": true,
                     "type": "text"
                 },
                 {
                     "clue": "To have rid of code of programming errors",
                     "answer": "Debugged",
                     "value": 2000,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 }
             ]

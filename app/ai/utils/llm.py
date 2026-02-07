@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class LLMConfig:
     """Configuration for LLM calls"""
-    model: str = "gpt-4o-mini"
+    model: str = "gpt-4.1"
     temperature: float = 0.7
     max_tokens: int = 1000
     top_p: float = 1.0

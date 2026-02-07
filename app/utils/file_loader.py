@@ -6,7 +6,7 @@ from ..models.board import Board
 from ..models.category import Category
 from ..models.contestant import Contestant
 from ..models.question import Question, Clue, Answer
-from ..models.finaljeopardy import FinalJeopardyClue, FinalJeopardyState
+from ..models.finalbighead import FinalBigHeadClue, FinalBigHeadState
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ class BoardFactory:
                     clue=Clue(text=q["clue"]),
                     answer=Answer(text=q["answer"]),
                     value=q["value"],
-                    daily_double=q.get("daily_double", False),
+                    double_big_head=q.get("double_big_head", False),
                     type=q.get("type", "text"),
                     used=q.get("used", False)
                 )
@@ -86,21 +86,21 @@ class BoardFactory:
             categories.append(category)
             logger.info(f"Created category '{category_data['name']}' with {len(questions)} questions")
         
-        # Create final jeopardy
+        # Create final big head
         if "final" not in data:
-            logger.error("Final Jeopardy is not defined in your questions file")
-            raise ValueError("Final Jeopardy is not defined in your questions file")
+            logger.error("Final Big Head is not defined in your questions file")
+            raise ValueError("Final Big Head is not defined in your questions file")
         
         final = data["final"]
-        final_jeopardy_clue = FinalJeopardyClue(
+        final_big_head_clue = FinalBigHeadClue(
             category=final["category"],
             clue=final["clue"],
             answer=final["answer"]
         )
-        logger.info(f"Created Final Jeopardy with category: {final['category']}")
+        logger.info(f"Created Final Big Head with category: {final['category']}")
         
-        final_jeopardy_state = FinalJeopardyState(
-            clue=final_jeopardy_clue,
+        final_big_head_state = FinalBigHeadState(
+            clue=final_big_head_clue,
             contestants=[c.name for c in contestants]
         )
         
@@ -108,7 +108,7 @@ class BoardFactory:
         board = Board(
             contestants=contestants,
             categories=categories,
-            final_jeopardy_state=final_jeopardy_state
+            final_big_head_state=final_big_head_state
         )
         
         return board 

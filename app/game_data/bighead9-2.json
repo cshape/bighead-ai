@@ -21,35 +21,35 @@
                     "clue": "This band's song, 'Mad World', has inspired countless cover versions.",
                     "answer": "Tears for Fears",
                     "value": 400,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "This German R&B duo were stripped of their Grammy for lip syncing",
                     "answer": "Milli Vanilli",
                     "value": 800,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Chumbawamba's 'Tubthumping' (aka 'I Get Knocked Down')  hit #1 in Canada in 1997. Tubthumping is this. ",
                     "answer": "Stumping or campaigning",
                     "value": 1200,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "The name of this LA metal band was inspired by thickly accented English pronunciation of 'quite right' ",
                     "answer": "Quiet Riot",
                     "value": 1600,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Three members of this US rock band were killed in a plane crash in 1977",
                     "answer": "Lynyrd Skynyrd",
                     "value": 2000,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 }
             ]
@@ -61,35 +61,35 @@
                     "clue": "Spoke the Cetacean",
                     "answer": "Said The Whale",
                     "value": 400,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "The Thankful Deceased",
                     "answer": "The Grateful Dead",
                     "value": 800,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "The Fatefully Cool",
                     "answer": "The Tragically Hip",
                     "value": 1200,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Warm Warm Warmth",
                     "answer": "Hot Hot Heat",
                     "value": 1600,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "The Undulating Rocks",
                     "answer": "The Rolling Stones",
                     "value": 2000,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 }
             ]
@@ -101,35 +101,35 @@
                     "clue": "Device for measuring weight",
                     "answer": "Scale",
                     "value": 400,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Device for tracking months, weeks, days, dates",
                     "answer": "Calendar",
                     "value": 800,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "A place where something happens or that has particular events associated with it.",
                     "answer": "Locale",
                     "value": 1200,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "One of twelve spies sent by Moses to check out Canaan",
                     "answer": "Caleb",
                     "value": 1600,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Name for Scotland during the Roman Empire and the name of a Muddy Waters song ",
                     "answer": "Caledonia",
                     "value": 2000,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 }
             ]
@@ -141,35 +141,35 @@
                     "clue": "In Chemistry, this 'basic' scale represents the activity of hydrogen ions in a solution. ",
                     "answer": "pH ",
                     "value": 400,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "A logarithmic scale helps to quantify this economic occurrence. E.g. Germany in the 1920s, Zimbabwe in 2007, and present-day Venezuela ",
                     "answer": "Hyperinflation (inflation or devaluation OK too)",
                     "value": 800,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Commonly used as a ratio for loudness or sound pressure, this logarithmic scale is defined as the ratio of one power level to another.",
                     "answer": "Decibel (bel or neper also acceptable) ",
                     "value": 1200,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Ln(e) = 1. Natural logs are based on the irrational number e, one of the most important constants in mathematics, named to honour this 18th century Swiss polymath. ",
                     "answer": "Euler, Leonhard (First observed by Bernoulli before his birth, but math has kept his notation 'e') ",
                     "value": 1600,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "On the Richter scale, BC's Dec 2015 Earthquake measured 4.8. By amplitude, the 9.0 Japanese earthquake was approximately this many times stronger ",
                     "answer": "10,000 - 20,000 ",
                     "value": 2000,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 }
             ]
@@ -181,35 +181,35 @@
                     "clue": "A mushroom growers worst nightmare, trichoderma, that nasty green stuff, is a type of this:",
                     "answer": "Mold",
                     "value": 400,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "This network is what some might think of as the roots of a fungus",
                     "answer": "Mycelium",
                     "value": 800,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "You will have to dig around the base of trees to get to these mushrooms adored by the Japanese:",
                     "answer": "Matsutake",
                     "value": 1200,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Their distinctive honeycomb caps make them an easy harvest, and oh my - the taste!",
                     "answer": "Morel",
                     "value": 1600,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "This classic type of amanita mushroom with red and white spots is not the best to eat, you may know it as fly agaric",
                     "answer": "Muscaria",
                     "value": 2000,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 }
             ]

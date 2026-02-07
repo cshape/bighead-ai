@@ -21,35 +21,35 @@
                     "clue": "This soup-filled dumpling is from the Shanghai region of China",
                     "answer": "Xiao Long Bao",
                     "value": 400,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "This South Asian dumpling is often paired with a nice chutney",
                     "answer": "Samosa",
                     "value": 800,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Sour cream, fried onions, and sausage are great accompaniments to this Eastern European dumpling",
                     "answer": "Pierogi",
                     "value": 1200,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "This dumpling\u2019s name comes from the Chinese \u201cJiaozi\u201d",
                     "answer": "Gyoza",
                     "value": 1600,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "This dumpling has a documented history of being served to the papal conclave of 1549",
                     "answer": "Ravioli",
                     "value": 2000,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 }
             ]
@@ -61,35 +61,35 @@
                     "clue": "The Canadian flag features the leaf of this tree",
                     "answer": "Maple",
                     "value": 400,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Bjork\u2019s name means this in Icelandic",
                     "answer": "Birch",
                     "value": 800,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "This bark-shedding tree is often found on coastlines",
                     "answer": "Arbutus",
                     "value": 1200,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Acorns come from this tree",
                     "answer": "Oak",
                     "value": 1600,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "This thick tree is found in Madagascar and on the Little Prince\u2019s planet",
                     "answer": "Baobab",
                     "value": 2000,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 }
             ]
@@ -101,35 +101,35 @@
                     "clue": "Uncle Sam and Tony Stark both sport this devilish style",
                     "answer": "Goatee",
                     "value": 400,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "No helmet required; a thinly connected beard going from ear to ear",
                     "answer": "Chin strap",
                     "value": 800,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Dizzy Gillespie popularized this small tuft of hair below the lower lip",
                     "answer": "Soul patch",
                     "value": 1200,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "You could eat the child of this sideburn style for dinner",
                     "answer": "Mutton chops",
                     "value": 1600,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Hair above the upper lip with upwardly curving extremities",
                     "answer": "Handlebar",
                     "value": 2000,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 }
             ]
@@ -141,35 +141,35 @@
                     "clue": "Will Smith song and Ethan 2001 Ridley Scott war film",
                     "answer": "Men in Black Hawk Down",
                     "value": 400,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "1994 animation with music by Elton John and 1933 film featuring the Empire State Building",
                     "answer": "The Lion King Kong",
                     "value": 800,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Jim Carrey\u2019s breakout film, and a 2019 film featuring a Ryan Reynolds-voiced pocket monster.",
                     "answer": "Ace Ventura: Pet Detective Pikachu",
                     "value": 1200,
-                    "daily_double": true,
+                    "double_big_head": true,
                     "type": "text"
                 },
                 {
                     "clue": "1959 Marilyn Monroe rom-com, and 2007 Simon Pegg police action comedy",
                     "answer": "Some Like it Hot Fuzz",
                     "value": 1600,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "2012 \u201ccult\u201d film featuring Joaquin Phoenix and Philip Seymour Hoffman, and a nautical adventure film featuring Russell Crowe",
                     "answer": "The Master and Commander",
                     "value": 2000,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 }
             ]
@@ -181,35 +181,35 @@
                     "clue": "Recent news of electrons getting around the circuit. ",
                     "answer": "Current events.",
                     "value": 400,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "A meditating Tibetan Buddhist might measure his resistance to China in these units. ",
                     "answer": "Ohms.",
                     "value": 800,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "A repeatedly disgusting discussion of electric potential.",
                     "answer": "Revolting.",
                     "value": 1200,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 },
                 {
                     "clue": "Extraordinary official on a train who removes all resistance to electron flow. ",
                     "answer": "Superconductor.",
                     "value": 1600,
-                    "daily_double": true,
+                    "double_big_head": true,
                     "type": "text"
                 },
                 {
                     "clue": "An ancient song in praise of being positive despite being terminal.",
                     "answer": "Anode",
                     "value": 2000,
-                    "daily_double": false,
+                    "double_big_head": false,
                     "type": "text"
                 }
             ]

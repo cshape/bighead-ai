@@ -170,7 +170,7 @@
   z-index: 1000;
 }
 
-.daily-double-banner {
+.double-big-head-banner {
   background-color: #C9A84C;
   color: #2C2519;
   padding: 5px 10px;
@@ -180,14 +180,14 @@
   animation: pulse 1.5s infinite;
 }
 
-.daily-double h2 {
+.double-big-head h2 {
   color: #C9A84C;
   font-size: 32px;
   animation: pulse 1.5s infinite;
   text-align: center;
 }
 
-.daily-double form {
+.double-big-head form {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -197,8 +197,8 @@
   margin-right: auto;
 }
 
-.daily-double select,
-.daily-double input {
+.double-big-head select,
+.double-big-head input {
   padding: 8px 12px;
   border-radius: 4px;
   border: 1px solid #5C4833;
@@ -207,11 +207,11 @@
   font-size: 16px;
 }
 
-.daily-double input[type="number"] {
+.double-big-head input[type="number"] {
   width: 100%;
 }
 
-.daily-double form button {
+.double-big-head form button {
   background-color: #C9A84C;
   color: #2C2519;
   font-weight: bold;
@@ -223,7 +223,7 @@
   margin-top: 10px;
 }
 
-.daily-double form button:hover {
+.double-big-head form button:hover {
   background-color: #D4B85C;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -334,7 +334,7 @@
   animation: pulse 1.5s infinite;
 }
 
-/* Daily Double bet input styles */
+/* Double Big Head bet input styles */
 .bet-input-container {
   display: flex;
   flex-direction: column;

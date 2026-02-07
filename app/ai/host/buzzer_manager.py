@@ -1,5 +1,5 @@
 """
-Buzzer Manager for handling buzzer-related functionality in the Jeopardy game.
+Buzzer Manager for handling buzzer-related functionality in the Big Head game.
 """
 
 import logging
@@ -92,7 +92,7 @@ class BuzzerManager:
             # Broadcast status via game service if available
             if self.game_service:
                 await self.game_service.connection_manager.broadcast_message(
-                    "com.sc2ctl.jeopardy.buzzer_status",
+                    "com.sc2ctl.bighead.buzzer_status",
                     {"active": True, "incorrect_players": list(self.incorrect_players)},
                     game_id=game_id
                 )
@@ -117,7 +117,7 @@ class BuzzerManager:
             # Broadcast status via game service if available
             if self.game_service:
                 await self.game_service.connection_manager.broadcast_message(
-                    "com.sc2ctl.jeopardy.buzzer_status",
+                    "com.sc2ctl.bighead.buzzer_status",
                     {"active": False},
                     game_id=game_id
                 )
@@ -208,7 +208,7 @@ class BuzzerManager:
                                 controlling_player = self.game_state_manager.get_player_with_control()
                                 if controlling_player:
                                     await self.game_service.connection_manager.broadcast_message(
-                                        "com.sc2ctl.jeopardy.select_question",
+                                        "com.sc2ctl.bighead.select_question",
                                         {"contestant": controlling_player},
                                         game_id=self._get_game_id()
                                     )
@@ -261,13 +261,13 @@ class BuzzerManager:
                 # Update game state manager buzzer state
                 if self.game_state_manager:
                     self.game_state_manager.buzzer_active = True
-            elif was_question_audio and current_question and last_buzzer and current_question.get("daily_double", False):
-                # Daily double: player already has the buzzer, start answer timer
-                logger.debug(f"Daily double audio completed, starting answer timer for {last_buzzer}")
+            elif was_question_audio and current_question and last_buzzer and current_question.get("double_big_head", False):
+                # Double Big Head: player already has the buzzer, start answer timer
+                logger.debug(f"Double Big Head audio completed, starting answer timer for {last_buzzer}")
                 self.start_answer_timeout(last_buzzer)
                 if self.game_service:
                     await self.game_service.connection_manager.broadcast_message(
-                        "com.sc2ctl.jeopardy.answer_timer_start",
+                        "com.sc2ctl.bighead.answer_timer_start",
                         {"player": last_buzzer, "seconds": self.answer_timeout_seconds},
                         game_id=self._get_game_id()
                     )
@@ -312,7 +312,7 @@ class BuzzerManager:
         if self.game_instance:
             self.start_answer_timeout(player_name)
             await self.game_service.connection_manager.broadcast_message(
-                "com.sc2ctl.jeopardy.answer_timer_start",
+                "com.sc2ctl.bighead.answer_timer_start",
                 {"player": player_name, "seconds": self.answer_timeout_seconds},
                 game_id=game_id if game_id else self._get_game_id()
             )
@@ -345,9 +345,9 @@ class BuzzerManager:
             incorrect_players = self.incorrect_players
             
             current_question = self._get_current_question()
-            is_daily_double = current_question.get("daily_double", False) if current_question else False
+            is_double_big_head = current_question.get("double_big_head", False) if current_question else False
 
-            if len(incorrect_players) >= len(all_players) or is_daily_double:
+            if len(incorrect_players) >= len(all_players) or is_double_big_head:
                 # All players have attempted (or daily double — only one player answers), dismiss
                 logger.debug("All players have attempted, dismissing question")
                 self.expecting_reactivation = False  # Cancel reactivation expectation
@@ -369,7 +369,7 @@ class BuzzerManager:
                         controlling_player = self.game_state_manager.get_player_with_control()
                         if controlling_player:
                             await self.game_service.connection_manager.broadcast_message(
-                                "com.sc2ctl.jeopardy.select_question",
+                                "com.sc2ctl.bighead.select_question",
                                 {"contestant": controlling_player},
                                 game_id=self._get_game_id()
                             )
@@ -524,7 +524,7 @@ class BuzzerManager:
 
                     if controlling_player and self.game_service:
                         await self.game_service.connection_manager.broadcast_message(
-                            "com.sc2ctl.jeopardy.select_question",
+                            "com.sc2ctl.bighead.select_question",
                             {"contestant": controlling_player},
                             game_id=self._get_game_id()
                         )
@@ -585,7 +585,7 @@ class BuzzerManager:
                 # so the UI updates immediately
                 if self.game_service:
                     await self.game_service.connection_manager.broadcast_message(
-                        "com.sc2ctl.jeopardy.answer",
+                        "com.sc2ctl.bighead.answer",
                         {
                             "contestant": player_name,
                             "correct": False,

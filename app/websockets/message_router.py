@@ -23,7 +23,7 @@ class MessageRouter:
 
         Usage::
 
-            @router.route("com.sc2ctl.jeopardy.buzzer", BuzzerMsg)
+            @router.route("com.sc2ctl.bighead.buzzer", BuzzerMsg)
             async def handle_buzzer(ws, client_id, payload, game_id, game):
                 ...
         """
@@ -66,7 +66,7 @@ class MessageRouter:
             # Send structured error back to client
             try:
                 await websocket.send_json({
-                    "topic": "com.sc2ctl.jeopardy.error",
+                    "topic": "com.sc2ctl.bighead.error",
                     "payload": {
                         "message": f"Invalid payload for {topic}",
                         "details": exc.errors(),

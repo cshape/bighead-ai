@@ -252,7 +252,7 @@ class GameFlowManager:
                 # Mark game as ready
                 if self.game_service:
                     await self.game_service.connection_manager.broadcast_message(
-                        "com.sc2ctl.jeopardy.game_ready",
+                        "com.sc2ctl.bighead.game_ready",
                         {"ready": True},
                         game_id=self._get_game_id()
                     )
@@ -299,7 +299,7 @@ class GameFlowManager:
                 player_list = ", ".join(player_names[:-1]) + f", and {player_names[-1]}"
             
             # Welcome message without asking for preferences since we got them at registration
-            welcome_message = f"Welcome to Jeopardy! Today's contestants are {player_list}. Let's get started!"
+            welcome_message = f"Welcome to Big Head! Today's contestants are {player_list}. Let's get started!"
             logger.info(f"Sending welcome message: {welcome_message}")
             
             # Send welcome message
@@ -354,7 +354,7 @@ class GameFlowManager:
             # Only do this if it's not already being shown (avoid duplicating)
             if self.game_service and not self.game_state_manager.game_state.board_generation_started:
                 await self.game_service.connection_manager.broadcast_message(
-                    "com.sc2ctl.jeopardy.start_board_generation",
+                    "com.sc2ctl.bighead.start_board_generation",
                     {},
                     game_id=self._get_game_id()
                 )
@@ -369,7 +369,7 @@ class GameFlowManager:
                 self.game_state_manager.set_game_started(True)
                 
                 # Announce the game is starting
-                start_message = "The game board is ready! Let's play Jeopardy!"
+                start_message = "The game board is ready! Let's play Big Head!"
                 await self.chat_processor.send_chat_message(start_message)
                 if not os.environ.get("TEST_MODE"):
                     await self.audio_manager.synthesize_and_stream_speech(start_message)
@@ -423,7 +423,7 @@ class GameFlowManager:
             # Notify game service to update frontend state
             if self.game_service:
                 await self.game_service.connection_manager.broadcast_message(
-                    "com.sc2ctl.jeopardy.select_question",
+                    "com.sc2ctl.bighead.select_question",
                     {"contestant": first_player},
                     game_id=self._get_game_id()
                 )

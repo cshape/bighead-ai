@@ -57,7 +57,7 @@ function HomePage() {
 
       // Store player info in sessionStorage (per-tab, no cross-tab conflicts)
       sessionStorage.setItem(
-        'jeopardy_playerInfo',
+        'bighead_playerInfo',
         JSON.stringify({
           playerId: joinData.player_id,
           playerName: joinData.player_name,
@@ -114,7 +114,7 @@ function HomePage() {
 
       // Store player info in sessionStorage (per-tab, no cross-tab conflicts)
       sessionStorage.setItem(
-        'jeopardy_playerInfo',
+        'bighead_playerInfo',
         JSON.stringify({
           playerId: data.player_id,
           playerName: data.player_name,
@@ -146,7 +146,7 @@ function HomePage() {
   return (
     <div className="home-page">
       <div className="home-container">
-        <h1 className="home-title">JEOPARDY AI</h1>
+        <h1 className="home-title">BIG HEAD</h1>
 
         {!joining && !creating ? (
           <>

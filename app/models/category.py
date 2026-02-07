@@ -16,7 +16,7 @@ class Category(BaseModel):
                 clue=Clue(text=q["clue"]),
                 answer=Answer(text=q["answer"]),
                 value=q["value"],
-                daily_double=q.get("daily_double", False),
+                double_big_head=q.get("double_big_head", False),
                 type=q.get("type", "text")
             )
             questions.append(question)

@@ -123,7 +123,7 @@ class QuestionManager:
         if not game.game_ready:
             logger.warning("Cannot display question - waiting for players")
             await self.game_service.connection_manager.broadcast_message(
-                "com.sc2ctl.jeopardy.error",
+                "com.sc2ctl.bighead.error",
                 {"message": f"Waiting for more players"},
                 game_id=game_id
             )
@@ -141,23 +141,23 @@ class QuestionManager:
             game.last_buzzer = None
             game.buzzer_active = False
 
-            is_daily_double = question.get("daily_double", False)
-            logger.debug(f"Question is daily double: {is_daily_double}")
+            is_double_big_head = question.get("double_big_head", False)
+            logger.debug(f"Question is daily double: {is_double_big_head}")
 
             question_data = {
                 "category": category_name,
                 "value": value,
                 "text": question["clue"],
                 "answer": question["answer"],
-                "daily_double": is_daily_double
+                "double_big_head": is_double_big_head
             }
 
             game.current_question = question_data
 
-            if is_daily_double:
+            if is_double_big_head:
                 logger.info(f"Broadcasting daily double: {category_name} ${value}")
                 await self.game_service.connection_manager.broadcast_message(
-                    "com.sc2ctl.jeopardy.daily_double",
+                    "com.sc2ctl.bighead.double_big_head",
                     {
                         "category": category_name,
                         "value": value,
@@ -235,13 +235,13 @@ class QuestionManager:
 
         # Broadcast game_completed message
         await self.game_service.connection_manager.broadcast_message(
-            "com.sc2ctl.jeopardy.game_completed",
+            "com.sc2ctl.bighead.game_completed",
             {"scores": scores, "winner": winner, "winner_score": winner_score},
             game_id=game_id
         )
 
         # Send congratulations chat message + TTS
-        congrats_msg = f"Congratulations, {winner}! You won Jeopardy with ${winner_score}!"
+        congrats_msg = f"Congratulations, {winner}! You won Big Head with ${winner_score}!"
         if game.ai_host and game.ai_host.chat_processor:
             await game.ai_host.chat_processor.send_chat_message(congrats_msg)
         if game.ai_host and game.ai_host.audio_manager and not os.environ.get("TEST_MODE"):
@@ -251,7 +251,7 @@ class QuestionManager:
         await game.stop_ai_host()
 
     # ------------------------------------------------------------------
-    # Answer / Daily Double Bet
+    # Answer / Double Big Head Bet
     # ------------------------------------------------------------------
 
     async def answer_question(self, correct: bool, contestant_name=None, game_id: str = ''):
@@ -278,7 +278,7 @@ class QuestionManager:
         logger.info(f"Processing answer from {contestant_name}: {'correct' if correct else 'incorrect'}")
 
         score_delta = current_question["value"]
-        daily_double = current_question.get("daily_double", False)
+        double_big_head = current_question.get("double_big_head", False)
 
         contestant = self.game_service.find_contestant(contestant_name, state=state)
         if not contestant:
@@ -303,11 +303,11 @@ class QuestionManager:
             contestant.score += score_delta
             await bm.handle_correct_answer(contestant_name)
 
-            if daily_double or self.all_questions_answered(board):
+            if double_big_head or self.all_questions_answered(board):
                 await self.dismiss_question(game_id=game_id)
             else:
                 await self.game_service.connection_manager.broadcast_message(
-                    "com.sc2ctl.jeopardy.select_question",
+                    "com.sc2ctl.bighead.select_question",
                     {"contestant": contestant_name},
                     game_id=game_id
                 )
@@ -323,9 +323,9 @@ class QuestionManager:
             await self.game_service.send_contestant_scores(game_id)
             game.llm_state.update_player_score(contestant_name, contestant.score)
 
-    async def handle_daily_double_bet(self, contestant: str, bet: int, game_id: str):
+    async def handle_double_big_head_bet(self, contestant: str, bet: int, game_id: str):
         """Handle a daily double bet from a contestant."""
-        logger.info(f"Daily double bet: {contestant} bets ${bet}")
+        logger.info(f"Double Big Head bet: {contestant} bets ${bet}")
 
         game = self.game_instance
         if not game:
@@ -352,7 +352,7 @@ class QuestionManager:
         current_question["contestant"] = contestant
 
         await self.game_service.connection_manager.broadcast_message(
-            "com.sc2ctl.jeopardy.daily_double_bet_response",
+            "com.sc2ctl.bighead.double_big_head_bet_response",
             {
                 "question": current_question,
                 "bet": bet,

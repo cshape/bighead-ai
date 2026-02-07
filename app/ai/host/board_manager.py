@@ -48,7 +48,7 @@ class BoardManager:
                     # Reveal categories with short delay
                     for i, cat_data in enumerate(board_data.get("categories", [])):
                         await self.game_service.connection_manager.broadcast_message(
-                            "com.sc2ctl.jeopardy.reveal_category",
+                            "com.sc2ctl.bighead.reveal_category",
                             {"index": i, "category": cat_data},
                             game_id=self.game_instance.game_id
                         )
@@ -105,7 +105,7 @@ class BoardManager:
                 if self.game_service:
                     game_id = self.game_instance.game_id if self.game_instance else None
                     await self.game_service.connection_manager.broadcast_message(
-                        "com.sc2ctl.jeopardy.reveal_category",
+                        "com.sc2ctl.bighead.reveal_category",
                         {
                             "index": i,
                             "category": cat_data
@@ -116,20 +116,20 @@ class BoardManager:
                 await asyncio.sleep(0.5)
             
             # Add daily doubles if requested
-            daily_double_count = random.randint(1, 2)
+            double_big_head_count = random.randint(1, 2)
             excludes = []
-            for _ in range(daily_double_count):
+            for _ in range(double_big_head_count):
                 while True:
                     cat_idx = random.randint(0, 4)
                     q_idx = random.randint(1, 4)  # Skip $200 questions
                     if (cat_idx, q_idx) not in excludes:
-                        category_data[cat_idx]["questions"][q_idx]["daily_double"] = True
+                        category_data[cat_idx]["questions"][q_idx]["double_big_head"] = True
                         excludes.append((cat_idx, q_idx))
                         break
             
             # Generate the final object
             board_data["categories"] = category_data
-            board_data["final"] = await generator._generate_final_jeopardy()
+            board_data["final"] = await generator._generate_final_big_head()
             
             # Save complete board data
             with open(file_path, 'w') as f:

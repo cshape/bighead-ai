@@ -3,7 +3,7 @@ from typing import List, Optional, Dict
 from .category import Category
 from .contestant import Contestant
 from .question import Question
-from .finaljeopardy import FinalJeopardyState
+from .finalbighead import FinalBigHeadState
 
 class BuzzerStatus(BaseModel):
     active: bool = False
@@ -36,7 +36,7 @@ class Board(BaseModel):
     categories: List[Category]
     buzzer_status: BuzzerStatus = BuzzerStatus()
     resolver: Resolver = Resolver()
-    final_jeopardy_state: FinalJeopardyState
+    final_big_head_state: FinalBigHeadState
     
     def get_contestant_by_name(self, name: str) -> Optional[Contestant]:
         for contestant in self.contestants:

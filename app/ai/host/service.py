@@ -1,7 +1,7 @@
 """
-AI Host Service for Jeopardy
+AI Host Service for Big Head
 
-This module implements an AI host that interacts with the Jeopardy game
+This module implements an AI host that interacts with the Big Head game
 directly through the backend, eliminating the need for Selenium.
 """
 
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class AIHostService:
     """
-    AI host service that directly interacts with the Jeopardy game backend.
+    AI host service that directly interacts with the Big Head game backend.
     
     This host monitors player interactions, evaluates answers using LLM,
     and manages the game flow without using browser automation.

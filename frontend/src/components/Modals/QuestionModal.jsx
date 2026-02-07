@@ -10,10 +10,10 @@ export default function QuestionModal() {
   // happens on LobbyPage's WebSocket, so state.playerName may still be null)
   let playerName = state.playerName;
   if (!playerName) {
-    const info = JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}');
+    const info = JSON.parse(sessionStorage.getItem('bighead_playerInfo') || '{}');
     playerName = info.playerName;
   }
-  const [showDailyDoubleQuestion, setShowDailyDoubleQuestion] = useState(false);
+  const [showDoubleBigHeadQuestion, setShowDoubleBigHeadQuestion] = useState(false);
   const [timerProgress, setTimerProgress] = useState(0);
   const [answerTimerProgress, setAnswerTimerProgress] = useState(0);
   const [betAmount, setBetAmount] = useState(5);
@@ -191,8 +191,8 @@ export default function QuestionModal() {
 
   // If currentQuestion changes and it's a daily double, update state
   useEffect(() => {
-    if (currentQuestion?.daily_double && currentQuestion.bet) {
-      setShowDailyDoubleQuestion(true);
+    if (currentQuestion?.double_big_head && currentQuestion.bet) {
+      setShowDoubleBigHeadQuestion(true);
     }
   }, [currentQuestion]);
 
@@ -211,25 +211,25 @@ export default function QuestionModal() {
   useEffect(() => {
     console.log("Modal state:", { 
       currentQuestion, 
-      dailyDouble: state.dailyDouble, 
-      showDailyDoubleQuestion,
+      doubleBigHead: state.doubleBigHead, 
+      showDoubleBigHeadQuestion,
       buzzerActive,
       showActiveBuzzer,
       hasBeenActivated: hasBeenActivatedRef.current,
       answerTimer: state.answerTimer
     });
-  }, [currentQuestion, state.dailyDouble, showDailyDoubleQuestion, buzzerActive, showActiveBuzzer, state.answerTimer]);
+  }, [currentQuestion, state.doubleBigHead, showDoubleBigHeadQuestion, buzzerActive, showActiveBuzzer, state.answerTimer]);
 
   // Don't render anything if there's no current question or daily double
-  if (!currentQuestion && !state.dailyDouble) {
-    console.log("Not showing modal - no currentQuestion or dailyDouble");
+  if (!currentQuestion && !state.doubleBigHead) {
+    console.log("Not showing modal - no currentQuestion or doubleBigHead");
     return null;
   }
 
   // Handle buzzer press
   const handleBuzz = () => {
     if (showActiveBuzzer) {
-      sendMessage('com.sc2ctl.jeopardy.buzzer', {
+      sendMessage('com.sc2ctl.bighead.buzzer', {
         contestant: playerName
       });
     }
@@ -237,8 +237,8 @@ export default function QuestionModal() {
 
   // Handle bet submission
   const handleBetSubmit = () => {
-    if (state.dailyDouble && playerName === state.dailyDouble.selectingPlayer) {
-      sendMessage('com.sc2ctl.jeopardy.daily_double_bet', {
+    if (state.doubleBigHead && playerName === state.doubleBigHead.selectingPlayer) {
+      sendMessage('com.sc2ctl.bighead.double_big_head_bet', {
         contestant: playerName,
         bet: betAmount
       });
@@ -253,23 +253,23 @@ export default function QuestionModal() {
 
   // Calculate max bet for the selecting player
   const getMaxBet = () => {
-    if (!state.dailyDouble?.selectingPlayer || !players) return 1000;
-    const playerScore = players[state.dailyDouble.selectingPlayer]?.score || 0;
+    if (!state.doubleBigHead?.selectingPlayer || !players) return 1000;
+    const playerScore = players[state.doubleBigHead.selectingPlayer]?.score || 0;
     return Math.max(1000, playerScore);
   };
 
   // If we have a daily double but not yet the question
-  if (state.dailyDouble) {
-    const selectingPlayer = state.dailyDouble.selectingPlayer;
+  if (state.doubleBigHead) {
+    const selectingPlayer = state.doubleBigHead.selectingPlayer;
     const isSelectingPlayer = playerName === selectingPlayer;
     const maxBet = getMaxBet();
 
     console.log("Showing daily double selection screen", { selectingPlayer, isSelectingPlayer, playerName });
     return (
       <div className="modal-overlay">
-        <div className="modal-content daily-double">
-          <h2>Daily Double!</h2>
-          <p className="daily-double-info">{state.dailyDouble.category} - ${state.dailyDouble.value}</p>
+        <div className="modal-content double-big-head">
+          <h2>Double Big Head!</h2>
+          <p className="double-big-head-info">{state.doubleBigHead.category} - ${state.doubleBigHead.value}</p>
 
           {isSelectingPlayer ? (
             <div className="bet-input-container">
@@ -300,15 +300,15 @@ export default function QuestionModal() {
   }
 
   // If current question is a daily double but we haven't shown it yet
-  if (currentQuestion?.daily_double && !showDailyDoubleQuestion) {
+  if (currentQuestion?.double_big_head && !showDoubleBigHeadQuestion) {
     console.log("Showing daily double bet info before revealing question");
     return (
       <div className="modal-overlay">
-        <div className="modal-content daily-double">
-          <h2>Daily Double!</h2>
-          <p className="daily-double-info">{currentQuestion.category} - ${currentQuestion.value}</p>
-          <p className="daily-double-info">Player: {currentQuestion.contestant}</p>
-          <p className="daily-double-info">Bet: ${currentQuestion.bet}</p>
+        <div className="modal-content double-big-head">
+          <h2>Double Big Head!</h2>
+          <p className="double-big-head-info">{currentQuestion.category} - ${currentQuestion.value}</p>
+          <p className="double-big-head-info">Player: {currentQuestion.contestant}</p>
+          <p className="double-big-head-info">Bet: ${currentQuestion.bet}</p>
           
           {playerName === currentQuestion.contestant ? (
             <p>Wait for the host to reveal the question...</p>
@@ -324,10 +324,10 @@ export default function QuestionModal() {
     <div className="modal-overlay">
       <div className="modal-content">
         <h2>{currentQuestion.category} - ${currentQuestion.value}</h2>
-        {currentQuestion.daily_double && <h3 className="daily-double-banner">Daily Double!</h3>}
+        {currentQuestion.double_big_head && <h3 className="double-big-head-banner">Double Big Head!</h3>}
         <p className="question-text">{currentQuestion.text}</p>
         
-        {!currentQuestion.daily_double && !lastBuzzer && !incorrectPlayers.includes(playerName) && (
+        {!currentQuestion.double_big_head && !lastBuzzer && !incorrectPlayers.includes(playerName) && (
           <div
             className={`player-buzzer ${showActiveBuzzer ? 'active' : ''}`}
             onClick={handleBuzz}
@@ -336,7 +336,7 @@ export default function QuestionModal() {
           </div>
         )}
 
-        {!currentQuestion.daily_double && !lastBuzzer && incorrectPlayers.includes(playerName) && (
+        {!currentQuestion.double_big_head && !lastBuzzer && incorrectPlayers.includes(playerName) && (
           <p className="waiting-message">You already answered this one. Waiting for other players...</p>
         )}
         

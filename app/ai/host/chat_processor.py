@@ -61,7 +61,7 @@ class ChatProcessor:
             }
 
             await self.game_service.connection_manager.broadcast_message(
-                "com.sc2ctl.jeopardy.chat_message",
+                "com.sc2ctl.bighead.chat_message",
                 chat_payload,
                 game_id=self._game_id
             )
@@ -140,7 +140,7 @@ class ChatProcessor:
             # Notify frontend to stop the answer timer visual
             if self.game_service:
                 await self.game_service.connection_manager.broadcast_message(
-                    "com.sc2ctl.jeopardy.answer_timer_stop",
+                    "com.sc2ctl.bighead.answer_timer_stop",
                     {},
                     game_id=self._game_id
                 )
@@ -160,6 +160,8 @@ class ChatProcessor:
             evaluation_result = await self.answer_evaluator.evaluate_answer(
                 expected_answer=expected_answer,
                 player_answer=message,
+                clue=question.get("text", ""),
+                category=question.get("category", ""),
                 include_explanation=False
             )
 

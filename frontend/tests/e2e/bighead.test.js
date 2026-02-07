@@ -5,7 +5,7 @@ const BASE_URL = 'http://localhost:8000';
 
 jest.setTimeout(120000);
 
-describe('Jeopardy E2E Tests', () => {
+describe('Big Head E2E Tests', () => {
   let browser;
   let hostContext, aliceContext, bobContext;
   let hostPage, alicePage, bobPage;
@@ -404,7 +404,7 @@ describe('Jeopardy E2E Tests', () => {
     console.log('Test 4 passed: All three players answered incorrectly');
   });
 
-  test('Daily double: player places wager and answers incorrectly', async () => {
+  test('Double Big Head: player places wager and answers incorrectly', async () => {
     const pages = { Host: hostPage, Alice: alicePage, Bob: bobPage };
 
     // Wait for the controlling player (restored after test 4)
@@ -415,7 +415,7 @@ describe('Jeopardy E2E Tests', () => {
 
     const controlPage = pages[controllingPlayer];
 
-    // Click the TOYS & GAMES $800 question (the daily double).
+    // Click the TOYS & GAMES $800 question (the double big head).
     // Find the 4th category (TOYS & GAMES) and click its 4th question ($800).
     const clicked = await controlPage.evaluate(() => {
       const titles = [...document.querySelectorAll('.category-title')];
@@ -436,11 +436,11 @@ describe('Jeopardy E2E Tests', () => {
       return false;
     });
     expect(clicked).toBe(true);
-    console.log(`${controllingPlayer} clicked TOYS & GAMES $800 (Daily Double)`);
+    console.log(`${controllingPlayer} clicked TOYS & GAMES $800 (Double Big Head)`);
 
-    // Wait for daily double modal to appear on the controlling player's page
-    await waitFor(controlPage, '.modal-content.daily-double', { timeout: 15000 });
-    console.log('Daily double modal visible');
+    // Wait for double big head modal to appear on the controlling player's page
+    await waitFor(controlPage, '.modal-content.double-big-head', { timeout: 15000 });
+    console.log('Double Big Head modal visible');
 
     // Only the selecting player sees the bet input
     await waitFor(controlPage, '.bet-input', { timeout: 10000 });
@@ -473,11 +473,11 @@ describe('Jeopardy E2E Tests', () => {
     // Type incorrect answer and submit
     await controlPage.type('.answer-input', 'What is Monopoly');
     await controlPage.click('.answer-submit-btn');
-    console.log(`${controllingPlayer} submitted incorrect daily double answer`);
+    console.log(`${controllingPlayer} submitted incorrect double big head answer`);
 
     // Wait for modal to dismiss
     await controlPage.waitForSelector('.modal-overlay', { hidden: true, timeout: 15000 });
-    console.log('Modal dismissed after wrong daily double answer');
+    console.log('Modal dismissed after wrong double big head answer');
 
     // Wait for the correct answer to be revealed in chat
     await hostPage.waitForFunction(
@@ -491,15 +491,15 @@ describe('Jeopardy E2E Tests', () => {
     // Verify score was deducted by $500
     await delay(1000);
     const score = await getPlayerScore(hostPage, controllingPlayer);
-    console.log(`${controllingPlayer} score after daily double: ${score}`);
+    console.log(`${controllingPlayer} score after double big head: ${score}`);
     // Alice: $200 (test 2) - $400 (test 4) - $500 (DD wager) = -$700
     expect(score).toBe('$-700');
 
     // Verify controlling player retains board control
     const newControl = await waitForControllingPlayer(hostPage);
     expect(newControl).toBe(controllingPlayer);
-    console.log(`${controllingPlayer} retains board control after daily double`);
+    console.log(`${controllingPlayer} retains board control after double big head`);
 
-    console.log('Test 5 passed: Daily double incorrect answer handled correctly');
+    console.log('Test 5 passed: Double Big Head incorrect answer handled correctly');
   });
 });

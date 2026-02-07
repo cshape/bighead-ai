@@ -20,7 +20,7 @@ export default function GameBoard() {
   // Get playerName from state OR localStorage as fallback for race condition
   let playerName = state.playerName;
   if (!playerName) {
-    const playerInfo = JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}');
+    const playerInfo = JSON.parse(sessionStorage.getItem('bighead_playerInfo') || '{}');
     playerName = playerInfo.playerName;
   }
 
@@ -29,7 +29,7 @@ export default function GameBoard() {
                     state.controllingPlayer === playerName;
 
   return (
-    <div className={`jeopardy-board ${state.boardGenerating ? 'generating' : ''}`}>
+    <div className={`bighead-board ${state.boardGenerating ? 'generating' : ''}`}>
       {state.board.categories.map((category, index) => (
         <CategoryColumn
           key={index}

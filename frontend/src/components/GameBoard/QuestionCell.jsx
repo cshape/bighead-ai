@@ -9,13 +9,13 @@ export default function QuestionCell({ question, categoryName, isAdmin, isPlaceh
     if ((!isAdmin && !canSelect) || question.used || isPlaceholder) return;
 
     // If it's a daily double, use a different message
-    if (question.daily_double) {
-      sendMessage('com.sc2ctl.jeopardy.daily_double', {
+    if (question.double_big_head) {
+      sendMessage('com.sc2ctl.bighead.double_big_head', {
         category: categoryName,
         value: question.value
       });
     } else {
-      sendMessage('com.sc2ctl.jeopardy.question_display', {
+      sendMessage('com.sc2ctl.bighead.question_display', {
         category: categoryName,
         value: question.value
       });

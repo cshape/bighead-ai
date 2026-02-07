@@ -1,5 +1,5 @@
 """
-Answer evaluation for Jeopardy questions
+Answer evaluation for Big Head questions
 """
 
 import logging
@@ -23,6 +23,7 @@ class AnswerEvaluator:
         )
     
     async def evaluate_answer(self, expected_answer: str, player_answer: str,
+                            clue: str = "", category: str = "",
                             include_explanation: bool = False) -> Dict[str, Any]:
         """
         Use LLM to evaluate if the player's answer is correct.
@@ -30,6 +31,8 @@ class AnswerEvaluator:
         Args:
             expected_answer: The correct answer from the board
             player_answer: The player's submitted answer
+            clue: The clue text shown to the player
+            category: The category the clue belongs to
             include_explanation: Whether to include explanation in response
 
         Returns:
@@ -52,7 +55,9 @@ class AnswerEvaluator:
             # Use template-based approach for the prompt
             user_context = {
                 "correct_answer": expected_answer,
-                "player_answer": player_answer
+                "player_answer": player_answer,
+                "clue": clue,
+                "category": category,
             }
             
             response_text = await self.llm_client.chat_with_template(

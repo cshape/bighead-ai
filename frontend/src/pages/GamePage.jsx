@@ -22,7 +22,7 @@ function GamePage() {
   }, [code, setGameCode]);
 
   // Get player info from session storage
-  const playerInfo = JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}');
+  const playerInfo = JSON.parse(sessionStorage.getItem('bighead_playerInfo') || '{}');
 
   // If no player info and not in admin mode, redirect to lobby
   useEffect(() => {

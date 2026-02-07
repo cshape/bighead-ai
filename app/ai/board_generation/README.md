@@ -1,13 +1,13 @@
-# Jeopardy Board Generator
+# Big Head Board Generator
 
-This module provides LLM-powered generation of Jeopardy game boards with categories and questions.
+This module provides LLM-powered generation of Big Head game boards with categories and questions.
 
 ## Features
 
-- Generate complete Jeopardy boards with 5 categories and 25 questions
+- Generate complete Big Head boards with 5 categories and 25 questions
 - LLM-powered category and question generation
 - Customizable difficulty progression
-- Support for daily doubles
+- Support for double big heads
 - Command-line interface for easy board generation
 
 ## Usage
@@ -22,7 +22,7 @@ async def generate_sample_board():
     generator = BoardGenerator()
     file_path = await generator.generate_and_save_board(
         board_name="my_custom_board",
-        add_daily_doubles=True
+        add_double_big_heads=True
     )
     print(f"Board saved to: {file_path}")
 
@@ -41,8 +41,8 @@ python -m app.ai.board_generation.cli --count 3 --name batch
 # Use a different model
 python -m app.ai.board_generation.cli --model gpt-4
 
-# Disable daily doubles
-python -m app.ai.board_generation.cli --no-daily-doubles
+# Disable double big heads
+python -m app.ai.board_generation.cli --no-double-big-heads
 ```
 
 ## Board Format
@@ -64,7 +64,7 @@ The generated boards follow the standard format used by the application:
           "clue": "Clue text",
           "answer": "Correct response",
           "value": 200,
-          "daily_double": false,
+          "double_big_head": false,
           "type": "text"
         },
         // More questions...
@@ -73,7 +73,7 @@ The generated boards follow the standard format used by the application:
     // More categories...
   ],
   "final": {
-    "category": "Final Jeopardy",
+    "category": "Final Big Head",
     "clue": "Final clue",
     "answer": "Final answer"
   }

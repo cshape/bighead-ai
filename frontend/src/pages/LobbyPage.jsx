@@ -24,7 +24,7 @@ function LobbyPage() {
   const [ws, setWs] = useState(null);
 
   // Get player info from sessionStorage (per-tab, no cross-tab conflicts)
-  const playerInfo = JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}');
+  const playerInfo = JSON.parse(sessionStorage.getItem('bighead_playerInfo') || '{}');
   const isHost = playerInfo.isHost || false;
 
   // Fetch initial game state
@@ -67,7 +67,7 @@ function LobbyPage() {
       console.log('Lobby received:', message);
 
       switch (message.topic) {
-        case 'com.sc2ctl.jeopardy.game_state':
+        case 'com.sc2ctl.bighead.game_state':
           setGameState(message.payload);
           setPlayers(
             Object.entries(message.payload.players || {}).map(([name, data]) => ({
@@ -77,7 +77,7 @@ function LobbyPage() {
           );
           break;
 
-        case 'com.sc2ctl.jeopardy.player_list':
+        case 'com.sc2ctl.bighead.player_list':
           setPlayers(
             Object.entries(message.payload.players || {}).map(([name, data]) => ({
               name,
@@ -87,16 +87,16 @@ function LobbyPage() {
           );
           break;
 
-        case 'com.sc2ctl.jeopardy.game_ready':
+        case 'com.sc2ctl.bighead.game_ready':
           setGameState((prev) => ({ ...prev, can_start: message.payload.ready }));
           break;
 
-        case 'com.sc2ctl.jeopardy.start_board_generation':
+        case 'com.sc2ctl.bighead.start_board_generation':
           // Board generation started, navigate to game page
           navigate(`/game/${code}`);
           break;
 
-        case 'com.sc2ctl.jeopardy.game_started':
+        case 'com.sc2ctl.bighead.game_started':
           // Game has started, navigate to game page
           navigate(`/game/${code}`);
           break;
@@ -124,7 +124,7 @@ function LobbyPage() {
 
   const handleStartGame = async () => {
     // Read fresh from localStorage to avoid stale closure
-    const currentPlayerInfo = JSON.parse(sessionStorage.getItem('jeopardy_playerInfo') || '{}');
+    const currentPlayerInfo = JSON.parse(sessionStorage.getItem('bighead_playerInfo') || '{}');
     if (!currentPlayerInfo.playerId) {
       setError('Player information not found. Please rejoin the game.');
       return;

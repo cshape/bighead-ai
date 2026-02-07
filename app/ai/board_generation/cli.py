@@ -1,5 +1,5 @@
 """
-Command-line interface for generating Jeopardy boards.
+Command-line interface for generating Big Head boards.
 """
 
 import os
@@ -15,12 +15,12 @@ setup_logging()
 
 async def main():
     """Run the board generation CLI."""
-    parser = argparse.ArgumentParser(description='Generate Jeopardy game boards')
+    parser = argparse.ArgumentParser(description='Generate Big Head game boards')
     parser.add_argument('--name', type=str, help='Name for the board file')
     parser.add_argument('--count', type=int, default=1, help='Number of boards to generate')
     parser.add_argument('--output-dir', type=str, default='app/game_data', help='Output directory')
-    parser.add_argument('--model', type=str, default='gpt-4o-mini', help='LLM model to use')
-    parser.add_argument('--no-daily-doubles', action='store_true', help='Disable daily doubles')
+    parser.add_argument('--model', type=str, default='gpt-4.1', help='LLM model to use')
+    parser.add_argument('--no-double-big-heads', action='store_true', help='Disable double big heads')
     parser.add_argument('--user-input', type=str, default='', 
                       help='User preferences for the game (e.g., "nothing about science", "make it super easy")')
     
@@ -44,7 +44,7 @@ async def main():
         
         file_path = await generator.generate_and_save_board(
             board_name=board_name,
-            add_daily_doubles=not args.no_daily_doubles
+            add_double_big_heads=not args.no_double_big_heads
         )
         
         print(f"Generated board saved to: {file_path}")

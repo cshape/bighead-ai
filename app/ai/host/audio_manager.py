@@ -203,7 +203,7 @@ class AudioManager:
 
                 # 1. Broadcast stream start
                 await self.game_service.connection_manager.broadcast_message(
-                    "com.sc2ctl.jeopardy.audio_stream_start",
+                    "com.sc2ctl.bighead.audio_stream_start",
                     {"audio_id": audio_id, "encoding": "ogg_opus"},
                     game_id=self.game_id
                 )
@@ -215,7 +215,7 @@ class AudioManager:
                     voice_name=self.tts_voice,
                 ):
                     await self.game_service.connection_manager.broadcast_message(
-                        "com.sc2ctl.jeopardy.audio_stream_chunk",
+                        "com.sc2ctl.bighead.audio_stream_chunk",
                         {"audio_id": audio_id, "chunk": chunk_b64, "index": chunk_index},
                         game_id=self.game_id
                     )
@@ -223,7 +223,7 @@ class AudioManager:
 
                 # 3. Broadcast stream end
                 await self.game_service.connection_manager.broadcast_message(
-                    "com.sc2ctl.jeopardy.audio_stream_end",
+                    "com.sc2ctl.bighead.audio_stream_end",
                     {"audio_id": audio_id, "total_chunks": chunk_index},
                     game_id=self.game_id
                 )

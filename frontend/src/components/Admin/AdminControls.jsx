@@ -12,7 +12,7 @@ export default function AdminControls() {
   }
 
   const handleStartAIGame = () => {
-    sendMessage('com.sc2ctl.jeopardy.start_ai_game', {
+    sendMessage('com.sc2ctl.bighead.start_ai_game', {
       num_players: 3,
       headless: false
     });

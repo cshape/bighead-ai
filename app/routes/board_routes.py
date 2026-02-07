@@ -24,14 +24,14 @@ async def start_board_generation(request: Request, data: Dict[str, Any]):
 
     # Broadcast to clients in the game room to show placeholder board
     await game_service.connection_manager.broadcast_message(
-        "com.sc2ctl.jeopardy.start_board_generation",
+        "com.sc2ctl.bighead.start_board_generation",
         {},
         game_id=game_id
     )
 
     # Also mark the game as ready so the board is shown
     await game_service.connection_manager.broadcast_message(
-        "com.sc2ctl.jeopardy.game_ready",
+        "com.sc2ctl.bighead.game_ready",
         {"ready": True},
         game_id=game_id
     )
@@ -58,7 +58,7 @@ async def reveal_category(request: Request, data: Dict[str, Any]):
 
     # Broadcast to clients in the game room to reveal this category
     await game_service.connection_manager.broadcast_message(
-        "com.sc2ctl.jeopardy.reveal_category",
+        "com.sc2ctl.bighead.reveal_category",
         {
             "index": index,
             "category": category

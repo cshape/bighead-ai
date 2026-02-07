@@ -1,6 +1,6 @@
-# Jeopardy AI
+# Big Head
 
-A web app that lets players play Jeopardy against each other with an AI host. The backend (FastAPI + WebSockets) manages game state, generates boards via LLM, evaluates answers, and synthesizes the host's voice through Inworld AI. The frontend (React/Vite) renders the game board, buzzer, and chat. Multiple concurrent games are supported via shareable game codes.
+A web app that lets players play Big Head against each other with an AI host. The backend (FastAPI + WebSockets) manages game state, generates boards via LLM, evaluates answers, and synthesizes the host's voice through Inworld AI. The frontend (React/Vite) renders the game board, buzzer, and chat. Multiple concurrent games are supported via shareable game codes.
 
 ## After Major Changes
 

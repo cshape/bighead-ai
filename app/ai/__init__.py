@@ -1,5 +1,5 @@
 """
-AI operation module for Big Head Jeopardy game system.
+AI operation module for Big Head Big Head game system.
 """
 
 from .llm_state_manager import LLMStateManager, LLMGameState

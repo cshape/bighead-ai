@@ -96,7 +96,7 @@ async def join_game(code: str, body: JoinGameRequest, request: Request):
         connection_manager = request.app.state.connection_manager
         await connection_manager.broadcast_to_room(
             game.game_id,
-            "com.sc2ctl.jeopardy.player_list",
+            "com.sc2ctl.bighead.player_list",
             {"players": game.state.get_players_dict()}
         )
 
@@ -104,7 +104,7 @@ async def join_game(code: str, body: JoinGameRequest, request: Request):
         if game.can_start():
             await connection_manager.broadcast_to_room(
                 game.game_id,
-                "com.sc2ctl.jeopardy.game_ready",
+                "com.sc2ctl.bighead.game_ready",
                 {"ready": True}
             )
 
@@ -242,7 +242,7 @@ async def restart_game(game_id: str, request: Request):
     connection_manager = request.app.state.connection_manager
     await connection_manager.broadcast_to_room(
         game_id,
-        "com.sc2ctl.jeopardy.contestant_score",
+        "com.sc2ctl.bighead.contestant_score",
         {"scores": scores}
     )
 

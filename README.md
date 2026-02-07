@@ -52,12 +52,3 @@ The blueprint (`render.yaml`) handles the rest: installs Python + Node deps, bui
 ```bash
 cd frontend && npm run test:e2e
 ```
-
-## Play Online
-
-You can share your game with friends using [ngrok](https://ngrok.com/):
-
-```bash
-npm run build && npm start
-ngrok http 8000
-```

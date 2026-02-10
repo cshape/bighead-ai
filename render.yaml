@@ -9,3 +9,7 @@ services:
         value: "true"
       - key: PYTHON_VERSION
         value: "3.10.0"
+      - key: INWORLD_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        value: ""

@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   background-color: var(--color-board-bg);
   color: var(--color-light-text);
 }
@@ -34,6 +35,7 @@
   flex: 1;
   overflow: hidden;
   height: calc(100vh - 50px);
+  height: calc(100dvh - 50px);
 }
 
 .board-container {
@@ -130,4 +132,48 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
+}
+
+/* ---- Mobile: stack board above scores/chat ---- */
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+    overflow-y: auto;
+    height: auto;
+    min-height: calc(100vh - 50px);
+    min-height: calc(100dvh - 50px);
+  }
+
+  .board-container {
+    flex: none;
+    height: auto;
+    min-height: 60vw;
+    overflow: visible;
+  }
+
+  .score-container {
+    flex: none;
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+    border-left: none;
+    border-top: 2px solid var(--color-border);
+    height: auto;
+    overflow: visible;
+  }
+
+  .admin-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .modal-overlay {
+    position: fixed;
+  }
+}
+
+@media (max-width: 480px) {
+  .board-container {
+    min-height: 70vw;
+  }
 }

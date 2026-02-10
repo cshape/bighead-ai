@@ -61,3 +61,17 @@
 .start-ai-game-btn:hover {
   background-color: var(--color-success-hover);
 }
+
+/* ---- Mobile responsive ---- */
+@media (max-width: 768px) {
+  .admin-controls {
+    padding: 0.5rem;
+  }
+
+  .admin-controls select,
+  .admin-controls button,
+  .admin-controls input {
+    padding: 6px 10px;
+    font-size: 14px;
+  }
+}

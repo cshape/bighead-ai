@@ -1,5 +1,6 @@
 .home-page {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -167,4 +168,20 @@
   color: var(--color-accent);
   text-align: center;
   font-size: 0.875rem;
+}
+
+@media (max-width: 480px) {
+  .home-container {
+    padding: 24px 16px;
+  }
+
+  .home-title {
+    font-size: 2rem;
+    margin-bottom: 24px;
+  }
+
+  .home-button {
+    padding: 14px 20px;
+    font-size: 1rem;
+  }
 }

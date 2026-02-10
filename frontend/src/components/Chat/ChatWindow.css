@@ -102,3 +102,23 @@
 .chat-input button:hover {
   background-color: var(--color-accent-hover);
 }
+
+/* ---- Mobile responsive ---- */
+@media (max-width: 768px) {
+  .chat-window {
+    min-height: 150px;
+    margin: 5px;
+  }
+
+  .chat-header {
+    padding: 8px;
+  }
+
+  .chat-header h3 {
+    font-size: 0.875rem;
+  }
+
+  .chat-messages {
+    padding: 8px;
+  }
+}

@@ -51,3 +51,32 @@
   display: flex;
   flex-direction: column;
 }
+
+/* ---- Mobile responsive ---- */
+@media (max-width: 768px) {
+  .score-board {
+    padding: 10px;
+  }
+
+  .score-board h2 {
+    margin-bottom: 10px;
+    font-size: 1rem;
+  }
+
+  .player-scores {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .player-score {
+    padding: 10px;
+  }
+
+  .player-name {
+    font-size: 1rem;
+  }
+
+  .score {
+    font-size: 1.2rem;
+  }
+}

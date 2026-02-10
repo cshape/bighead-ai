@@ -437,3 +437,66 @@
   font-style: italic;
   margin-top: 20px;
 }
+
+/* ---- Mobile responsive ---- */
+@media (max-width: 768px) {
+  .modal-content {
+    max-width: 95%;
+    width: auto;
+    padding: 1.5rem;
+  }
+
+  .modal-content .question-text {
+    font-size: 1.4rem;
+  }
+
+  .modal-content h2 {
+    font-size: 1.3rem;
+  }
+
+  .player-name-input,
+  .player-preferences-input {
+    width: 90%;
+  }
+
+  .join-game-button {
+    width: 90%;
+  }
+
+  .player-buzzer {
+    padding: 1.5rem;
+    font-size: 1.2em;
+  }
+
+  .bet-input {
+    width: 120px;
+    font-size: 20px;
+  }
+
+  .answer-input-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .answer-input {
+    max-width: 90%;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  .modal-content .question-text {
+    font-size: 1.1rem;
+    margin: 1rem 0;
+  }
+
+  .modal-content button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+}

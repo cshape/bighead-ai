@@ -22,3 +22,20 @@
 .board-option:hover {
   background: var(--color-category-bg);
 }
+
+/* ---- Mobile responsive ---- */
+@media (max-width: 768px) {
+  .board-selector {
+    padding: 1rem;
+  }
+
+  .board-list {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .board-option {
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
+}

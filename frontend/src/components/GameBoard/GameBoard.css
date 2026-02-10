@@ -172,3 +172,47 @@
   font-size: 14px;
   color: var(--color-gold);
 }
+
+/* ---- Mobile responsive ---- */
+@media (max-width: 768px) {
+  .bighead-board {
+    gap: 4px;
+    padding: 4px;
+  }
+
+  .category-title {
+    padding: 6px 3px;
+    font-size: clamp(10px, 2.5vw, 14px);
+    letter-spacing: 0;
+  }
+
+  .question {
+    padding: 6px 3px;
+    font-size: clamp(12px, 3vw, 18px);
+  }
+
+  .generating-overlay {
+    top: 5px;
+    right: 5px;
+    max-width: 200px;
+    padding: 10px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .bighead-board {
+    gap: 2px;
+    padding: 2px;
+  }
+
+  .category-title {
+    padding: 4px 2px;
+    font-size: clamp(8px, 2.5vw, 11px);
+  }
+
+  .question {
+    padding: 4px 2px;
+    font-size: clamp(11px, 3.5vw, 16px);
+  }
+}

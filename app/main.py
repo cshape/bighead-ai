@@ -92,7 +92,11 @@ game_service = GameService(connection_manager)
 game_manager = GameManager()
 chat_manager = ChatManager(connection_manager)
 board_factory = BoardFactory()
-board = board_factory.initialize()
+try:
+    board = board_factory.initialize()
+except FileNotFoundError:
+    board = None
+    logger.info("No default board file found — boards will be generated per-game")
 
 # Wire up game manager to game service
 game_service.set_game_manager(game_manager)

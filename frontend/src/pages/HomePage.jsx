@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getApiUrl } from '../config';
 import ThemeSelector from '../components/ThemeSelector/ThemeSelector';
+import VoiceSelector from '../components/VoiceSelector/VoiceSelector';
 import './HomePage.css';
 
 function HomePage() {
@@ -13,6 +14,7 @@ function HomePage() {
   const [loading, setLoading] = useState(false);
   const [joining, setJoining] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [voice, setVoice] = useState('Timothy');
 
   const handleCreateGame = async (e) => {
     e.preventDefault();
@@ -26,10 +28,11 @@ function HomePage() {
     setLoading(true);
 
     try {
-      // Step 1: Create the game
+      // Step 1: Create the game with selected voice
       const createResponse = await fetch(getApiUrl('/api/games/create'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voice }),
       });
 
       if (!createResponse.ok) {
@@ -142,6 +145,7 @@ function HomePage() {
     setPlayerName('');
     setPreferences('');
     setGameCode('');
+    setVoice('Timothy');
   };
 
   return (
@@ -204,6 +208,8 @@ function HomePage() {
                 rows={4}
               />
             </div>
+
+            <VoiceSelector value={voice} onChange={setVoice} disabled={loading} />
 
             <button
               type="submit"

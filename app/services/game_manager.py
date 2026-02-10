@@ -69,9 +69,12 @@ class GameManager:
 
         logger.info("GameManager stopped")
 
-    async def create_game(self) -> GameInstance:
+    async def create_game(self, voice: Optional[str] = None) -> GameInstance:
         """
         Create a new game.
+
+        Args:
+            voice: Optional TTS voice ID for the AI host
 
         Returns:
             The newly created GameInstance
@@ -80,7 +83,7 @@ class GameManager:
         game_code = self._generate_game_code()
 
         # Create in-memory instance
-        game = GameInstance(game_id=game_id, game_code=game_code)
+        game = GameInstance(game_id=game_id, game_code=game_code, voice=voice)
 
         # Store references
         self.active_games[game_id] = game

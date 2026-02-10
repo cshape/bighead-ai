@@ -1,0 +1,73 @@
+.voice-selector {
+  margin-top: 8px;
+}
+
+.voice-label {
+  display: block;
+  font-size: 1rem;
+  color: var(--color-gold);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.voice-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.voice-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 8px;
+  background: var(--color-subtle-bg, rgba(212, 197, 169, 0.05));
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-parchment);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.voice-option:hover:not(:disabled) {
+  border-color: var(--color-gold);
+  background: rgba(201, 168, 76, 0.1);
+}
+
+.voice-option.active {
+  border-color: var(--color-gold);
+  background: rgba(201, 168, 76, 0.15);
+}
+
+.voice-option:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.voice-name {
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+.voice-desc {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+@media (max-width: 480px) {
+  .voice-options {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .voice-option {
+    padding: 8px 6px;
+  }
+
+  .voice-name {
+    font-size: 0.85rem;
+  }
+}

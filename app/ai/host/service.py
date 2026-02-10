@@ -31,19 +31,20 @@ class AIHostService:
     and manages the game flow without using browser automation.
     """
     
-    def __init__(self, name: str):
+    def __init__(self, name: str, voice: str = "Timothy"):
         """
         Initialize the AI host service.
-        
+
         Args:
             name: The name of the AI host
+            voice: The TTS voice ID for speech synthesis
         """
-        logger.info(f"Initializing AI Host Service with name: {name}")
+        logger.info(f"Initializing AI Host Service with name: {name}, voice: {voice}")
         self.name = name
-        
+
         # Initialize API keys
         self.inworld_api_key = os.environ.get("INWORLD_API_KEY")
-        self.tts_voice = "Timothy"
+        self.tts_voice = voice
         
         # Initialize component managers
         self.game_state_manager = GameStateManager()

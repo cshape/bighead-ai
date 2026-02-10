@@ -200,6 +200,11 @@ function LobbyPage() {
             </button>
           </div>
           <p className="game-code-hint">Share this code with other players to join</p>
+          {gameState?.voice && (
+            <p className="game-code-hint" style={{ marginTop: '8px' }}>
+              Host voice: <strong>{gameState.voice}</strong>
+            </p>
+          )}
         </div>
 
         <div className="players-section">

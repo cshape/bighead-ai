@@ -37,11 +37,14 @@ class GameInstance:
     # Required players to start (can be overridden)
     REQUIRED_PLAYERS = 1
 
+    DEFAULT_VOICE = "Timothy"
+
     def __init__(
         self,
         game_id: str,
         game_code: str,
         host_player_id: Optional[str] = None,
+        voice: Optional[str] = None,
     ):
         """
         Initialize a new game instance.
@@ -50,10 +53,12 @@ class GameInstance:
             game_id: The unique game UUID
             game_code: The 6-digit game code
             host_player_id: Optional player UUID who is the host
+            voice: Optional TTS voice ID for the AI host
         """
         self.game_id = game_id
         self.game_code = game_code
         self.host_player_id = host_player_id
+        self.voice = voice or self.DEFAULT_VOICE
         self.status = self.STATUS_LOBBY
         self.created_at = datetime.utcnow()
 
@@ -83,7 +88,10 @@ class GameInstance:
     def ai_host(self) -> AIHostService:
         """Get or create the AI host service for this game."""
         if self._ai_host is None:
-            self._ai_host = AIHostService(name=f"AI Host ({self.game_code})")
+            self._ai_host = AIHostService(
+                name=f"AI Host ({self.game_code})",
+                voice=self.voice,
+            )
         return self._ai_host
 
     @property
@@ -275,6 +283,7 @@ class GameInstance:
             "required_players": self.REQUIRED_PLAYERS,
             "can_start": self.can_start(),
             "host_player_id": self.host_player_id,
+            "voice": self.voice,
         }
 
     def to_dict(self) -> Dict[str, Any]:

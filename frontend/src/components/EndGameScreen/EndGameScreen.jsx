@@ -1,12 +1,16 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useGame } from '../../contexts/GameContext';
+import { getApiUrl } from '../../config';
 import './EndGameScreen.css';
 
 function EndGameScreen() {
   const { state } = useGame();
   const { finalResults } = state;
+  const { code } = useParams();
   const navigate = useNavigate();
+  const [restarting, setRestarting] = useState(false);
+  const [shareText, setShareText] = useState('Share Results');
 
   if (!finalResults) return null;
 
@@ -15,7 +19,49 @@ function EndGameScreen() {
   // Sort players by score descending
   const sortedPlayers = Object.entries(scores).sort(([, a], [, b]) => b - a);
 
-  const handlePlayAgain = () => {
+  const playerInfo = JSON.parse(sessionStorage.getItem('bighead_playerInfo') || '{}');
+  const gameId = playerInfo.gameId || state.gameId;
+
+  const handlePlayAgain = async () => {
+    if (!gameId) {
+      navigate('/');
+      return;
+    }
+
+    setRestarting(true);
+    try {
+      const response = await fetch(getApiUrl(`/api/games/${gameId}/restart`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to restart');
+      }
+      // Game will restart and WebSocket will receive game_restart event
+    } catch {
+      // Fallback: navigate home to create a new game
+      navigate('/');
+    } finally {
+      setRestarting(false);
+    }
+  };
+
+  const handleShare = () => {
+    const lines = ['BIG HEAD - Final Scores'];
+    sortedPlayers.forEach(([name, score], index) => {
+      const medal = index === 0 ? ' (Winner)' : '';
+      lines.push(`${index + 1}. ${name}: $${score.toLocaleString()}${medal}`);
+    });
+    const text = lines.join('\n');
+
+    navigator.clipboard.writeText(text).then(() => {
+      setShareText('Copied!');
+      setTimeout(() => setShareText('Share Results'), 2000);
+    });
+  };
+
+  const handleHome = () => {
     navigate('/');
   };
 
@@ -43,12 +89,23 @@ function EndGameScreen() {
           </ol>
         </div>
 
-        <button
-          className="end-game-play-again"
-          onClick={handlePlayAgain}
-        >
-          Play Again
-        </button>
+        <div className="end-game-actions">
+          <button
+            className="end-game-play-again"
+            onClick={handlePlayAgain}
+            disabled={restarting}
+          >
+            {restarting ? 'Restarting...' : 'Play Again'}
+          </button>
+
+          <button className="end-game-share" onClick={handleShare}>
+            {shareText}
+          </button>
+
+          <button className="end-game-home" onClick={handleHome}>
+            Back to Home
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -1,25 +1,26 @@
 .end-game-page {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #2C2519;
+  background: var(--color-board-bg);
   padding: 20px;
 }
 
 .end-game-container {
-  background: #3E3328;
-  border: 2px solid #5C4833;
+  background: var(--color-cell-bg);
+  border: 2px solid var(--color-border);
   border-radius: 8px;
   padding: 40px;
   max-width: 500px;
   width: 100%;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4), 0 0 60px rgba(201, 168, 76, 0.06);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4), 0 0 60px var(--color-highlight-glow-lg);
   text-align: center;
 }
 
 .end-game-title {
-  color: #C9A84C;
+  color: var(--color-gold);
   font-size: 2rem;
   font-weight: bold;
   font-family: var(--font-game-display);
@@ -28,10 +29,16 @@
 }
 
 .end-game-winner {
-  color: #D4C5A9;
-  font-size: 1.25rem;
+  color: var(--color-gold);
+  font-size: 1.5rem;
   font-family: var(--font-game-display);
   margin-bottom: 30px;
+  animation: winner-glow 2s ease-in-out infinite;
+}
+
+@keyframes winner-glow {
+  0%, 100% { text-shadow: 0 0 10px rgba(201, 168, 76, 0.3); }
+  50% { text-shadow: 0 0 20px rgba(201, 168, 76, 0.6), 0 0 40px rgba(201, 168, 76, 0.2); }
 }
 
 .end-game-scoreboard {
@@ -39,11 +46,11 @@
 }
 
 .end-game-scoreboard h3 {
-  color: #D4C5A9;
+  color: var(--color-parchment);
   font-size: 1.125rem;
   margin-bottom: 16px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #5C4833;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .end-game-scores {
@@ -56,16 +63,29 @@
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  background: rgba(92, 72, 51, 0.3);
+  background: var(--color-subtle-bg);
   border-radius: 8px;
   margin-bottom: 8px;
-  color: #D4C5A9;
+  color: var(--color-parchment);
   font-size: 1rem;
+  animation: score-slide-in 0.4s ease-out both;
+}
+
+.end-game-score-row:nth-child(1) { animation-delay: 0.1s; }
+.end-game-score-row:nth-child(2) { animation-delay: 0.2s; }
+.end-game-score-row:nth-child(3) { animation-delay: 0.3s; }
+.end-game-score-row:nth-child(4) { animation-delay: 0.4s; }
+.end-game-score-row:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes score-slide-in {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .end-game-score-row.winner {
   background: rgba(201, 168, 76, 0.15);
-  color: #C9A84C;
+  border: 1px solid var(--color-gold);
+  color: var(--color-gold);
   font-weight: bold;
 }
 
@@ -87,13 +107,19 @@
   text-align: right;
 }
 
+.end-game-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .end-game-play-again {
   width: 100%;
   padding: 16px 24px;
   font-size: 1.25rem;
   font-weight: bold;
-  background: #A33E3E;
-  color: #EFE6D8;
+  background: var(--color-accent);
+  color: var(--color-light-text);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -103,7 +129,66 @@
 }
 
 .end-game-play-again:hover {
-  background: #8B3535;
+  background: var(--color-accent-hover);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(163, 62, 62, 0.4);
+  box-shadow: 0 4px 12px var(--color-accent-subtle-border);
+}
+
+.end-game-play-again:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.end-game-share {
+  width: 100%;
+  padding: 12px 24px;
+  font-size: 1rem;
+  background: rgba(212, 197, 169, 0.1);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-parchment);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.end-game-share:hover {
+  background: var(--color-border);
+}
+
+.end-game-home {
+  width: 100%;
+  padding: 12px 24px;
+  font-size: 1rem;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.end-game-home:hover {
+  color: var(--color-parchment);
+  border-color: var(--color-muted);
+}
+
+/* ---- Mobile responsive ---- */
+@media (max-width: 480px) {
+  .end-game-container {
+    padding: 24px 16px;
+  }
+
+  .end-game-title {
+    font-size: 1.5rem;
+  }
+
+  .end-game-winner {
+    font-size: 1.2rem;
+  }
+
+  .end-game-play-again {
+    padding: 14px 20px;
+    font-size: 1.1rem;
+  }
 }

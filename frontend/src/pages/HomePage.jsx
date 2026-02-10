@@ -202,7 +202,7 @@ function HomePage() {
                 id="preferences"
                 value={preferences}
                 onChange={(e) => setPreferences(e.target.value)}
-                placeholder={"Describe your ideal game — topics, themes, difficulty, anything goes!\n\ne.g., \"90s movies and music, but make it hard\" or \"Science for kids\" or \"A mix of sports, food, and weird history\""}
+                placeholder="Enter topics or difficulty suggestions"
                 className="home-input home-textarea"
                 disabled={loading}
                 rows={4}
@@ -265,7 +265,7 @@ function HomePage() {
                 id="preferences"
                 value={preferences}
                 onChange={(e) => setPreferences(e.target.value)}
-                placeholder={"Describe your ideal game — topics, themes, difficulty, anything goes!\n\ne.g., \"90s movies and music, but make it hard\" or \"Science for kids\""}
+                placeholder="Enter topics or difficulty suggestions"
                 className="home-input home-textarea"
                 disabled={loading}
                 rows={3}

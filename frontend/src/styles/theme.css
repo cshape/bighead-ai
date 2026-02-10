@@ -1,25 +1,7 @@
-:root {
-  /* Color palette */
-  --color-primary-text: #2B2B2B;
-  --color-background: #EFE6D8;
-  --color-primary-ui: #6B7A4C;
-  --color-secondary-ui: #4F5D73;
-  --color-accent: #A33E3E;
-  --color-prestige: #B59A5B;
-  --color-success: #2F4F3E;
-  --color-borders: #7A756D;
-
-  /* Functional colors */
-  --color-text: var(--color-primary-text);
-  --color-primary: var(--color-primary-ui);
-  --color-secondary: var(--color-secondary-ui);
-  --color-highlight: var(--color-prestige);
-
-  /* UI States */
-  --color-disabled: rgba(122, 117, 109, 0.4);
-  --color-error: #A33E3E;
-
-  /* Game Board Palette — "Ancient Map" */
+/* Default theme: Ancient Map (brown/gold) */
+:root,
+[data-theme="ancient-map"] {
+  /* Core palette */
   --color-board-bg: #2C2519;
   --color-cell-bg: #3E3328;
   --color-cell-text: #C9A84C;
@@ -28,10 +10,42 @@
   --color-cell-used-text: rgba(201, 168, 76, 0.2);
   --color-category-bg: #4A3F30;
   --color-category-text: #D4C5A9;
-  --color-antique-gold: #C9A84C;
-  --color-aged-parchment: #D4C5A9;
-  --color-sienna: #5C4833;
-  --color-warm-charcoal: #38322B;
+
+  /* Named colors */
+  --color-gold: #C9A84C;
+  --color-gold-hover: #D4B85C;
+  --color-parchment: #D4C5A9;
+  --color-light-text: #EFE6D8;
+  --color-bright-text: #F5F0E8;
+  --color-border: #5C4833;
+  --color-panel: #38322B;
+  --color-muted: #7A756D;
+  --color-muted-alt: #8A8078;
+
+  /* Accent colors */
+  --color-accent: #A33E3E;
+  --color-accent-hover: #8B3535;
+  --color-success: #2F4F3E;
+  --color-success-hover: #264033;
+  --color-error: #A33E3E;
+
+  /* Functional */
+  --color-overlay: rgba(20, 17, 12, 0.92);
+  --color-panel-overlay: rgba(0, 0, 0, 0.3);
+  --color-cell-hover-bg: #463A2D;
+  --color-cell-border-used: rgba(92, 72, 51, 0.25);
+  --color-highlight-glow: rgba(201, 168, 76, 0.12);
+  --color-highlight-glow-lg: rgba(201, 168, 76, 0.06);
+  --color-highlight-glow-md: rgba(201, 168, 76, 0.08);
+  --color-subtle-bg: rgba(92, 72, 51, 0.3);
+  --color-subtle-highlight: rgba(74, 63, 48, 0.3);
+  --color-accent-subtle: rgba(163, 62, 62, 0.15);
+  --color-accent-subtle-border: rgba(163, 62, 62, 0.4);
+  --color-input-bg: rgba(212, 197, 169, 0.12);
+  --color-inset-light: rgba(255, 255, 255, 0.06);
+  --color-inset-dark: rgba(0, 0, 0, 0.15);
+  --color-chat-input-bg: rgba(255, 255, 255, 0.9);
+  --color-chat-input-text: #2B2B2B;
 
   /* Typography */
   --font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, sans-serif;
@@ -59,4 +73,94 @@
   --shadow-sm: 0 1px 3px rgba(43, 43, 43, 0.1);
   --shadow-md: 0 4px 6px rgba(43, 43, 43, 0.1);
   --shadow-lg: 0 10px 20px rgba(43, 43, 43, 0.15);
+}
+
+/* Classic Jeopardy (blue/gold) */
+[data-theme="classic"] {
+  --color-board-bg: #060CE9;
+  --color-cell-bg: #0A11A8;
+  --color-cell-text: #D4A843;
+  --color-cell-value: #D4A843;
+  --color-cell-used: rgba(6, 12, 120, 0.4);
+  --color-cell-used-text: rgba(212, 168, 67, 0.2);
+  --color-category-bg: #0D14C0;
+  --color-category-text: #FFFFFF;
+
+  --color-gold: #D4A843;
+  --color-gold-hover: #E0B94F;
+  --color-parchment: #E0D5C0;
+  --color-light-text: #FFFFFF;
+  --color-bright-text: #FFFFFF;
+  --color-border: #1A22D4;
+  --color-panel: #050BA0;
+  --color-muted: #8888CC;
+  --color-muted-alt: #9999BB;
+
+  --color-accent: #C23030;
+  --color-accent-hover: #A02828;
+  --color-success: #2E7D32;
+  --color-success-hover: #1B5E20;
+  --color-error: #C23030;
+
+  --color-overlay: rgba(3, 5, 80, 0.94);
+  --color-panel-overlay: rgba(0, 0, 40, 0.3);
+  --color-cell-hover-bg: #0E18B8;
+  --color-cell-border-used: rgba(26, 34, 212, 0.25);
+  --color-highlight-glow: rgba(212, 168, 67, 0.15);
+  --color-highlight-glow-lg: rgba(212, 168, 67, 0.06);
+  --color-highlight-glow-md: rgba(212, 168, 67, 0.08);
+  --color-subtle-bg: rgba(13, 20, 192, 0.4);
+  --color-subtle-highlight: rgba(10, 17, 168, 0.4);
+  --color-accent-subtle: rgba(194, 48, 48, 0.15);
+  --color-accent-subtle-border: rgba(194, 48, 48, 0.4);
+  --color-input-bg: rgba(255, 255, 255, 0.12);
+  --color-inset-light: rgba(255, 255, 255, 0.1);
+  --color-inset-dark: rgba(0, 0, 0, 0.2);
+  --color-chat-input-bg: rgba(255, 255, 255, 0.9);
+  --color-chat-input-text: #1A1A3E;
+}
+
+/* Midnight (dark mode) */
+[data-theme="midnight"] {
+  --color-board-bg: #121212;
+  --color-cell-bg: #1E1E1E;
+  --color-cell-text: #BB86FC;
+  --color-cell-value: #BB86FC;
+  --color-cell-used: rgba(18, 18, 18, 0.5);
+  --color-cell-used-text: rgba(187, 134, 252, 0.2);
+  --color-category-bg: #2A2A2A;
+  --color-category-text: #E0E0E0;
+
+  --color-gold: #BB86FC;
+  --color-gold-hover: #D1A3FF;
+  --color-parchment: #CCCCCC;
+  --color-light-text: #E0E0E0;
+  --color-bright-text: #F0F0F0;
+  --color-border: #333333;
+  --color-panel: #181818;
+  --color-muted: #666666;
+  --color-muted-alt: #777777;
+
+  --color-accent: #CF6679;
+  --color-accent-hover: #B05060;
+  --color-success: #03DAC6;
+  --color-success-hover: #018786;
+  --color-error: #CF6679;
+
+  --color-overlay: rgba(0, 0, 0, 0.94);
+  --color-panel-overlay: rgba(0, 0, 0, 0.4);
+  --color-cell-hover-bg: #2A2A2A;
+  --color-cell-border-used: rgba(51, 51, 51, 0.3);
+  --color-highlight-glow: rgba(187, 134, 252, 0.12);
+  --color-highlight-glow-lg: rgba(187, 134, 252, 0.06);
+  --color-highlight-glow-md: rgba(187, 134, 252, 0.08);
+  --color-subtle-bg: rgba(42, 42, 42, 0.5);
+  --color-subtle-highlight: rgba(30, 30, 30, 0.5);
+  --color-accent-subtle: rgba(207, 102, 121, 0.15);
+  --color-accent-subtle-border: rgba(207, 102, 121, 0.4);
+  --color-input-bg: rgba(255, 255, 255, 0.08);
+  --color-inset-light: rgba(255, 255, 255, 0.04);
+  --color-inset-dark: rgba(0, 0, 0, 0.2);
+  --color-chat-input-bg: rgba(255, 255, 255, 0.9);
+  --color-chat-input-text: #121212;
 }

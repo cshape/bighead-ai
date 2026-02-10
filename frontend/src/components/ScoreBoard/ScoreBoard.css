@@ -8,9 +8,9 @@
 
 .score-board h2 {
   text-align: center;
-  color: #C9A84C;
+  color: var(--color-gold);
   margin-bottom: 20px;
-  border-bottom: 1px solid #5C4833;
+  border-bottom: 1px solid var(--color-border);
   padding-bottom: 10px;
   flex-shrink: 0; /* Prevent the header from shrinking */
   font-family: var(--font-game-display);
@@ -27,7 +27,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: rgba(74, 63, 48, 0.3);
+  background-color: var(--color-subtle-highlight);
   padding: 15px;
   border-radius: 5px;
 }
@@ -35,13 +35,13 @@
 .player-name {
   font-weight: bold;
   font-size: 1.2rem;
-  color: #D4C5A9;
+  color: var(--color-parchment);
 }
 
 .score {
   font-family: var(--font-game-display);
   font-size: 1.5rem;
-  color: #C9A84C;
+  color: var(--color-gold);
   font-weight: bold;
 }
 

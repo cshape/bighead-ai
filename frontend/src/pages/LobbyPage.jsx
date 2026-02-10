@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getApiUrl, getWebSocketUrl } from '../config';
 import { useGame } from '../contexts/GameContext';
+import ThemeSelector from '../components/ThemeSelector/ThemeSelector';
 import './LobbyPage.css';
 
 function LobbyPage() {
@@ -247,6 +248,8 @@ function LobbyPage() {
         {error && !(error === 'Connection error' && players.length > 0) && (
           <div className="error-message">{error}</div>
         )}
+
+        <ThemeSelector />
       </div>
     </div>
   );

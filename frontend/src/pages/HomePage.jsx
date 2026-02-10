@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getApiUrl } from '../config';
+import ThemeSelector from '../components/ThemeSelector/ThemeSelector';
 import './HomePage.css';
 
 function HomePage() {
@@ -285,6 +286,7 @@ function HomePage() {
         )}
 
         {error && <div className="error-message">{error}</div>}
+        <ThemeSelector />
       </div>
     </div>
   );

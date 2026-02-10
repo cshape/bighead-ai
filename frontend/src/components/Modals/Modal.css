@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(20, 17, 12, 0.92);
+  background-color: var(--color-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,34 +12,34 @@
 }
 
 .modal-content {
-  background-color: #3E3328;
+  background-color: var(--color-cell-bg);
   padding: 3rem;
   border-radius: 10px;
   max-width: 80%;
   width: 800px;
   text-align: center;
   position: relative;
-  border: 2px solid #5C4833;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 60px rgba(201, 168, 76, 0.08);
-  color: #EFE6D8;
+  border: 2px solid var(--color-border);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 60px var(--color-highlight-glow-md);
+  color: var(--color-light-text);
 }
 
 .modal-content h2 {
-  color: #C9A84C;
+  color: var(--color-gold);
   font-family: var(--font-game-display);
   font-size: 1.8rem;
   margin-bottom: 1rem;
 }
 
 .modal-content p {
-  color: #D4C5A9;
+  color: var(--color-parchment);
   font-size: 1.1rem;
   line-height: 1.5;
 }
 
 .modal-content .question-text {
   font-size: 2.2rem;
-  color: #F5F0E8;
+  color: var(--color-bright-text);
   font-family: var(--font-game-display);
   line-height: 1.6;
   margin: 1.5rem 0;
@@ -50,8 +50,8 @@
 }
 
 .modal-content button {
-  background-color: #A33E3E;
-  color: #EFE6D8;
+  background-color: var(--color-accent);
+  color: var(--color-light-text);
   border: none;
   padding: 1rem 2rem;
   font-size: 1.2rem;
@@ -62,8 +62,8 @@
 
 .modal-content button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  background-color: #8B3535;
+  box-shadow: 0 4px 12px var(--color-panel-overlay);
+  background-color: var(--color-accent-hover);
 }
 
 /* Player registration form styles */
@@ -71,9 +71,9 @@
   padding: 1rem;
   font-size: 1.2rem;
   border-radius: 4px;
-  border: 2px solid #5C4833;
-  background: #38322B;
-  color: #D4C5A9;
+  border: 2px solid var(--color-border);
+  background: var(--color-panel);
+  color: var(--color-parchment);
   width: 60%;
   margin-bottom: 10px;
 }
@@ -96,11 +96,11 @@
   padding: 1rem;
   border-radius: 4px;
   font-size: 1.5rem;
-  color: #D4C5A9;
+  color: var(--color-parchment);
 }
 
 .buzzer-status.active {
-  background-color: #2F4F3E;
+  background-color: var(--color-success);
   animation: pulse 2s infinite;
 }
 
@@ -121,13 +121,13 @@
 }
 
 .buzzer-control:not(.active) {
-  background-color: #A33E3E;
-  color: #EFE6D8;
+  background-color: var(--color-accent);
+  color: var(--color-light-text);
 }
 
 .buzzer-control.active {
-  background-color: #2F4F3E;
-  color: #EFE6D8;
+  background-color: var(--color-success);
+  color: var(--color-light-text);
 }
 
 .player-buzzer {
@@ -141,13 +141,13 @@
 }
 
 .player-buzzer:not(.active) {
-  background-color: #A33E3E;
-  color: #EFE6D8;
+  background-color: var(--color-accent);
+  color: var(--color-light-text);
 }
 
 .player-buzzer.active {
-  background-color: #2F4F3E;
-  color: #EFE6D8;
+  background-color: var(--color-success);
+  color: var(--color-light-text);
   animation: pulse 1s infinite;
 }
 
@@ -163,7 +163,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(20, 17, 12, 0.92);
+  background-color: var(--color-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -171,8 +171,8 @@
 }
 
 .double-big-head-banner {
-  background-color: #C9A84C;
-  color: #2C2519;
+  background-color: var(--color-gold);
+  color: var(--color-board-bg);
   padding: 5px 10px;
   border-radius: 4px;
   font-weight: bold;
@@ -181,7 +181,7 @@
 }
 
 .double-big-head h2 {
-  color: #C9A84C;
+  color: var(--color-gold);
   font-size: 32px;
   animation: pulse 1.5s infinite;
   text-align: center;
@@ -201,9 +201,9 @@
 .double-big-head input {
   padding: 8px 12px;
   border-radius: 4px;
-  border: 1px solid #5C4833;
-  background-color: #38322B;
-  color: #D4C5A9;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-panel);
+  color: var(--color-parchment);
   font-size: 16px;
 }
 
@@ -212,8 +212,8 @@
 }
 
 .double-big-head form button {
-  background-color: #C9A84C;
-  color: #2C2519;
+  background-color: var(--color-gold);
+  color: var(--color-board-bg);
   font-weight: bold;
   border: none;
   padding: 10px;
@@ -224,14 +224,14 @@
 }
 
 .double-big-head form button:hover {
-  background-color: #D4B85C;
+  background-color: var(--color-gold-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px var(--color-panel-overlay);
 }
 
 .show-question-btn {
-  background-color: #C9A84C !important;
-  color: #2C2519 !important;
+  background-color: var(--color-gold) !important;
+  color: var(--color-board-bg) !important;
   font-weight: bold;
   font-size: 18px;
   padding: 12px 20px !important;
@@ -244,9 +244,9 @@
 }
 
 .show-question-btn:hover {
-  background-color: #D4B85C !important;
+  background-color: var(--color-gold-hover) !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px var(--color-panel-overlay);
 }
 
 @keyframes pulse {
@@ -275,14 +275,14 @@
 .admin-controls input {
   padding: 8px;
   font-size: 16px;
-  border: 1px solid #5C4833;
+  border: 1px solid var(--color-border);
   border-radius: 4px;
 }
 
 .admin-controls form button {
   padding: 10px;
-  background-color: #4A3F30;
-  color: #D4C5A9;
+  background-color: var(--color-category-bg);
+  color: var(--color-parchment);
   border: none;
   border-radius: 4px;
   font-size: 16px;
@@ -291,7 +291,7 @@
 }
 
 .admin-controls form button:hover {
-  background-color: #5C4833;
+  background-color: var(--color-border);
 }
 
 /* Timer styles */
@@ -301,7 +301,7 @@
   left: 0;
   width: 100%;
   height: 10px;
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: var(--color-panel-overlay);
   overflow: hidden;
   border-bottom-left-radius: 10px;
   border-bottom-right-radius: 10px;
@@ -309,7 +309,7 @@
 
 .timer-bar {
   height: 100%;
-  background-color: #C9A84C;
+  background-color: var(--color-gold);
   transition: width 0.05s linear;
 }
 
@@ -328,7 +328,7 @@
 }
 
 .answer-prompt {
-  color: #C9A84C;
+  color: var(--color-gold);
   font-weight: bold;
   font-size: 1.3em !important;
   animation: pulse 1.5s infinite;
@@ -354,26 +354,26 @@
   padding: 12px 15px;
   font-size: 24px;
   text-align: center;
-  border: 2px solid #C9A84C;
+  border: 2px solid var(--color-gold);
   border-radius: 8px;
-  background-color: #38322B;
-  color: #C9A84C;
+  background-color: var(--color-panel);
+  color: var(--color-gold);
   font-weight: bold;
 }
 
 .bet-input:focus {
   outline: none;
-  border-color: #D4C5A9;
+  border-color: var(--color-parchment);
 }
 
 .bet-range {
-  color: #D4C5A9;
+  color: var(--color-parchment);
   font-size: 14px;
 }
 
 .bet-submit-btn {
-  background-color: #C9A84C !important;
-  color: #2C2519 !important;
+  background-color: var(--color-gold) !important;
+  color: var(--color-board-bg) !important;
   font-weight: bold;
   font-size: 18px;
   padding: 15px 40px !important;
@@ -384,13 +384,13 @@
 }
 
 .bet-submit-btn:hover {
-  background-color: #D4B85C !important;
+  background-color: var(--color-gold-hover) !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px var(--color-panel-overlay);
 }
 
 .waiting-message {
-  color: #D4C5A9;
+  color: var(--color-parchment);
   font-size: 18px;
   font-style: italic;
   margin-top: 20px;
@@ -409,20 +409,20 @@
   max-width: 400px;
   padding: 12px 15px;
   font-size: 20px;
-  border: 2px solid #C9A84C;
+  border: 2px solid var(--color-gold);
   border-radius: 8px;
-  background-color: #38322B;
-  color: #D4C5A9;
+  background-color: var(--color-panel);
+  color: var(--color-parchment);
 }
 
 .answer-input:focus {
   outline: none;
-  border-color: #D4C5A9;
+  border-color: var(--color-parchment);
 }
 
 .answer-submit-btn {
-  background-color: #C9A84C !important;
-  color: #2C2519 !important;
+  background-color: var(--color-gold) !important;
+  color: var(--color-board-bg) !important;
   font-weight: bold;
   font-size: 18px;
   padding: 12px 24px !important;
@@ -432,7 +432,7 @@
 }
 
 .answer-submitted-text {
-  color: #C9A84C;
+  color: var(--color-gold);
   font-size: 18px;
   font-style: italic;
   margin-top: 20px;

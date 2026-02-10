@@ -133,6 +133,20 @@
   opacity: 0.7;
 }
 
+.home-textarea {
+  resize: vertical;
+  min-height: 80px;
+  max-height: 200px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.preferences-group label {
+  font-size: 1rem !important;
+  color: #C9A84C !important;
+  font-weight: 600;
+}
+
 .back-button {
   background: transparent;
   color: #7A756D;

@@ -189,16 +189,16 @@ function HomePage() {
               />
             </div>
 
-            <div className="input-group">
-              <label htmlFor="preferences">Category Preferences (optional)</label>
-              <input
+            <div className="input-group preferences-group">
+              <label htmlFor="preferences">What kind of game do you want?</label>
+              <textarea
                 id="preferences"
-                type="text"
                 value={preferences}
                 onChange={(e) => setPreferences(e.target.value)}
-                placeholder="e.g., Science, History, 90s Movies"
-                className="home-input"
+                placeholder={"Describe your ideal game — topics, themes, difficulty, anything goes!\n\ne.g., \"90s movies and music, but make it hard\" or \"Science for kids\" or \"A mix of sports, food, and weird history\""}
+                className="home-input home-textarea"
                 disabled={loading}
+                rows={4}
               />
             </div>
 
@@ -250,16 +250,16 @@ function HomePage() {
               />
             </div>
 
-            <div className="input-group">
-              <label htmlFor="preferences">Category Preferences (optional)</label>
-              <input
+            <div className="input-group preferences-group">
+              <label htmlFor="preferences">What kind of game do you want?</label>
+              <textarea
                 id="preferences"
-                type="text"
                 value={preferences}
                 onChange={(e) => setPreferences(e.target.value)}
-                placeholder="e.g., Science, History, 90s Movies"
-                className="home-input"
+                placeholder={"Describe your ideal game — topics, themes, difficulty, anything goes!\n\ne.g., \"90s movies and music, but make it hard\" or \"Science for kids\""}
+                className="home-input home-textarea"
                 disabled={loading}
+                rows={3}
               />
             </div>
 

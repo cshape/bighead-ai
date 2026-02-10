@@ -2,5 +2,14 @@ venv/
 node_modules/
 .env
 .env.*
+.DS_Store
 static/audio/
 frontend/dist/
+app/game_data/
+state.json
+
+# Gas Town (added by gt)
+.runtime/
+.claude/
+.beads/
+.logs/

@@ -37,7 +37,7 @@ class GameInstance:
     # Required players to start (can be overridden)
     REQUIRED_PLAYERS = 1
 
-    DEFAULT_VOICE = "Timothy"
+    DEFAULT_VOICE = "Clive"
 
     def __init__(
         self,

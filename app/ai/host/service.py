@@ -31,7 +31,7 @@ class AIHostService:
     and manages the game flow without using browser automation.
     """
     
-    def __init__(self, name: str, voice: str = "Timothy"):
+    def __init__(self, name: str, voice: str = "Clive"):
         """
         Initialize the AI host service.
 

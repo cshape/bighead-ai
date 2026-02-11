@@ -14,7 +14,7 @@ function HomePage() {
   const [loading, setLoading] = useState(false);
   const [joining, setJoining] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [voice, setVoice] = useState('Timothy');
+  const [voice, setVoice] = useState('Clive');
 
   const handleCreateGame = async (e) => {
     e.preventDefault();
@@ -145,7 +145,7 @@ function HomePage() {
     setPlayerName('');
     setPreferences('');
     setGameCode('');
-    setVoice('Timothy');
+    setVoice('Clive');
   };
 
   return (
@@ -202,7 +202,7 @@ function HomePage() {
                 id="preferences"
                 value={preferences}
                 onChange={(e) => setPreferences(e.target.value)}
-                placeholder="Enter topics or difficulty suggestions"
+                placeholder="Enter whatever"
                 className="home-input home-textarea"
                 disabled={loading}
                 rows={4}
@@ -265,7 +265,7 @@ function HomePage() {
                 id="preferences"
                 value={preferences}
                 onChange={(e) => setPreferences(e.target.value)}
-                placeholder="Enter topics or difficulty suggestions"
+                placeholder="Enter whatever"
                 className="home-input home-textarea"
                 disabled={loading}
                 rows={3}

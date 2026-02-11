@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getApiUrl } from '../../config';
 import './VoiceSelector.css';
 
 const FALLBACK_VOICES = [
-  { id: 'Timothy', name: 'Timothy', description: 'Default male host voice' },
-  { id: 'Dennis', name: 'Dennis', description: 'Smooth, calm and friendly male voice' },
-  { id: 'Alex', name: 'Alex', description: 'Energetic and expressive male voice' },
-  { id: 'Ashley', name: 'Ashley', description: 'Warm, natural female voice' },
+  { id: 'Clive', name: 'Clive' },
+  { id: 'Dennis', name: 'Dennis' },
+  { id: 'Wendy', name: 'Wendy' },
+  { id: 'Ashley', name: 'Ashley' },
 ];
 
 function VoiceSelector({ value, onChange, disabled }) {
   const [voices, setVoices] = useState(FALLBACK_VOICES);
+  const [previewLoading, setPreviewLoading] = useState(null);
+  const audioRef = useRef(null);
 
   useEffect(() => {
     fetch(getApiUrl('/api/games/voices'))
@@ -25,6 +27,31 @@ function VoiceSelector({ value, onChange, disabled }) {
       });
   }, []);
 
+  const handleVoiceClick = async (voiceId) => {
+    onChange(voiceId);
+
+    // Play TTS preview
+    setPreviewLoading(voiceId);
+    try {
+      const res = await fetch(getApiUrl(`/api/games/voices/preview/${voiceId}`));
+      if (!res.ok) throw new Error('Preview failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => URL.revokeObjectURL(url);
+      audio.play();
+    } catch {
+      // Silently fail - voice is still selected
+    } finally {
+      setPreviewLoading(null);
+    }
+  };
+
   return (
     <div className="voice-selector">
       <label className="voice-label">AI Host Voice</label>
@@ -34,14 +61,10 @@ function VoiceSelector({ value, onChange, disabled }) {
             key={v.id}
             type="button"
             className={`voice-option ${value === v.id ? 'active' : ''}`}
-            onClick={() => onChange(v.id)}
-            disabled={disabled}
-            title={v.description}
+            onClick={() => handleVoiceClick(v.id)}
+            disabled={disabled || previewLoading === v.id}
           >
             <span className="voice-name">{v.name}</span>
-            {v.description && (
-              <span className="voice-desc">{v.description}</span>
-            )}
           </button>
         ))}
       </div>

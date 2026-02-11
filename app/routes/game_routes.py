@@ -3,11 +3,13 @@ Game routes for creating and joining games.
 """
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from typing import Optional, List
 import logging
 import os
 import aiohttp
+import base64
 
 logger = logging.getLogger(__name__)
 
@@ -334,8 +336,57 @@ async def list_voices():
 def _fallback_voices():
     """Fallback voice list when Inworld API is unavailable."""
     return [
-        {"id": "Timothy", "name": "Timothy", "description": "Default male host voice"},
-        {"id": "Dennis", "name": "Dennis", "description": "Smooth, calm and friendly male voice"},
-        {"id": "Alex", "name": "Alex", "description": "Energetic and expressive male voice"},
-        {"id": "Ashley", "name": "Ashley", "description": "Warm, natural female voice"},
+        {"id": "Clive", "name": "Clive"},
+        {"id": "Dennis", "name": "Dennis"},
+        {"id": "Wendy", "name": "Wendy"},
+        {"id": "Ashley", "name": "Ashley"},
     ]
+
+
+@router.get("/voices/preview/{voice_id}")
+async def preview_voice(voice_id: str):
+    """Generate a short TTS preview clip for a voice."""
+    api_key = os.environ.get("INWORLD_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="TTS API key not configured")
+
+    auth_value = api_key if api_key.startswith("Basic ") else f"Basic {api_key}"
+    headers = {"Authorization": auth_value, "Content-Type": "application/json"}
+
+    payload = {
+        "text": f"Hi, I'm {voice_id}!",
+        "voiceId": voice_id,
+        "modelId": "inworld-tts-1-max",
+        "audioConfig": {
+            "audioEncoding": "MP3",
+            "sampleRateHertz": 22050,
+            "speakingRate": 1.0,
+            "pitch": 0.0,
+        },
+        "temperature": 1.1,
+    }
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                "https://api.inworld.ai/tts/v1/voice",
+                headers=headers,
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp:
+                if resp.status != 200:
+                    logger.error(f"TTS preview error: {resp.status}")
+                    raise HTTPException(status_code=502, detail="TTS API error")
+
+                data = await resp.json()
+                audio_b64 = data.get("audioContent")
+                if not audio_b64:
+                    raise HTTPException(status_code=502, detail="No audio in response")
+
+                audio_bytes = base64.b64decode(audio_b64)
+                return Response(content=audio_bytes, media_type="audio/mpeg")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating voice preview: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate preview")

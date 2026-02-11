@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class AudioManager:
     """Manages audio queue and playback for the AI host"""
 
-    def __init__(self, api_key=None, voice="Timothy"):
+    def __init__(self, api_key=None, voice="Clive"):
         """Initialize the audio manager"""
         self.tts_client = TTSClient(api_key=api_key)
         self.tts_voice = voice

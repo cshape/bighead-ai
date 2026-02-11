@@ -14,13 +14,14 @@
 .modal-content {
   background-color: var(--color-cell-bg);
   padding: 3rem;
-  border-radius: 10px;
-  max-width: 80%;
-  width: 800px;
+  width: 100%;
+  height: 100%;
   text-align: center;
   position: relative;
-  border: 2px solid var(--color-border);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 60px var(--color-highlight-glow-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   color: var(--color-light-text);
 }
 
@@ -158,12 +159,12 @@
 }
 
 .modal-overlay {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--color-overlay);
+  background-color: var(--color-cell-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -303,8 +304,6 @@
   height: 10px;
   background-color: var(--color-panel-overlay);
   overflow: hidden;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
 }
 
 .timer-bar {
@@ -441,8 +440,6 @@
 /* ---- Mobile responsive ---- */
 @media (max-width: 768px) {
   .modal-content {
-    max-width: 95%;
-    width: auto;
     padding: 1.5rem;
   }
 
@@ -487,7 +484,6 @@
 @media (max-width: 480px) {
   .modal-content {
     padding: 1rem;
-    border-radius: 8px;
   }
 
   .modal-content .question-text {

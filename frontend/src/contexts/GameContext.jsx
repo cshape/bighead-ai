@@ -475,27 +475,28 @@ export function GameProvider({ children }) {
   // Track active audio streams for MSE/blob-based playback
   const audioStreamsRef = useRef({});
 
-  // Shared AudioContext for all audio playback (mobile browsers require user
-  // gesture to create/resume an AudioContext — reusing one avoids the restriction)
-  const audioContextRef = useRef(null);
+  // Persistent Audio element for mobile playback. iOS WebKit requires that
+  // an Audio element be play()-ed during a user gesture before it can be reused
+  // programmatically.  We "warm" it once (silent play) so that later calls to
+  // .play() from WebSocket handlers succeed without a fresh gesture.
+  const gameAudioRef = useRef(null);
 
-  const getAudioContext = useCallback(() => {
-    if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
-      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    // Resume if suspended (mobile Safari suspends by default)
-    if (audioContextRef.current.state === 'suspended') {
-      audioContextRef.current.resume();
-    }
-    return audioContextRef.current;
-  }, []);
-
-  // Call this on any user gesture (button click) to unlock audio for mobile.
-  // Creating or resuming an AudioContext during a user gesture allows subsequent
-  // programmatic playback without gesture requirements.
+  // Call this on any user gesture (button click, tap) to unlock audio for mobile.
   const unlockAudio = useCallback(() => {
-    getAudioContext();
-  }, [getAudioContext]);
+    if (!gameAudioRef.current) {
+      gameAudioRef.current = new Audio();
+    }
+    const a = gameAudioRef.current;
+    // Play a tiny silent data-URI MP3 to activate the iOS audio session.
+    // This is a valid ~0.05s silent MP3 frame.
+    a.src = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRwVHAAAAAAD/+1DEAAAB8ANX9AAACSG0a/80IAQAAH/E8Hg+D58oc/8uD7wfP/y4f8uEOc5/8uH3P/Lg+8H/+XD/lwh/5cP/BAEAQBBwMHP/4IORwMHf/+D4Pg+D5//8MfwfB8='
+    a.play().catch(() => {});
+    // Also create/resume an AudioContext as a fallback
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+    } catch (e) { /* ignore */ }
+  }, []);
 
   // Handle all WebSocket messages in a single callback function
   const handleWebSocketMessage = useCallback((message) => {
@@ -651,35 +652,20 @@ export function GameProvider({ children }) {
           }
           console.log('Using audio ID:', audioId);
           
-          const audio = new Audio(audioUrl);
-          
-          // Add debug event listeners
-          audio.addEventListener('canplay', () => {
-            console.log(`Audio ${audioId} can play`);
-          });
-          
-          audio.addEventListener('playing', () => {
-            console.log(`Audio ${audioId} playback started`);
-            // Ensure buzzer stays disabled while audio is playing
-            dispatch({ type: 'SET_BUZZER_STATUS', payload: false });
-          });
-          
-          audio.addEventListener('error', (e) => {
-            console.error(`Audio ${audioId} error:`, e.target.error);
-            // Still notify backend so the game doesn't freeze waiting for audio_complete
-            sendMessage('com.sc2ctl.bighead.audio_complete', { audio_id: audioId });
-          });
+          // Use the pre-warmed Audio element if available (iOS needs this)
+          const audio = gameAudioRef.current || new Audio();
+          audio.src = audioUrl;
 
-          // When audio completes, notify the backend via WebSocket using sendMessage
-          audio.addEventListener('ended', () => {
+          audio.onended = () => {
             console.log(`Audio ${audioId} playback COMPLETED, notifying backend`);
-
-            // Use the sendMessage function from our useWebSocket hook
             sendMessage('com.sc2ctl.bighead.audio_complete', { audio_id: audioId });
-            console.log(`Audio completion for ${audioId} sent via sendMessage`);
-          });
+          };
 
-          // Play the audio
+          audio.onerror = (e) => {
+            console.error(`Audio ${audioId} error:`, e);
+            sendMessage('com.sc2ctl.bighead.audio_complete', { audio_id: audioId });
+          };
+
           console.log(`Starting audio playback for ${audioId}`);
           audio.play().catch(err => {
             console.error(`Error playing audio ${audioId}:`, err);
@@ -754,22 +740,15 @@ export function GameProvider({ children }) {
         dispatch({ type: 'GAME_COMPLETED', payload: message.payload });
         break;
 
-      // ---- Streaming TTS handlers (Web Audio API progressive decode) ----
+      // ---- Streaming TTS handlers (accumulate chunks, play complete audio) ----
       case 'com.sc2ctl.bighead.audio_stream_start': {
-        const { audio_id } = message.payload;
-        console.log(`Audio stream start: ${audio_id}`);
-        // Disable buzzer while audio streams
+        const { audio_id, encoding } = message.payload;
+        console.log(`Audio stream start: ${audio_id} (${encoding})`);
         dispatch({ type: 'SET_BUZZER_STATUS', payload: false });
 
-        const audioContext = getAudioContext();
         audioStreamsRef.current[audio_id] = {
-          audioContext,
-          chunks: [],            // raw Uint8Array chunks accumulated
-          lastDecodedDuration: 0,
-          nextScheduleTime: null,  // deferred to first successful decode
-          isPlaying: false,
-          lastSource: null,      // last scheduled BufferSourceNode (for onended)
-          processingChain: Promise.resolve(), // serializes async decode calls
+          chunks: [],
+          encoding: encoding || 'mp3',
         };
         break;
       }
@@ -782,72 +761,13 @@ export function GameProvider({ children }) {
           break;
         }
 
-        // Decode base64 to Uint8Array
+        // Decode base64 to Uint8Array and accumulate
         const binaryStr = atob(chunk);
         const bytes = new Uint8Array(binaryStr.length);
         for (let i = 0; i < binaryStr.length; i++) {
           bytes[i] = binaryStr.charCodeAt(i);
         }
         stream.chunks.push(bytes);
-
-        // Chain an async decode attempt to ensure serial processing
-        stream.processingChain = stream.processingChain.then(async () => {
-          const s = audioStreamsRef.current[audio_id];
-          if (!s) return;
-
-          // Combine ALL accumulated chunks into one buffer
-          const totalLength = s.chunks.reduce((sum, c) => sum + c.length, 0);
-          const combined = new Uint8Array(totalLength);
-          let offset = 0;
-          for (const c of s.chunks) {
-            combined.set(c, offset);
-            offset += c.length;
-          }
-
-          try {
-            // decodeAudioData needs a copy (.slice) since it detaches the buffer
-            const audioBuffer = await s.audioContext.decodeAudioData(combined.buffer.slice(0));
-            const newDuration = audioBuffer.duration - s.lastDecodedDuration;
-
-            if (newDuration > 0.01) {
-              s.isPlaying = true;
-              // Initialize schedule time on first successful decode so it's
-              // not stale from when the stream started (avoids overlap)
-              if (s.nextScheduleTime === null) {
-                s.nextScheduleTime = s.audioContext.currentTime;
-              }
-              const startSample = Math.floor(s.lastDecodedDuration * audioBuffer.sampleRate);
-              const newSampleCount = audioBuffer.length - startSample;
-
-              if (newSampleCount > 0) {
-                const newBuffer = s.audioContext.createBuffer(
-                  audioBuffer.numberOfChannels,
-                  newSampleCount,
-                  audioBuffer.sampleRate
-                );
-                for (let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
-                  const channelData = audioBuffer.getChannelData(ch);
-                  newBuffer.getChannelData(ch).set(channelData.subarray(startSample));
-                }
-
-                const source = s.audioContext.createBufferSource();
-                source.buffer = newBuffer;
-                source.connect(s.audioContext.destination);
-                source.start(s.nextScheduleTime);
-                s.nextScheduleTime += newBuffer.duration;
-                s.lastSource = source;
-              }
-
-              s.lastDecodedDuration = audioBuffer.duration;
-            }
-          } catch (e) {
-            // Not enough data to decode yet — will succeed with more chunks.
-            // Log non-trivially to help debug codec issues (e.g. Safari + OGG).
-            if (s.chunks.length > 3) {
-              console.warn(`Audio decode attempt failed after ${s.chunks.length} chunks:`, e.message);
-            }
-          }
-        });
         break;
       }
 
@@ -860,25 +780,42 @@ export function GameProvider({ children }) {
           break;
         }
 
-        // Wait for all decode operations to finish, then signal when audio ends
-        stream.processingChain.then(() => {
-          const s = audioStreamsRef.current[audio_id];
-          if (!s) return;
+        // Combine all chunks into a single buffer
+        const totalLength = stream.chunks.reduce((sum, c) => sum + c.length, 0);
+        const combined = new Uint8Array(totalLength);
+        let offset = 0;
+        for (const c of stream.chunks) {
+          combined.set(c, offset);
+          offset += c.length;
+        }
+        delete audioStreamsRef.current[audio_id];
 
-          const cleanup = () => {
-            console.log(`Streaming audio ${audio_id} playback completed`);
-            sendMessage('com.sc2ctl.bighead.audio_complete', { audio_id });
-            // Don't close the shared AudioContext — it's reused across streams
-            delete audioStreamsRef.current[audio_id];
-          };
+        // Build a blob and play via the pre-warmed Audio element (works on iOS)
+        const mimeType = stream.encoding === 'ogg_opus' ? 'audio/ogg' : 'audio/mpeg';
+        const blob = new Blob([combined], { type: mimeType });
+        const blobUrl = URL.createObjectURL(blob);
 
-          if (s.isPlaying && s.lastSource) {
-            // Listen for the last scheduled buffer to finish playing
-            s.lastSource.onended = cleanup;
-          } else {
-            // No audio was decoded/played — just signal completion
-            cleanup();
-          }
+        // Use the persistent gameAudioRef if available (pre-warmed on user gesture),
+        // otherwise fall back to a new Audio element.
+        const audio = gameAudioRef.current || new Audio();
+        audio.src = blobUrl;
+
+        audio.onended = () => {
+          console.log(`Streaming audio ${audio_id} playback completed`);
+          URL.revokeObjectURL(blobUrl);
+          sendMessage('com.sc2ctl.bighead.audio_complete', { audio_id });
+        };
+
+        audio.onerror = (e) => {
+          console.error(`Streaming audio ${audio_id} error:`, e);
+          URL.revokeObjectURL(blobUrl);
+          sendMessage('com.sc2ctl.bighead.audio_complete', { audio_id });
+        };
+
+        audio.play().catch((err) => {
+          console.error(`Streaming audio ${audio_id} play() failed:`, err);
+          URL.revokeObjectURL(blobUrl);
+          sendMessage('com.sc2ctl.bighead.audio_complete', { audio_id });
         });
         break;
       }
@@ -886,7 +823,7 @@ export function GameProvider({ children }) {
       default:
         console.log('Unhandled message topic:', message.topic);
     }
-  }, [dispatch, getAudioContext]);
+  }, [dispatch]);
   
   // Get player name from session storage for HTTP-joined players
   const playerInfo = typeof window !== 'undefined'

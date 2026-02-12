@@ -49,7 +49,7 @@ except ImportError:
     has_game_routes = False
     logger.warning("Game routes not found, skipping")
 
-app = FastAPI(title="Jeopardy Game")
+app = FastAPI(title="Big Head")
 
 # CORS configuration from environment
 frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:5173")
@@ -92,7 +92,11 @@ game_service = GameService(connection_manager)
 game_manager = GameManager()
 chat_manager = ChatManager(connection_manager)
 board_factory = BoardFactory()
-board = board_factory.initialize()
+try:
+    board = board_factory.initialize()
+except FileNotFoundError:
+    board = None
+    logger.info("No default board file found — boards will be generated per-game")
 
 # Wire up game manager to game service
 game_service.set_game_manager(game_manager)
@@ -134,7 +138,7 @@ async def websocket_game_endpoint(websocket: WebSocket, game_code: str, player_n
         # Send current game state
         await connection_manager.send_personal_message(
             websocket,
-            "com.sc2ctl.jeopardy.game_state",
+            "com.sc2ctl.bighead.game_state",
             game.get_state_for_client()
         )
 
@@ -161,7 +165,7 @@ async def websocket_game_endpoint(websocket: WebSocket, game_code: str, player_n
         # Broadcast updated player list
         await connection_manager.broadcast_to_room(
             game.game_id,
-            "com.sc2ctl.jeopardy.player_list",
+            "com.sc2ctl.bighead.player_list",
             {"players": game.state.get_players_dict()}
         )
     except Exception as e:
@@ -258,7 +262,7 @@ async def play_audio(request: dict):
     logger.debug(f"Broadcasting audio playback request: {audio_url}")
 
     await connection_manager.broadcast_message(
-        "com.sc2ctl.jeopardy.play_audio",
+        "com.sc2ctl.bighead.play_audio",
         {"url": audio_url},
         game_id=game_id
     )

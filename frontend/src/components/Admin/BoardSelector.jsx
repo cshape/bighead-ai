@@ -32,7 +32,7 @@ export default function BoardSelector() {
   }, []);
 
   const handleBoardSelect = (boardId) => {
-    sendMessage('com.sc2ctl.jeopardy.select_board', { boardId });
+    sendMessage('com.sc2ctl.bighead.select_board', { boardId });
   };
 
   if (error) {

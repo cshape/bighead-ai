@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  bighead:
+    build: .
+    ports:
+      - "${PORT:-8000}:${PORT:-8000}"
+    environment:
+      - PORT=${PORT:-8000}
+      - INWORLD_API_KEY=${INWORLD_API_KEY}
+      - SERVE_FRONTEND=true
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:8000}
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
+    volumes:
+      - audio-data:/app/static/audio
+    restart: unless-stopped
+
+volumes:
+  audio-data:

@@ -1,0 +1,31 @@
+Create 5 Big Head-style clues and answers for the category "{{ category }}".
+
+User preferences to consider: {{ user_input }}
+Take these preferences into account when generating clues and answers.
+
+Requirements:
+1. The clues should increase in difficulty from 1-5
+2. Values should be 200, 400, 600, 800, and 1000 points respectively
+3. IMPORTANT: the clues MUST be factually accurate
+4. Each clue should be one or two sentences
+5. Format the answers as short phrases
+6. Each clue should have "double_big_head": false and "type": "text"
+
+Return the result as a JSON object with the following structure:
+{
+    "category_data": {
+        "name": "{{ category }}",
+        "questions": [
+            {
+                "clue": "Clue text goes here",
+                "answer": "Answer goes here",
+                "value": 200,
+                "double_big_head": false,
+                "type": "text"
+            },
+            ...
+        ]
+    }
+}
+
+Make sure your response is a valid JSON object.

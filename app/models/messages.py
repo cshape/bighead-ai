@@ -30,7 +30,7 @@ class QuestionDisplayMsg(BaseModel):
     value: int
 
 
-class DailyDoubleMsg(BaseModel):
+class DoubleBigHeadMsg(BaseModel):
     category: str
     value: int
 
@@ -47,7 +47,7 @@ class AnswerMsg(BaseModel):
     answer: Optional[str] = None
 
 
-class DailyDoubleBetMsg(BaseModel):
+class DoubleBigHeadBetMsg(BaseModel):
     contestant: str
     bet: int
 
@@ -126,3 +126,9 @@ class BuzzerStatusPayload(BaseModel):
 
 class ContestantScorePayload(BaseModel):
     scores: Dict[str, int]
+
+
+class GameCompletedPayload(BaseModel):
+    scores: Dict[str, int]
+    winner: str
+    winner_score: int

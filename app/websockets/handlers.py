@@ -17,10 +17,10 @@ from ..models.messages import (
     RegisterPlayerMsg,
     SelectBoardMsg,
     QuestionDisplayMsg,
-    DailyDoubleMsg,
+    DoubleBigHeadMsg,
     BuzzerMsg,
     AnswerMsg,
-    DailyDoubleBetMsg,
+    DoubleBigHeadBetMsg,
     SubmitAnswerMsg,
     ChatMessageMsg,
     AudioCompleteMsg,
@@ -56,7 +56,7 @@ def init_handlers(_game_service, _game_manager, _connection_manager, _chat_manag
 # Handlers
 # ---------------------------------------------------------------------------
 
-@router.route("com.sc2ctl.jeopardy.register_player", RegisterPlayerMsg)
+@router.route("com.sc2ctl.bighead.register_player", RegisterPlayerMsg)
 async def handle_register_player(ws: WebSocket, client_id: str, payload: RegisterPlayerMsg, game_id: str, game):
     name = payload.name
     preferences = payload.preferences
@@ -80,7 +80,7 @@ async def handle_register_player(ws: WebSocket, client_id: str, payload: Registe
 
         await connection_manager.send_personal_message(
             ws,
-            "com.sc2ctl.jeopardy.register_player_response",
+            "com.sc2ctl.bighead.register_player_response",
             {"success": True, "name": name, "player_id": player_id,
              "is_host": game.host_player_id == player_id, "reconnected": True}
         )
@@ -101,7 +101,7 @@ async def handle_register_player(ws: WebSocket, client_id: str, payload: Registe
 
             await connection_manager.send_personal_message(
                 ws,
-                "com.sc2ctl.jeopardy.register_player_response",
+                "com.sc2ctl.bighead.register_player_response",
                 {"success": True, "name": name, "player_id": player_id,
                  "is_host": game.host_player_id == player_id}
             )
@@ -121,64 +121,64 @@ async def handle_register_player(ws: WebSocket, client_id: str, payload: Registe
 
         await connection_manager.broadcast_to_room(
             game_id,
-            "com.sc2ctl.jeopardy.player_list",
+            "com.sc2ctl.bighead.player_list",
             {"players": players_with_prefs}
         )
         if game.can_start():
             await connection_manager.broadcast_to_room(
                 game_id,
-                "com.sc2ctl.jeopardy.game_ready",
+                "com.sc2ctl.bighead.game_ready",
                 {"ready": True}
             )
 
 
-@router.route("com.sc2ctl.jeopardy.select_board", SelectBoardMsg)
+@router.route("com.sc2ctl.bighead.select_board", SelectBoardMsg)
 async def handle_select_board(ws: WebSocket, client_id: str, payload: SelectBoardMsg, game_id: str, game):
     board_id = payload.resolved_board_id
     logger.info(f"Selecting board: {board_id}")
     await game_service.select_board(board_id, game_id=game_id)
 
 
-@router.route("com.sc2ctl.jeopardy.question_display", QuestionDisplayMsg)
+@router.route("com.sc2ctl.bighead.question_display", QuestionDisplayMsg)
 async def handle_question_display(ws: WebSocket, client_id: str, payload: QuestionDisplayMsg, game_id: str, game):
     logger.info(f"Displaying question: {payload.category} - ${payload.value}")
     await game_service.display_question(payload.category, payload.value, game_id=game_id)
 
 
-@router.route("com.sc2ctl.jeopardy.daily_double", DailyDoubleMsg)
-async def handle_daily_double(ws: WebSocket, client_id: str, payload: DailyDoubleMsg, game_id: str, game):
-    logger.info(f"Daily double selected: {payload.category} - ${payload.value}")
+@router.route("com.sc2ctl.bighead.double_big_head", DoubleBigHeadMsg)
+async def handle_double_big_head(ws: WebSocket, client_id: str, payload: DoubleBigHeadMsg, game_id: str, game):
+    logger.info(f"Double Big Head selected: {payload.category} - ${payload.value}")
     await game_service.display_question(payload.category, payload.value, game_id=game_id)
 
 
-@router.route("com.sc2ctl.jeopardy.buzzer", BuzzerMsg)
+@router.route("com.sc2ctl.bighead.buzzer", BuzzerMsg)
 async def handle_buzzer(ws: WebSocket, client_id: str, payload: BuzzerMsg, game_id: str, game):
     await game_service.handle_buzz(ws, payload.timestamp, game_id=game_id)
 
 
-@router.route("com.sc2ctl.jeopardy.answer", AnswerMsg)
+@router.route("com.sc2ctl.bighead.answer", AnswerMsg)
 async def handle_answer(ws: WebSocket, client_id: str, payload: AnswerMsg, game_id: str, game):
     logger.info(f"Answering question: {'correct' if payload.correct else 'incorrect'}")
     await game_service.answer_question(payload.correct, payload.contestant, game_id=game_id)
 
 
-@router.route("com.sc2ctl.jeopardy.question_dismiss", DismissQuestionMsg)
+@router.route("com.sc2ctl.bighead.question_dismiss", DismissQuestionMsg)
 async def handle_dismiss_question(ws: WebSocket, client_id: str, payload: DismissQuestionMsg, game_id: str, game):
     await game_service.dismiss_question(game_id=game_id)
 
 
-@router.route("com.sc2ctl.jeopardy.board_init", BoardInitMsg)
+@router.route("com.sc2ctl.bighead.board_init", BoardInitMsg)
 async def handle_board_init(ws: WebSocket, client_id: str, payload: BoardInitMsg, game_id: str, game):
     await game_service.send_categories(game_id=game_id)
 
 
-@router.route("com.sc2ctl.jeopardy.daily_double_bet", DailyDoubleBetMsg)
-async def handle_daily_double_bet(ws: WebSocket, client_id: str, payload: DailyDoubleBetMsg, game_id: str, game):
-    logger.info(f"Daily double bet from {payload.contestant}: ${payload.bet}")
-    await game_service.handle_daily_double_bet(payload.contestant, payload.bet, game_id=game_id)
+@router.route("com.sc2ctl.bighead.double_big_head_bet", DoubleBigHeadBetMsg)
+async def handle_double_big_head_bet(ws: WebSocket, client_id: str, payload: DoubleBigHeadBetMsg, game_id: str, game):
+    logger.info(f"Double Big Head bet from {payload.contestant}: ${payload.bet}")
+    await game_service.handle_double_big_head_bet(payload.contestant, payload.bet, game_id=game_id)
 
 
-@router.route("com.sc2ctl.jeopardy.submit_answer", SubmitAnswerMsg)
+@router.route("com.sc2ctl.bighead.submit_answer", SubmitAnswerMsg)
 async def handle_submit_answer(ws: WebSocket, client_id: str, payload: SubmitAnswerMsg, game_id: str, game):
     # Cancel the answer timeout synchronously BEFORE any await
     if game and game.ai_host and hasattr(game.ai_host, 'buzzer_manager'):
@@ -189,14 +189,14 @@ async def handle_submit_answer(ws: WebSocket, client_id: str, payload: SubmitAns
 
     # Stop the frontend answer timer
     await connection_manager.broadcast_message(
-        "com.sc2ctl.jeopardy.answer_timer_stop",
+        "com.sc2ctl.bighead.answer_timer_stop",
         {},
         game_id=game_id
     )
 
     # Echo the answer to chat so all players can see it
     await connection_manager.broadcast_message(
-        "com.sc2ctl.jeopardy.chat_message",
+        "com.sc2ctl.bighead.chat_message",
         {"username": payload.contestant, "message": payload.answer, "timestamp": None},
         game_id=game_id
     )
@@ -205,7 +205,7 @@ async def handle_submit_answer(ws: WebSocket, client_id: str, payload: SubmitAns
     await game_service.handle_player_answer(payload.contestant, payload.answer, game_id=game_id)
 
 
-@router.route("com.sc2ctl.jeopardy.chat_message", ChatMessageMsg)
+@router.route("com.sc2ctl.bighead.chat_message", ChatMessageMsg)
 async def handle_chat_message(ws: WebSocket, client_id: str, payload: ChatMessageMsg, game_id: str, game):
     # Cancel the answer timeout synchronously BEFORE any await.
     # If the buzzed player sends a chat message, that IS their answer —
@@ -217,7 +217,7 @@ async def handle_chat_message(ws: WebSocket, client_id: str, payload: ChatMessag
             logger.info(f"Cancelled answer timeout for {payload.username} — answer received in chat")
             # Stop the frontend answer timer visual
             await connection_manager.broadcast_message(
-                "com.sc2ctl.jeopardy.answer_timer_stop",
+                "com.sc2ctl.bighead.answer_timer_stop",
                 {},
                 game_id=game_id
             )
@@ -226,7 +226,7 @@ async def handle_chat_message(ws: WebSocket, client_id: str, payload: ChatMessag
     await game_service.handle_chat_message(payload.username, payload.message, game_id=game_id)
 
 
-@router.route("com.sc2ctl.jeopardy.audio_complete", AudioCompleteMsg)
+@router.route("com.sc2ctl.bighead.audio_complete", AudioCompleteMsg)
 async def handle_audio_complete(ws: WebSocket, client_id: str, payload: AudioCompleteMsg, game_id: str, game):
     if payload.audio_id:
         logger.info(f"Received audio completion via WebSocket: {payload.audio_id}")
@@ -235,7 +235,7 @@ async def handle_audio_complete(ws: WebSocket, client_id: str, payload: AudioCom
         logger.warning("Received audio completion message without audio_id")
 
 
-@router.route("com.sc2ctl.jeopardy.start_ai_game", StartAIGameMsg)
+@router.route("com.sc2ctl.bighead.start_ai_game", StartAIGameMsg)
 async def handle_start_ai_game(ws: WebSocket, client_id: str, payload: StartAIGameMsg, game_id: str, game):
     logger.info("Starting AI game...")
     try:
@@ -255,7 +255,7 @@ async def handle_start_ai_game(ws: WebSocket, client_id: str, payload: StartAIGa
 
         await connection_manager.send_personal_message(
             ws,
-            "com.sc2ctl.jeopardy.ai_game_started",
+            "com.sc2ctl.bighead.ai_game_started",
             {"status": "success"}
         )
         logger.info("AI game started successfully")
@@ -263,12 +263,12 @@ async def handle_start_ai_game(ws: WebSocket, client_id: str, payload: StartAIGa
         logger.error(f"Failed to start standalone AI player: {e}")
         await connection_manager.send_personal_message(
             ws,
-            "com.sc2ctl.jeopardy.ai_game_started",
+            "com.sc2ctl.bighead.ai_game_started",
             {"status": "error", "message": f"Failed to start AI game: {str(e)}"}
         )
 
 
-@router.route("com.sc2ctl.jeopardy.stop_ai_game", StopAIGameMsg)
+@router.route("com.sc2ctl.bighead.stop_ai_game", StopAIGameMsg)
 async def handle_stop_ai_game(ws: WebSocket, client_id: str, payload: StopAIGameMsg, game_id: str, game):
     logger.info("Stopping AI game...")
     try:
@@ -279,7 +279,7 @@ async def handle_stop_ai_game(ws: WebSocket, client_id: str, payload: StopAIGame
 
         await connection_manager.send_personal_message(
             ws,
-            "com.sc2ctl.jeopardy.ai_game_stopped",
+            "com.sc2ctl.bighead.ai_game_stopped",
             {"status": "success"}
         )
         logger.info("AI game stopped successfully")
@@ -287,18 +287,18 @@ async def handle_stop_ai_game(ws: WebSocket, client_id: str, payload: StopAIGame
         logger.error(f"Failed to stop AI game: {e}")
         await connection_manager.send_personal_message(
             ws,
-            "com.sc2ctl.jeopardy.ai_game_stopped",
+            "com.sc2ctl.bighead.ai_game_stopped",
             {"status": "error", "message": f"Failed to stop AI game: {str(e)}"}
         )
 
 
-@router.route("com.sc2ctl.jeopardy.start_ai_host", StartAIHostMsg)
+@router.route("com.sc2ctl.bighead.start_ai_host", StartAIHostMsg)
 async def handle_start_ai_host(ws: WebSocket, client_id: str, payload: StartAIHostMsg, game_id: str, game):
     logger.info("Starting AI host...")
     try:
         await connection_manager.send_personal_message(
             ws,
-            "com.sc2ctl.jeopardy.ai_host_started",
+            "com.sc2ctl.bighead.ai_host_started",
             {"status": "success"}
         )
         logger.info("AI host started successfully")
@@ -306,12 +306,12 @@ async def handle_start_ai_host(ws: WebSocket, client_id: str, payload: StartAIHo
         logger.error(f"Failed to start AI host: {e}")
         await connection_manager.send_personal_message(
             ws,
-            "com.sc2ctl.jeopardy.ai_host_started",
+            "com.sc2ctl.bighead.ai_host_started",
             {"status": "error", "message": f"Failed to start AI host: {str(e)}"}
         )
 
 
-@router.route("com.sc2ctl.jeopardy.start_game", StartGameMsg)
+@router.route("com.sc2ctl.bighead.start_game", StartGameMsg)
 async def handle_start_game(ws: WebSocket, client_id: str, payload: StartGameMsg, game_id: str, game):
     if game:
         player_id = payload.player_id
@@ -320,6 +320,6 @@ async def handle_start_game(ws: WebSocket, client_id: str, payload: StartGameMsg
             if success:
                 await connection_manager.broadcast_to_room(
                     game_id,
-                    "com.sc2ctl.jeopardy.game_started",
+                    "com.sc2ctl.bighead.game_started",
                     {"status": "started"}
                 )

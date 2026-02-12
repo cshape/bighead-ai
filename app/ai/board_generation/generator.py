@@ -1,5 +1,5 @@
 """
-Board Generator module for creating Jeopardy game data using LLM calls.
+Board Generator module for creating Big Head game data using LLM calls.
 """
 
 import os
@@ -16,10 +16,10 @@ logger = logging.getLogger(__name__)
 
 class BoardGenerator:
     """
-    Generates Jeopardy game boards with categories and questions using LLM.
+    Generates Big Head game boards with categories and questions using LLM.
     """
 
-    def __init__(self, output_dir: str = "app/game_data", model: str = "gpt-4o", user_input: str = ""):
+    def __init__(self, output_dir: str = "app/game_data", model: str = "gpt-4.1", user_input: str = ""):
         """
         Initialize the board generator.
         
@@ -42,28 +42,15 @@ class BoardGenerator:
         
     async def generate_categories(self) -> List[str]:
         """
-        Generate 5 diverse Jeopardy category names.
+        Generate 5 diverse Big Head category names.
         
         Returns:
             List of 5 category names
         """
-        prompt = f"""
-        Generate 5 diverse, interesting categories for a Jeopardy game. 
-        These should be challenging but accessible categories that could appear on the show.
-        Make them diverse in topics (e.g., don't have multiple categories about the same subject).
-        
-        User preferences to consider: {self.user_input}
-        Take these preferences into account when generating categories.
-        
-        Return the result as a JSON object with a "categories" attribute containing an array of strings, like this:
-        {{
-            "categories": ["Category 1", "Category 2", "Category 3", "Category 4", "Category 5"]
-        }}
-        """
-        print(f"Generating categories with prompt: {prompt}")
-        result = await self.llm_client.chat_with_prompt(
-            prompt=prompt,
-            system_prompt="You are a Jeopardy category designer, skilled at creating diverse, interesting categories."
+        result = await self.llm_client.chat_with_template(
+            user_template="board_category_generation_prompt.j2",
+            user_context={"user_input": self.user_input},
+            system_template="board_category_generation.j2",
         )
         
         try:
@@ -91,43 +78,10 @@ class BoardGenerator:
         Returns:
             Dict with category object containing questions
         """
-        prompt = f"""
-        Create 5 Jeopardy-style clues and answers for the category "{category}".
-        
-        User preferences to consider: {self.user_input}
-        Take these preferences into account when generating clues and answers.
-        
-        Requirements:
-        1. The clues should increase in difficulty from 1-5
-        2. Values should be 200, 400, 600, 800, and 1000 points respectively
-        3. IMPORTANT: the clues MUST be factually accurate
-        4. Each clue should be one or two sentences
-        5. Format the answers as short phrases
-        6. Each clue should have "daily_double": false and "type": "text"
-
-        Return the result as a JSON object with the following structure:
-        {{
-            "category_data": {{
-                "name": "{category}",
-                "questions": [
-                    {{
-                        "clue": "Clue text goes here",
-                        "answer": "Answer goes here",
-                        "value": 200,
-                        "daily_double": false,
-                        "type": "text"
-                    }},
-                    ...
-                ]
-            }}
-        }}
-
-        Make sure your response is a valid JSON object.
-        """
-        
-        result = await self.llm_client.chat_with_prompt(
-            prompt=prompt,
-            system_prompt="You are a Jeopardy question writer, skilled at creating factually accurate, progressively harder questions."
+        result = await self.llm_client.chat_with_template(
+            user_template="board_question_generation_prompt.j2",
+            user_context={"category": category, "user_input": self.user_input},
+            system_template="board_question_generation.j2",
         )
         
         try:
@@ -151,7 +105,7 @@ class BoardGenerator:
                         "clue": f"Placeholder clue for {category}",
                         "answer": "Placeholder answer",
                         "value": 200 * (len(questions) + 1),
-                        "daily_double": False,
+                        "double_big_head": False,
                         "type": "text"
                     })
                 category_data["questions"] = questions
@@ -160,7 +114,7 @@ class BoardGenerator:
             values = [200, 400, 600, 800, 1000]
             for i, question in enumerate(questions):
                 question["value"] = values[i]
-                question["daily_double"] = False
+                question["double_big_head"] = False
                 
             return category_data
         except json.JSONDecodeError:
@@ -176,47 +130,47 @@ class BoardGenerator:
                     "clue": f"Easy clue about {category}",
                     "answer": f"Answer about {category}",
                     "value": 200,
-                    "daily_double": False,
+                    "double_big_head": False,
                     "type": "text"
                 },
                 {
                     "clue": f"Somewhat harder clue about {category}",
                     "answer": f"Answer about {category}",
                     "value": 400,
-                    "daily_double": False,
+                    "double_big_head": False,
                     "type": "text"
                 },
                 {
                     "clue": f"Medium difficulty clue about {category}",
                     "answer": f"Answer about {category}",
                     "value": 600,
-                    "daily_double": False,
+                    "double_big_head": False,
                     "type": "text"
                 },
                 {
                     "clue": f"Challenging clue about {category}",
                     "answer": f"Answer about {category}",
                     "value": 800,
-                    "daily_double": False,
+                    "double_big_head": False,
                     "type": "text"
                 },
                 {
                     "clue": f"Very difficult clue about {category}",
                     "answer": f"Answer about {category}",
                     "value": 1000,
-                    "daily_double": False,
+                    "double_big_head": False,
                     "type": "text"
                 }
             ]
         }
     
-    async def generate_board(self, board_name: Optional[str] = None, add_daily_doubles: bool = True) -> Dict[str, Any]:
+    async def generate_board(self, board_name: Optional[str] = None, add_double_big_heads: bool = True) -> Dict[str, Any]:
         """
-        Generate a complete Jeopardy board with 5 categories and 25 questions.
+        Generate a complete Big Head board with 5 categories and 25 questions.
         
         Args:
             board_name: Optional name for the board file
-            add_daily_doubles: Whether to add daily doubles (1-2 random questions)
+            add_double_big_heads: Whether to add daily doubles (1-2 random questions)
         
         Returns:
             Complete board data as a dictionary
@@ -235,21 +189,21 @@ class BoardGenerator:
         category_data = await asyncio.gather(*category_tasks)
         
         # Add daily doubles if requested
-        if add_daily_doubles:
+        if add_double_big_heads:
             # Add 1-2 daily doubles, excluding $200 questions
-            daily_double_count = random.randint(1, 2)
+            double_big_head_count = random.randint(1, 2)
             excludes = []
-            for _ in range(daily_double_count):
+            for _ in range(double_big_head_count):
                 while True:
                     cat_idx = random.randint(0, 4)
                     q_idx = random.randint(1, 4)  # Skip $200 questions
                     if (cat_idx, q_idx) not in excludes:
-                        category_data[cat_idx]["questions"][q_idx]["daily_double"] = True
+                        category_data[cat_idx]["questions"][q_idx]["double_big_head"] = True
                         excludes.append((cat_idx, q_idx))
                         break
         
-        # Generate Final Jeopardy
-        final_jeopardy = await self._generate_final_jeopardy()
+        # Generate Final Big Head
+        final_big_head = await self._generate_final_big_head()
         
         # Create the full board data
         if not board_name:
@@ -263,77 +217,60 @@ class BoardGenerator:
                 {"name": "Player 3", "score": 0}
             ],
             "categories": category_data,
-            "final": final_jeopardy
+            "final": final_big_head
         }
         
         return board_data
     
-    async def _generate_final_jeopardy(self) -> Dict[str, str]:
+    async def _generate_final_big_head(self) -> Dict[str, str]:
         """
-        Generate a Final Jeopardy category, clue, and answer.
+        Generate a Final Big Head category, clue, and answer.
         
         Returns:
-            Dictionary with final Jeopardy data
+            Dictionary with final Big Head data
         """
-        prompt = f"""
-        Create a Final Jeopardy clue, category, and answer.
-        
-        User preferences to consider: {self.user_input}
-        Take these preferences into account when generating the Final Jeopardy.
-        
-        The Final Jeopardy should be challenging but solvable.
-        
-        Return the result as a JSON object with the following structure:
-        {{
-            "final_jeopardy": {{
-                "category": "Category Name",
-                "clue": "Final Jeopardy clue text",
-                "answer": "Correct response"
-            }}
-        }}
-        """
-        
-        result = await self.llm_client.chat_with_prompt(
-            prompt=prompt,
-            system_prompt="You are a Jeopardy writer, skilled at creating challenging but fair Final Jeopardy questions."
+        result = await self.llm_client.chat_with_template(
+            user_template="board_final_big_head_prompt.j2",
+            user_context={"user_input": self.user_input},
+            system_template="board_final_big_head.j2",
         )
         
         try:
             response_obj = json.loads(result)
-            if not isinstance(response_obj, dict) or "final_jeopardy" not in response_obj:
-                logger.warning("LLM response missing 'final_jeopardy' attribute")
+            if not isinstance(response_obj, dict) or "final_big_head" not in response_obj:
+                logger.warning("LLM response missing 'final_big_head' attribute")
                 return {
-                    "category": "Final Jeopardy",
-                    "clue": "This is a placeholder for the final Jeopardy clue",
+                    "category": "Final Big Head",
+                    "clue": "This is a placeholder for the final Big Head clue",
                     "answer": "Placeholder answer"
                 }
                 
-            final = response_obj["final_jeopardy"]
+            final = response_obj["final_big_head"]
             required_keys = ["category", "clue", "answer"]
             if not all(key in final for key in required_keys):
-                logger.warning("LLM didn't return proper Final Jeopardy structure")
+                logger.warning("LLM didn't return proper Final Big Head structure")
                 return {
-                    "category": "Final Jeopardy",
-                    "clue": "This is a placeholder for the final Jeopardy clue",
+                    "category": "Final Big Head",
+                    "clue": "This is a placeholder for the final Big Head clue",
                     "answer": "Placeholder answer"
                 }
                 
             return final
         except json.JSONDecodeError:
-            logger.error(f"Failed to parse LLM response as JSON for Final Jeopardy: {result}")
+            logger.error(f"Failed to parse LLM response as JSON for Final Big Head: {result}")
             return {
-                "category": "Final Jeopardy",
-                "clue": "This is a placeholder for the final Jeopardy clue",
+                "category": "Final Big Head",
+                "clue": "This is a placeholder for the final Big Head clue",
                 "answer": "Placeholder answer"
             }
     
-    async def generate_and_save_board(self, board_name: Optional[str] = None, add_daily_doubles: bool = True, user_input: Optional[str] = None) -> str:
+    async def generate_and_save_board(self, board_name: Optional[str] = None, add_double_big_heads: bool = True, user_input: Optional[str] = None) -> str:
         """
         Generate a board and save it to a JSON file.
         
         Args:
             board_name: Optional name for the board file
-            add_daily_doubles: Whether to add daily doubles
+            add_double_big_heads: Whether to add daily doubles
             user_input: Optional user preferences (overwrites the object's user_input if provided)
             
         Returns:
@@ -379,25 +316,25 @@ class BoardGenerator:
             category_data = await asyncio.gather(*category_tasks)
             
             # Add daily doubles if requested
-            if add_daily_doubles:
+            if add_double_big_heads:
                 # Add 1-2 daily doubles, excluding $200 questions
-                daily_double_count = random.randint(1, 2)
+                double_big_head_count = random.randint(1, 2)
                 excludes = []
-                for _ in range(daily_double_count):
+                for _ in range(double_big_head_count):
                     while True:
                         cat_idx = random.randint(0, 4)
                         q_idx = random.randint(1, 4)  # Skip $200 questions
                         if (cat_idx, q_idx) not in excludes:
-                            category_data[cat_idx]["questions"][q_idx]["daily_double"] = True
+                            category_data[cat_idx]["questions"][q_idx]["double_big_head"] = True
                             excludes.append((cat_idx, q_idx))
                             break
             
-            # Generate Final Jeopardy
-            final_jeopardy = await self._generate_final_jeopardy()
+            # Generate Final Big Head
+            final_big_head = await self._generate_final_big_head()
             
-            # Update board data with all categories and final jeopardy
+            # Update board data with all categories and final big head
             board_data["categories"] = category_data
-            board_data["final"] = final_jeopardy
+            board_data["final"] = final_big_head
             
             # Save complete board data
             with open(file_path, 'w') as f:

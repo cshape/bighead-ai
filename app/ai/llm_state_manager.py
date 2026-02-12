@@ -141,7 +141,7 @@ class LLMStateManager:
         
         Args:
             player_name: The name of the player making the wager
-            wager_type: The type of wager (Daily Double or Final Jeopardy)
+            wager_type: The type of wager (Double Big Head or Final Big Head)
             max_wager: The maximum allowed wager amount
         """
         logger.info(f"Player {player_name} is making a {wager_type} wager (max: ${max_wager})")

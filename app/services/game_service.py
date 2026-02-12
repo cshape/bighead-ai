@@ -12,23 +12,23 @@ logger = logging.getLogger(__name__)
 
 class GameService:
     # Constants for topic names - should match JavaScript client
-    BUZZER_TOPIC = "com.sc2ctl.jeopardy.buzzer"
-    BUZZER_STATUS_TOPIC = "com.sc2ctl.jeopardy.buzzer_status"
-    QUESTION_DISPLAY_TOPIC = "com.sc2ctl.jeopardy.question_display"
-    QUESTION_DISMISS_TOPIC = "com.sc2ctl.jeopardy.question_dismiss"
-    QUESTION_ANSWER_TOPIC = "com.sc2ctl.jeopardy.answer"
-    CONTESTANT_SCORE_TOPIC = "com.sc2ctl.jeopardy.contestant_score"
-    DAILY_DOUBLE_BET_TOPIC = "com.sc2ctl.jeopardy.daily_double_bet"
-    FINAL_JEOPARDY_TOPIC = "com.sc2ctl.jeopardy.final_jeopardy"
-    FINAL_JEOPARDY_RESPONSES_TOPIC = "com.sc2ctl.jeopardy.final_jeopardy_responses"
-    FINAL_JEOPARDY_ANSWER_TOPIC = "com.sc2ctl.jeopardy.final_jeopardy_answers"
-    BOARD_INIT_TOPIC = "com.sc2ctl.jeopardy.board_init"
-    AUDIO_PLAY_TOPIC = "com.sc2ctl.jeopardy.play_audio"
-    AUDIO_COMPLETE_TOPIC = "com.sc2ctl.jeopardy.audio_complete"
+    BUZZER_TOPIC = "com.sc2ctl.bighead.buzzer"
+    BUZZER_STATUS_TOPIC = "com.sc2ctl.bighead.buzzer_status"
+    QUESTION_DISPLAY_TOPIC = "com.sc2ctl.bighead.question_display"
+    QUESTION_DISMISS_TOPIC = "com.sc2ctl.bighead.question_dismiss"
+    QUESTION_ANSWER_TOPIC = "com.sc2ctl.bighead.answer"
+    CONTESTANT_SCORE_TOPIC = "com.sc2ctl.bighead.contestant_score"
+    DOUBLE_BIG_HEAD_BET_TOPIC = "com.sc2ctl.bighead.double_big_head_bet"
+    FINAL_BIG_HEAD_TOPIC = "com.sc2ctl.bighead.final_big_head"
+    FINAL_BIG_HEAD_RESPONSES_TOPIC = "com.sc2ctl.bighead.final_big_head_responses"
+    FINAL_BIG_HEAD_ANSWER_TOPIC = "com.sc2ctl.bighead.final_big_head_answers"
+    BOARD_INIT_TOPIC = "com.sc2ctl.bighead.board_init"
+    AUDIO_PLAY_TOPIC = "com.sc2ctl.bighead.play_audio"
+    AUDIO_COMPLETE_TOPIC = "com.sc2ctl.bighead.audio_complete"
     
     # Timeouts
     BUZZER_RESOLVE_TIMEOUT = 0.75  # seconds
-    FINAL_JEOPARDY_COLLECTION_TIMEOUT = 5.5  # seconds
+    FINAL_BIG_HEAD_COLLECTION_TIMEOUT = 5.5  # seconds
     
     REQUIRED_PLAYERS = 3
     
@@ -76,14 +76,14 @@ class GameService:
 
             # Send the board to appropriate clients
             await self.connection_manager.broadcast_message(
-                "com.sc2ctl.jeopardy.board_selected",
+                "com.sc2ctl.bighead.board_selected",
                 {"categories": board_data["categories"]},
                 game_id=game_id
             )
         except Exception as e:
             logger.error(f"Error selecting board: {e}")
             await self.connection_manager.broadcast_message(
-                "com.sc2ctl.jeopardy.error",
+                "com.sc2ctl.bighead.error",
                 {"message": f"Failed to load board: {str(e)}"},
                 game_id=game_id
             )
@@ -162,7 +162,7 @@ class GameService:
             if len(state.contestants) >= self.REQUIRED_PLAYERS:
                 game.game_ready = True
                 await self.connection_manager.broadcast_message(
-                    "com.sc2ctl.jeopardy.game_ready",
+                    "com.sc2ctl.bighead.game_ready",
                     {"ready": True},
                     game_id=game_id
                 )
@@ -187,7 +187,7 @@ class GameService:
             for c in state.contestants.values()
         }
         await self.connection_manager.broadcast_message(
-            "com.sc2ctl.jeopardy.player_list",
+            "com.sc2ctl.bighead.player_list",
             {"players": players},
             game_id=game_id
         )
@@ -254,16 +254,16 @@ class GameService:
         game = await self._get_game(game_id)
         await self._get_question_manager(game).answer_question(correct, contestant_name, game_id)
 
-    async def handle_daily_double_bet(self, contestant: str, bet: int, game_id: str):
+    async def handle_double_big_head_bet(self, contestant: str, bet: int, game_id: str):
         """Delegate to QuestionManager."""
         game = await self._get_game(game_id)
-        await self._get_question_manager(game).handle_daily_double_bet(contestant, bet, game_id)
+        await self._get_question_manager(game).handle_double_big_head_bet(contestant, bet, game_id)
     
-    async def handle_final_jeopardy_request(self, content_type: str, game_id: str):
-        """Handle a request for final jeopardy content"""
+    async def handle_final_big_head_request(self, content_type: str, game_id: str):
+        """Handle a request for final big head content"""
         game = await self._get_game(game_id)
         board = game.board
-        clue = board.final_jeopardy_state.clue
+        clue = board.final_big_head_state.clue
 
         payload = {}
         if content_type == "category":
@@ -274,43 +274,43 @@ class GameService:
             payload = {"answer": clue.answer}
 
         await self.connection_manager.broadcast_message(
-            self.FINAL_JEOPARDY_TOPIC,
+            self.FINAL_BIG_HEAD_TOPIC,
             payload,
             game_id=game_id
         )
 
-    async def handle_final_jeopardy_bet(self, contestant: str, bet: int, game_id: str):
-        """Handle a final jeopardy bet"""
+    async def handle_final_big_head_bet(self, contestant: str, bet: int, game_id: str):
+        """Handle a final big head bet"""
         game = await self._get_game(game_id)
-        game.board.final_jeopardy_state.set_bet(contestant, bet)
+        game.board.final_big_head_state.set_bet(contestant, bet)
 
-    async def handle_final_jeopardy_answer(self, contestant: str, answer: str, game_id: str):
-        """Handle a final jeopardy answer"""
+    async def handle_final_big_head_answer(self, contestant: str, answer: str, game_id: str):
+        """Handle a final big head answer"""
         game = await self._get_game(game_id)
-        game.board.final_jeopardy_state.set_answer(contestant, answer)
+        game.board.final_big_head_state.set_answer(contestant, answer)
 
-    async def request_final_jeopardy_bets(self, game_id: str):
-        """Request final jeopardy bets from all contestants"""
+    async def request_final_big_head_bets(self, game_id: str):
+        """Request final big head bets from all contestants"""
         game = await self._get_game(game_id)
         board = game.board
 
         if not board:
-            logger.warning("Cannot start Final Jeopardy - no board loaded")
+            logger.warning("Cannot start Final Big Head - no board loaded")
             return
 
-        # Get final jeopardy question
-        final_jeopardy = board.final_jeopardy_state
+        # Get final big head question
+        final_big_head = board.final_big_head_state
 
         # Send category first
         await self.connection_manager.broadcast_message(
-            self.FINAL_JEOPARDY_TOPIC,
-            {"type": "category", "category": final_jeopardy.category},
+            self.FINAL_BIG_HEAD_TOPIC,
+            {"type": "category", "category": final_big_head.category},
             game_id=game_id
         )
 
         # Request bets
         await self.connection_manager.broadcast_message(
-            self.FINAL_JEOPARDY_TOPIC,
+            self.FINAL_BIG_HEAD_TOPIC,
             {"type": "bet"},
             game_id=game_id
         )
@@ -319,49 +319,49 @@ class GameService:
         for contestant in game.state.contestants.values():
             game.llm_state.making_wager(
                 player_name=contestant.name,
-                wager_type="Final Jeopardy",
+                wager_type="Final Big Head",
                 max_wager=contestant.score
             )
 
-    async def check_final_jeopardy_bets_after_timeout(self, game_id: str):
+    async def check_final_big_head_bets_after_timeout(self, game_id: str):
         """Check if all bets are received after timeout"""
-        await asyncio.sleep(self.FINAL_JEOPARDY_COLLECTION_TIMEOUT)
+        await asyncio.sleep(self.FINAL_BIG_HEAD_COLLECTION_TIMEOUT)
 
         game = await self._get_game(game_id)
-        if not game.board.final_jeopardy_state.has_all_bets():
-            missing = game.board.final_jeopardy_state.get_missing_bets()
-            logger.warning(f"Did not receive all final jeopardy bets! Missing: {', '.join(missing)}")
+        if not game.board.final_big_head_state.has_all_bets():
+            missing = game.board.final_big_head_state.get_missing_bets()
+            logger.warning(f"Did not receive all final big head bets! Missing: {', '.join(missing)}")
 
         # Show clue anyway
-        await self.handle_final_jeopardy_request("clue", game_id)
+        await self.handle_final_big_head_request("clue", game_id)
 
-    async def request_final_jeopardy_answers(self, game_id: str):
+    async def request_final_big_head_answers(self, game_id: str):
         """Request answers from all contestants"""
         await self.connection_manager.broadcast_message(
-            self.FINAL_JEOPARDY_RESPONSES_TOPIC,
+            self.FINAL_BIG_HEAD_RESPONSES_TOPIC,
             {"content": "answer"},
             game_id=game_id
         )
 
         # Start timer to show answer anyway after timeout
-        asyncio.create_task(self.check_final_jeopardy_answers_after_timeout(game_id))
+        asyncio.create_task(self.check_final_big_head_answers_after_timeout(game_id))
 
-    async def check_final_jeopardy_answers_after_timeout(self, game_id: str):
+    async def check_final_big_head_answers_after_timeout(self, game_id: str):
         """Check if all answers are received after timeout"""
-        await asyncio.sleep(self.FINAL_JEOPARDY_COLLECTION_TIMEOUT)
+        await asyncio.sleep(self.FINAL_BIG_HEAD_COLLECTION_TIMEOUT)
 
         game = await self._get_game(game_id)
-        if not game.board.final_jeopardy_state.has_all_answers():
-            missing = game.board.final_jeopardy_state.get_missing_answers()
-            logger.warning(f"Did not receive all final jeopardy answers! Missing: {', '.join(missing)}")
+        if not game.board.final_big_head_state.has_all_answers():
+            missing = game.board.final_big_head_state.get_missing_answers()
+            logger.warning(f"Did not receive all final big head answers! Missing: {', '.join(missing)}")
 
         # Show answer anyway
-        await self.handle_final_jeopardy_request("answer", game_id)
+        await self.handle_final_big_head_request("answer", game_id)
 
-    async def get_final_jeopardy_response(self, contestant: str, game_id: str):
-        """Get a contestant's final jeopardy response"""
+    async def get_final_big_head_response(self, contestant: str, game_id: str):
+        """Get a contestant's final big head response"""
         game = await self._get_game(game_id)
-        response = game.board.final_jeopardy_state.get_response(contestant)
+        response = game.board.final_big_head_state.get_response(contestant)
 
         if not response:
             payload = {
@@ -373,7 +373,7 @@ class GameService:
             payload = response.dict()
 
         await self.connection_manager.broadcast_message(
-            self.FINAL_JEOPARDY_ANSWER_TOPIC,
+            self.FINAL_BIG_HEAD_ANSWER_TOPIC,
             payload,
             game_id=game_id
         )

@@ -3,13 +3,22 @@ Game routes for creating and joining games.
 """
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 import logging
+import os
+import aiohttp
+import base64
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/games", tags=["games"])
+
+
+class CreateGameRequest(BaseModel):
+    """Request body for creating a game."""
+    voice: Optional[str] = None
 
 
 class CreateGameResponse(BaseModel):
@@ -34,6 +43,7 @@ class JoinGameResponse(BaseModel):
     is_host: bool
     status: str
     players: list
+    reconnected: bool = False
 
 
 class GameStateResponse(BaseModel):
@@ -45,6 +55,7 @@ class GameStateResponse(BaseModel):
     player_count: int
     can_start: bool
     host_player_id: Optional[str]
+    voice: Optional[str] = None
 
 
 class StartGameRequest(BaseModel):
@@ -53,16 +64,18 @@ class StartGameRequest(BaseModel):
 
 
 @router.post("/create", response_model=CreateGameResponse)
-async def create_game(request: Request):
+async def create_game(request: Request, body: Optional[CreateGameRequest] = None):
     """
     Create a new game.
 
     Returns a new game with a unique 6-digit code.
+    Optionally accepts a voice ID for the AI host's TTS voice.
     """
     game_manager = request.app.state.game_manager
+    voice = body.voice if body else None
 
     try:
-        game = await game_manager.create_game()
+        game = await game_manager.create_game(voice=voice)
         return CreateGameResponse(
             game_id=game.game_id,
             code=game.game_code,
@@ -95,7 +108,7 @@ async def join_game(code: str, body: JoinGameRequest, request: Request):
         connection_manager = request.app.state.connection_manager
         await connection_manager.broadcast_to_room(
             game.game_id,
-            "com.sc2ctl.jeopardy.player_list",
+            "com.sc2ctl.bighead.player_list",
             {"players": game.state.get_players_dict()}
         )
 
@@ -103,7 +116,7 @@ async def join_game(code: str, body: JoinGameRequest, request: Request):
         if game.can_start():
             await connection_manager.broadcast_to_room(
                 game.game_id,
-                "com.sc2ctl.jeopardy.game_ready",
+                "com.sc2ctl.bighead.game_ready",
                 {"ready": True}
             )
 
@@ -118,6 +131,7 @@ async def join_game(code: str, body: JoinGameRequest, request: Request):
                 {"name": c.name, "score": c.score}
                 for c in game.state.contestants.values()
             ],
+            reconnected=player_data.get("reconnected", False),
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -146,6 +160,7 @@ async def get_game(game_id: str, request: Request):
         player_count=lobby_state["player_count"],
         can_start=lobby_state["can_start"],
         host_player_id=lobby_state["host_player_id"],
+        voice=lobby_state.get("voice"),
     )
 
 
@@ -169,6 +184,7 @@ async def get_game_by_code(code: str, request: Request):
         player_count=lobby_state["player_count"],
         can_start=lobby_state["can_start"],
         host_player_id=lobby_state["host_player_id"],
+        voice=lobby_state.get("voice"),
     )
 
 
@@ -205,6 +221,48 @@ async def start_game(game_id: str, body: StartGameRequest, request: Request):
     return {"status": "started", "game_id": game_id}
 
 
+@router.post("/{game_id}/restart")
+async def restart_game(game_id: str, request: Request):
+    """
+    Restart a completed game with the same players.
+
+    Resets scores, generates a new board, and starts a fresh round.
+    """
+    game_manager = request.app.state.game_manager
+    game_service = request.app.state.game_service
+
+    game = await game_manager.get_game_by_id(game_id)
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+
+    if game.status != "completed":
+        raise HTTPException(status_code=400, detail="Game is not completed")
+
+    # Store current preferences before stopping AI host
+    if game._ai_host and game._ai_host.game_state_manager:
+        game.stored_preferences = dict(game._ai_host.game_state_manager.player_preferences)
+
+    # Stop any lingering AI host task
+    await game.stop_ai_host()
+
+    # Reset game state
+    game.restart_game()
+
+    # Start a fresh AI host
+    await game.start_ai_host(game_service)
+
+    # Broadcast score reset to all clients
+    scores = {c.name: c.score for c in game.state.contestants.values()}
+    connection_manager = request.app.state.connection_manager
+    await connection_manager.broadcast_to_room(
+        game_id,
+        "com.sc2ctl.bighead.contestant_score",
+        {"scores": scores}
+    )
+
+    return {"status": "restarted", "game_id": game_id}
+
+
 @router.delete("/{game_id}")
 async def delete_game(game_id: str, request: Request):
     """
@@ -233,3 +291,102 @@ async def list_games(request: Request):
         "games": game_manager.list_games(),
         "count": game_manager.get_active_game_count(),
     }
+
+
+@router.get("/voices")
+async def list_voices():
+    """
+    List available TTS voices from Inworld API.
+
+    Returns cached voice list for use in game creation UI.
+    """
+    api_key = os.environ.get("INWORLD_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="TTS API key not configured")
+
+    auth_value = api_key if api_key.startswith("Basic ") else f"Basic {api_key}"
+    headers = {"Authorization": auth_value}
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                "https://api.inworld.ai/tts/v1/voices",
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=10),
+            ) as resp:
+                if resp.status != 200:
+                    logger.error(f"Inworld voices API error: {resp.status}")
+                    # Fall back to known voices
+                    return {"voices": _fallback_voices()}
+
+                data = await resp.json()
+                voices = []
+                for v in data.get("voices", []):
+                    voices.append({
+                        "id": v.get("voiceId", v.get("name", "")),
+                        "name": v.get("voiceId", v.get("name", "")),
+                        "description": v.get("description", ""),
+                    })
+                return {"voices": voices if voices else _fallback_voices()}
+    except Exception as e:
+        logger.error(f"Error fetching voices: {e}")
+        return {"voices": _fallback_voices()}
+
+
+def _fallback_voices():
+    """Fallback voice list when Inworld API is unavailable."""
+    return [
+        {"id": "Clive", "name": "Clive"},
+        {"id": "Dennis", "name": "Dennis"},
+        {"id": "Wendy", "name": "Wendy"},
+        {"id": "Ashley", "name": "Ashley"},
+    ]
+
+
+@router.get("/voices/preview/{voice_id}")
+async def preview_voice(voice_id: str):
+    """Generate a short TTS preview clip for a voice."""
+    api_key = os.environ.get("INWORLD_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="TTS API key not configured")
+
+    auth_value = api_key if api_key.startswith("Basic ") else f"Basic {api_key}"
+    headers = {"Authorization": auth_value, "Content-Type": "application/json"}
+
+    payload = {
+        "text": f"Hi, I'm {voice_id}!",
+        "voiceId": voice_id,
+        "modelId": "inworld-tts-1-max",
+        "audioConfig": {
+            "audioEncoding": "MP3",
+            "sampleRateHertz": 22050,
+            "speakingRate": 1.0,
+            "pitch": 0.0,
+        },
+        "temperature": 1.1,
+    }
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                "https://api.inworld.ai/tts/v1/voice",
+                headers=headers,
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp:
+                if resp.status != 200:
+                    logger.error(f"TTS preview error: {resp.status}")
+                    raise HTTPException(status_code=502, detail="TTS API error")
+
+                data = await resp.json()
+                audio_b64 = data.get("audioContent")
+                if not audio_b64:
+                    raise HTTPException(status_code=502, detail="No audio in response")
+
+                audio_bytes = base64.b64decode(audio_b64)
+                return Response(content=audio_bytes, media_type="audio/mpeg")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating voice preview: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate preview")

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getApiUrl } from '../config';
+import ThemeSelector from '../components/ThemeSelector/ThemeSelector';
+import VoiceSelector from '../components/VoiceSelector/VoiceSelector';
 import './HomePage.css';
 
 function HomePage() {
@@ -12,6 +14,7 @@ function HomePage() {
   const [loading, setLoading] = useState(false);
   const [joining, setJoining] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [voice, setVoice] = useState('Clive');
 
   const handleCreateGame = async (e) => {
     e.preventDefault();
@@ -25,10 +28,11 @@ function HomePage() {
     setLoading(true);
 
     try {
-      // Step 1: Create the game
+      // Step 1: Create the game with selected voice
       const createResponse = await fetch(getApiUrl('/api/games/create'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voice }),
       });
 
       if (!createResponse.ok) {
@@ -55,14 +59,15 @@ function HomePage() {
 
       const joinData = await joinResponse.json();
 
-      // Store player info in session storage
+      // Store player info in sessionStorage (per-tab, no cross-tab conflicts)
       sessionStorage.setItem(
-        'playerInfo',
+        'bighead_playerInfo',
         JSON.stringify({
           playerId: joinData.player_id,
           playerName: joinData.player_name,
           isHost: joinData.is_host,
           gameId: joinData.game_id,
+          gameCode: joinData.code,
           preferences: preferences.trim(),
         })
       );
@@ -111,14 +116,15 @@ function HomePage() {
 
       const data = await response.json();
 
-      // Store player info in session storage for the lobby/game pages
+      // Store player info in sessionStorage (per-tab, no cross-tab conflicts)
       sessionStorage.setItem(
-        'playerInfo',
+        'bighead_playerInfo',
         JSON.stringify({
           playerId: data.player_id,
           playerName: data.player_name,
           isHost: data.is_host,
           gameId: data.game_id,
+          gameCode: data.code,
           preferences: preferences.trim(),
         })
       );
@@ -139,12 +145,13 @@ function HomePage() {
     setPlayerName('');
     setPreferences('');
     setGameCode('');
+    setVoice('Clive');
   };
 
   return (
     <div className="home-page">
       <div className="home-container">
-        <h1 className="home-title">JEOPARDY AI</h1>
+        <h1 className="home-title">BIG HEAD</h1>
 
         {!joining && !creating ? (
           <>
@@ -189,18 +196,20 @@ function HomePage() {
               />
             </div>
 
-            <div className="input-group">
-              <label htmlFor="preferences">Category Preferences (optional)</label>
-              <input
+            <div className="input-group preferences-group">
+              <label htmlFor="preferences">What kind of game do you want?</label>
+              <textarea
                 id="preferences"
-                type="text"
                 value={preferences}
                 onChange={(e) => setPreferences(e.target.value)}
-                placeholder="e.g., Science, History, 90s Movies"
-                className="home-input"
+                placeholder="Enter whatever"
+                className="home-input home-textarea"
                 disabled={loading}
+                rows={4}
               />
             </div>
+
+            <VoiceSelector value={voice} onChange={setVoice} disabled={loading} />
 
             <button
               type="submit"
@@ -250,16 +259,16 @@ function HomePage() {
               />
             </div>
 
-            <div className="input-group">
-              <label htmlFor="preferences">Category Preferences (optional)</label>
-              <input
+            <div className="input-group preferences-group">
+              <label htmlFor="preferences">What kind of game do you want?</label>
+              <textarea
                 id="preferences"
-                type="text"
                 value={preferences}
                 onChange={(e) => setPreferences(e.target.value)}
-                placeholder="e.g., Science, History, 90s Movies"
-                className="home-input"
+                placeholder="Enter whatever"
+                className="home-input home-textarea"
                 disabled={loading}
+                rows={3}
               />
             </div>
 
@@ -283,6 +292,7 @@ function HomePage() {
         )}
 
         {error && <div className="error-message">{error}</div>}
+        <ThemeSelector />
       </div>
     </div>
   );

@@ -35,13 +35,16 @@ class GameInstance:
     STATUS_COMPLETED = "completed"
 
     # Required players to start (can be overridden)
-    REQUIRED_PLAYERS = 3
+    REQUIRED_PLAYERS = 1
+
+    DEFAULT_VOICE = "Clive"
 
     def __init__(
         self,
         game_id: str,
         game_code: str,
         host_player_id: Optional[str] = None,
+        voice: Optional[str] = None,
     ):
         """
         Initialize a new game instance.
@@ -50,10 +53,12 @@ class GameInstance:
             game_id: The unique game UUID
             game_code: The 6-digit game code
             host_player_id: Optional player UUID who is the host
+            voice: Optional TTS voice ID for the AI host
         """
         self.game_id = game_id
         self.game_code = game_code
         self.host_player_id = host_player_id
+        self.voice = voice or self.DEFAULT_VOICE
         self.status = self.STATUS_LOBBY
         self.created_at = datetime.utcnow()
 
@@ -71,6 +76,10 @@ class GameInstance:
         # Connected clients for this game (websocket_id -> websocket)
         self.connected_clients: Set[str] = set()
 
+        # Restart support
+        self.is_restart = False
+        self.stored_preferences: Optional[Dict[str, str]] = None
+
         # AI Host (created on demand)
         self._ai_host: Optional[AIHostService] = None
         self._ai_host_task: Optional[asyncio.Task] = None
@@ -79,7 +88,10 @@ class GameInstance:
     def ai_host(self) -> AIHostService:
         """Get or create the AI host service for this game."""
         if self._ai_host is None:
-            self._ai_host = AIHostService(name=f"AI Host ({self.game_code})")
+            self._ai_host = AIHostService(
+                name=f"AI Host ({self.game_code})",
+                voice=self.voice,
+            )
         return self._ai_host
 
     @property
@@ -150,6 +162,24 @@ class GameInstance:
         """Mark the game as completed."""
         self.status = self.STATUS_COMPLETED
         logger.info(f"Game {self.game_code} completed")
+
+    def restart_game(self):
+        """Reset game state for a new round, preserving players and preferences."""
+        self.board = None
+        self.current_question = None
+        self.status = self.STATUS_ACTIVE
+        self.game_ready = True
+        self.is_restart = True
+
+        # Reset scores
+        for contestant in self.state.contestants.values():
+            contestant.score = 0
+
+        # Clear used questions tracking
+        if hasattr(self.state, 'used_questions'):
+            self.state.used_questions.clear()
+
+        logger.info(f"Game {self.game_code} restarted")
 
     async def start_ai_host(self, game_service):
         """
@@ -222,6 +252,9 @@ class GameInstance:
 
     def get_state_for_client(self) -> Dict[str, Any]:
         """Get the game state to send to a new client."""
+        controlling_player = None
+        if self._ai_host and self._ai_host.game_state_manager:
+            controlling_player = self._ai_host.game_state_manager.get_player_with_control()
         return {
             "game_id": self.game_id,
             "game_code": self.game_code,
@@ -233,6 +266,7 @@ class GameInstance:
             "last_buzzer": self.last_buzzer,
             "game_ready": self.game_ready,
             "is_host": False,  # Will be set by caller based on client
+            "controlling_player": controlling_player,
         }
 
     def get_lobby_state(self) -> Dict[str, Any]:
@@ -249,6 +283,7 @@ class GameInstance:
             "required_players": self.REQUIRED_PLAYERS,
             "can_start": self.can_start(),
             "host_player_id": self.host_player_id,
+            "voice": self.voice,
         }
 
     def to_dict(self) -> Dict[str, Any]:

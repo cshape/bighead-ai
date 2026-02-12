@@ -11,6 +11,8 @@ import logging
 import re
 from pathlib import Path
 
+import aiohttp
+
 logger = logging.getLogger(__name__)
 
 class TTSClient:
@@ -46,19 +48,24 @@ class TTSClient:
                 "set the INWORLD_API_KEY environment variable."
             )
         
-        # Use the new API endpoint
+        # API endpoints
         self.url = 'https://api.inworld.ai/tts/v1/voice'
-        
+        self.streaming_url = 'https://api.inworld.ai/tts/v1/voice:stream'
+
         # Make sure the Authorization header is properly formatted
         # The API key might already include "Basic " prefix or might need it added
         auth_value = self.api_key
         if not auth_value.startswith("Basic "):
             auth_value = f"Basic {auth_value}"
-            
+
         self.headers = {
             'Authorization': auth_value,
             'Content-Type': 'application/json'
         }
+
+        # Persistent aiohttp session for streaming requests (lazy-initialized)
+        self._session = None
+
         logger.debug(f"Initialized TTSClient with API URL: {self.url}")
     
     def _preprocess_text_with_phonemes(self, text):
@@ -228,6 +235,90 @@ class TTSClient:
             logger.error(traceback.format_exc())
             raise Exception(f"Failed to generate speech: {str(e)}")
     
+    async def _get_session(self):
+        """Get or create the persistent aiohttp session."""
+        if self._session is None or self._session.closed:
+            connector = aiohttp.TCPConnector(keepalive_timeout=30)
+            self._session = aiohttp.ClientSession(connector=connector)
+        return self._session
+
+    async def generate_speech_streaming(self, text, voice_id="Dennis",
+                                         model_id="inworld-tts-1-max",
+                                         voice_name=None):
+        """
+        Async generator that streams OGG_OPUS audio chunks from the Inworld TTS API.
+
+        The streaming endpoint returns newline-delimited JSON. Each line contains
+        a JSON object with ``result.audioContent`` (base64-encoded OGG_OPUS data).
+
+        Yields base64-encoded audio content strings (one per NDJSON line that
+        contains audio data).
+        """
+        processed_text = self._preprocess_text_with_phonemes(text)
+
+        if voice_name is not None:
+            voice_id = voice_name
+
+        payload = {
+            "text": processed_text,
+            "voiceId": voice_id,
+            "modelId": model_id,
+            "audioConfig": {
+                "audioEncoding": "OGG_OPUS",
+            },
+        }
+
+        logger.debug(f"Streaming TTS request for: '{processed_text[:50]}...' voice={voice_id}")
+
+        session = await self._get_session()
+        async with session.post(
+            self.streaming_url,
+            headers=self.headers,
+            json=payload,
+            timeout=aiohttp.ClientTimeout(total=60, sock_read=30),
+        ) as resp:
+            if resp.status != 200:
+                body = await resp.text()
+                raise Exception(f"Streaming TTS API error: {resp.status} - {body}")
+
+            # Response is newline-delimited JSON
+            buffer = ""
+            async for raw_chunk in resp.content.iter_any():
+                buffer += raw_chunk.decode("utf-8", errors="replace")
+                lines = buffer.split("\n")
+                buffer = lines.pop()  # keep incomplete trailing line
+
+                for line in lines:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        data = json.loads(line)
+                        result = data.get("result", data)
+                        audio_content = result.get("audioContent")
+                        if audio_content:
+                            yield audio_content
+                    except json.JSONDecodeError:
+                        continue
+
+            # Flush any remaining data left in the buffer (last line
+            # without a trailing newline)
+            if buffer.strip():
+                try:
+                    data = json.loads(buffer.strip())
+                    result = data.get("result", data)
+                    audio_content = result.get("audioContent")
+                    if audio_content:
+                        yield audio_content
+                except json.JSONDecodeError:
+                    pass
+
+    async def close(self):
+        """Close the persistent aiohttp session."""
+        if self._session and not self._session.closed:
+            await self._session.close()
+            self._session = None
+
     def add_phoneme_substitution(self, word, phoneme):
         """
         Add a new word-to-phoneme substitution to the dictionary.

@@ -1,10 +1,11 @@
 {
-  "name": "jeopardy-ai",
+  "name": "big-head-ai",
   "version": "1.0.0",
-  "description": "AI-powered Jeopardy game with multi-game support",
+  "description": "AI-powered Big Head game with multi-game support",
   "scripts": {
     "install": "cd frontend && npm install",
     "build": "cd frontend && npm run build",
+    "build:all": "pip install -r requirements.txt && cd frontend && npm install && npm run build",
     "start": "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --ws wsproto",
     "dev": "concurrently \"uvicorn app.main:app --reload --ws wsproto\" \"cd frontend && npm run dev\"",
     "dev:backend": "uvicorn app.main:app --reload --ws wsproto",
@@ -15,10 +16,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/jeopardy-ai.git"
+    "url": "https://github.com/yourusername/big-head-ai.git"
   },
   "keywords": [
-    "jeopardy",
+    "bighead",
     "ai",
     "game",
     "trivia",
@@ -27,6 +28,6 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "concurrently": "^9.1.0"
+    "concurrently": "^9.2.1"
   }
 }

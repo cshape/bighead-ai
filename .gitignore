@@ -4,6 +4,7 @@ node_modules/
 .env.*
 .DS_Store
 static/audio/
+frontend/dist/
 app/game_data/
 state.json
 

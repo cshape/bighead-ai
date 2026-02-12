@@ -14,7 +14,7 @@ class ChatManager:
     """
 
     # Chat topic constant - should match the JavaScript client
-    CHAT_MESSAGE_TOPIC = "com.sc2ctl.jeopardy.chat_message"
+    CHAT_MESSAGE_TOPIC = "com.sc2ctl.bighead.chat_message"
 
     def __init__(self, connection_manager: ConnectionManager):
         """
@@ -77,7 +77,7 @@ class ChatManager:
             return
 
         await self.connection_manager.send_personal_message(
-            websocket, "com.sc2ctl.jeopardy.chat_history", {"messages": history}
+            websocket, "com.sc2ctl.bighead.chat_history", {"messages": history}
         )
 
     def clear_game_history(self, game_id: str):

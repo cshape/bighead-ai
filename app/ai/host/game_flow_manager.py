@@ -5,16 +5,32 @@ Game Flow Manager for handling game progression and state monitoring.
 import logging
 import asyncio
 import os
+import random
 import time
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+CLUE_SELECTION_TIMEOUT = 30.0 if os.environ.get("TEST_MODE") else 15.0
+
+HURRY_UP_PHRASES = [
+    "Let's keep things moving!",
+    "Time waits for no one! I'll pick one.",
+    "Going once, going twice... I'll choose!",
+    "The board awaits! Let me help you out.",
+    "Not to rush you, but... too late! I'm picking.",
+    "Alright, I'll take the wheel!",
+    "Moving right along!",
+    "Let's not keep the audience waiting!",
+    "I'll do the honors!",
+    "Can't decide? Allow me!",
+]
+
 class GameFlowManager:
     """
     Manages the game flow, state monitoring, and game progression.
     """
-    
+
     def __init__(self):
         """Initialize the game flow manager."""
         # Dependencies (to be set later)
@@ -25,10 +41,15 @@ class GameFlowManager:
         self.buzzer_manager = None
         self.board_manager = None
         self.game_instance = None  # Will be set by service.py
+        self.question_manager = None  # Set via set_dependencies
+
+        # Timer for auto-picking a clue when controlling player is idle
+        self.clue_selection_timer_start = None
     
-    def set_dependencies(self, game_service=None, game_state_manager=None, 
-                         chat_processor=None, audio_manager=None, 
-                         buzzer_manager=None, board_manager=None):
+    def set_dependencies(self, game_service=None, game_state_manager=None,
+                         chat_processor=None, audio_manager=None,
+                         buzzer_manager=None, board_manager=None,
+                         question_manager=None):
         """Set dependencies required for game flow management."""
         if game_service:
             self.game_service = game_service
@@ -42,6 +63,8 @@ class GameFlowManager:
             self.buzzer_manager = buzzer_manager
         if board_manager:
             self.board_manager = board_manager
+        if question_manager:
+            self.question_manager = question_manager
 
     def _get_game_id(self) -> Optional[str]:
         """Get the game_id from game_instance if available."""
@@ -77,6 +100,8 @@ class GameFlowManager:
                 # Cancel any existing timer when a new question appears
                 if self.buzzer_manager:
                     self.buzzer_manager.cancel_timeout()
+                # Reset clue selection timer since a question is now active
+                self.clue_selection_timer_start = None
                 
                 question_data = current_question
                 
@@ -104,7 +129,7 @@ class GameFlowManager:
                     else:
                         speech_text = f"For {question_data['category']}, ${question_data['value']}. {question_data['text']}"
                         logger.debug(f"Synthesizing speech: {speech_text}")
-                        await self.audio_manager.synthesize_and_play_speech(speech_text, is_question_audio=True)
+                        await self.audio_manager.synthesize_and_stream_speech(speech_text, is_question_audio=True)
                 
             # Check if we need to handle a player's answer - improved to detect new buzzer events
             current_buzzer = self.game_instance.last_buzzer if self.game_instance else None
@@ -122,9 +147,6 @@ class GameFlowManager:
                 
                 # Update our state
                 self.game_state_manager.set_buzzed_player(player_name, set())
-                
-                # Let players know they're being evaluated
-                await self.chat_processor.send_chat_message(f"Let me evaluate {player_name}'s answer...")
                 
                 # Cancel any active buzzer timeout when someone buzzes in
                 if self.buzzer_manager:
@@ -201,19 +223,36 @@ class GameFlowManager:
                 player_name = contestant.name
                 if player_name and player_name not in self.game_state_manager.get_player_names():
                     self.game_state_manager.add_player(player_name)
-                    # Welcome the player but don't ask for preferences
-                    await self.chat_processor.send_chat_message(f"Welcome, {player_name}!")
             
+            # Handle restart: skip welcome, load stored preferences, go to board gen
+            if self.game_instance and self.game_instance.is_restart:
+                logger.info("Restart detected — skipping welcome, generating new board")
+                self.game_instance.is_restart = False
+
+                # Load stored preferences into the new game_state_manager
+                if self.game_instance.stored_preferences:
+                    for name, pref in self.game_instance.stored_preferences.items():
+                        self.game_state_manager.add_player_preference(name, pref)
+                    self.game_instance.stored_preferences = None
+
+                # Mark welcome/prefs as done so we go straight to board
+                self.game_state_manager.set_welcome_completed(True)
+                self.game_state_manager.set_waiting_for_preferences(False)
+                await self.generate_board_from_preferences()
+                return
+
             # If we have all players but haven't welcomed them yet
-            if (current_player_count >= self.game_state_manager.game_state.expected_player_count and 
+            if (current_player_count >= self.game_state_manager.game_state.expected_player_count and
                 not self.game_state_manager.is_welcome_completed()):
+                # Lock expected_player_count to actual count so the welcome triggers once
+                self.game_state_manager.game_state.expected_player_count = current_player_count
                 logger.info("All players have joined. Welcoming...")
                 await self.welcome_players()
                 
                 # Mark game as ready
                 if self.game_service:
                     await self.game_service.connection_manager.broadcast_message(
-                        "com.sc2ctl.jeopardy.game_ready",
+                        "com.sc2ctl.bighead.game_ready",
                         {"ready": True},
                         game_id=self._get_game_id()
                     )
@@ -252,20 +291,24 @@ class GameFlowManager:
             # We need to keep the registration preferences
             
             # Format player list for welcome message with proper grammar
-            if len(player_names) == 3:
-                player_list = f"{player_names[0]}, {player_names[1]}, and {player_names[2]}"
+            if len(player_names) == 1:
+                player_list = player_names[0]
+            elif len(player_names) == 2:
+                player_list = f"{player_names[0]} and {player_names[1]}"
             else:
-                player_list = ", ".join(player_names)  # Fallback for other counts
+                player_list = ", ".join(player_names[:-1]) + f", and {player_names[-1]}"
             
             # Welcome message without asking for preferences since we got them at registration
-            welcome_message = f"Welcome to Jeopardy! Today's contestants are {player_list}. Let's get started!"
+            welcome_message = f"Welcome to Big Head! Today's contestants are {player_list}. Let's get started!"
             logger.info(f"Sending welcome message: {welcome_message}")
             
             # Send welcome message
             await self.chat_processor.send_chat_message(welcome_message)
             if self.audio_manager and not os.environ.get("TEST_MODE"):
-                await self.audio_manager.synthesize_and_play_speech(welcome_message)
-            
+                # Fire-and-forget: let welcome audio play via the queue while
+                # board generation starts immediately in parallel
+                asyncio.create_task(self.audio_manager.synthesize_and_stream_speech(welcome_message))
+
             # Mark welcome as completed
             self.game_state_manager.set_welcome_completed(True)
             
@@ -311,7 +354,7 @@ class GameFlowManager:
             # Only do this if it's not already being shown (avoid duplicating)
             if self.game_service and not self.game_state_manager.game_state.board_generation_started:
                 await self.game_service.connection_manager.broadcast_message(
-                    "com.sc2ctl.jeopardy.start_board_generation",
+                    "com.sc2ctl.bighead.start_board_generation",
                     {},
                     game_id=self._get_game_id()
                 )
@@ -326,10 +369,10 @@ class GameFlowManager:
                 self.game_state_manager.set_game_started(True)
                 
                 # Announce the game is starting
-                start_message = "The game board is ready! Let's play Jeopardy!"
+                start_message = "The game board is ready! Let's play Big Head!"
                 await self.chat_processor.send_chat_message(start_message)
                 if not os.environ.get("TEST_MODE"):
-                    await self.audio_manager.synthesize_and_play_speech(start_message)
+                    await self.audio_manager.synthesize_and_stream_speech(start_message)
                 
                 # Start the game by assigning the first player control of the board
                 await self.assign_first_player()
@@ -345,7 +388,7 @@ class GameFlowManager:
                 error_message = "I had trouble generating a custom board. Let's use a default board instead!"
                 await self.chat_processor.send_chat_message(error_message)
                 if not os.environ.get("TEST_MODE"):
-                    await self.audio_manager.synthesize_and_play_speech(error_message)
+                    await self.audio_manager.synthesize_and_stream_speech(error_message)
                 
                 # Start the game by assigning the first player control of the board
                 await self.assign_first_player()
@@ -375,11 +418,12 @@ class GameFlowManager:
             
             # Set the first player as having control of the board
             self.game_state_manager.set_player_with_control(first_player, set())
-            
+            self.clue_selection_timer_start = time.time()
+
             # Notify game service to update frontend state
             if self.game_service:
                 await self.game_service.connection_manager.broadcast_message(
-                    "com.sc2ctl.jeopardy.select_question",
+                    "com.sc2ctl.bighead.select_question",
                     {"contestant": first_player},
                     game_id=self._get_game_id()
                 )
@@ -388,7 +432,7 @@ class GameFlowManager:
             control_message = f"{first_player}, you have control of the board!"
             await self.chat_processor.send_chat_message(control_message)
             if not os.environ.get("TEST_MODE"):
-                await self.audio_manager.synthesize_and_play_speech(control_message)
+                await self.audio_manager.synthesize_and_stream_speech(control_message)
             
         except Exception as e:
             logger.error(f"Error assigning first player: {e}")
@@ -396,21 +440,55 @@ class GameFlowManager:
             logger.error(traceback.format_exc())
             
     async def check_for_clue_selection(self):
-        """Check for clue selection messages from the player with control of the board."""
-        # Only check if there's a player with control and no active question
+        """Check for clue selection messages from the player with control of the board.
+
+        If the controlling player is idle for too long, auto-pick a random clue.
+        """
         if not self.game_state_manager.should_check_for_clue_selection():
             return
-            
+
         try:
             controlling_player = self.game_state_manager.get_player_with_control()
             if not controlling_player:
                 return
-                
-            logger.debug(f"Player with control: {controlling_player} - waiting for clue selection")
-            
-            # For now, we'll just handle this in other ways (e.g., through chat events)
-            
+
+            # Don't auto-pick while TTS is streaming — avoids queuing audio
+            if self.audio_manager and self.audio_manager._stream_lock.locked():
+                self.clue_selection_timer_start = None
+                return
+
+            # Start the timer if it hasn't been set yet
+            if self.clue_selection_timer_start is None:
+                self.clue_selection_timer_start = time.time()
+                return
+
+            elapsed = time.time() - self.clue_selection_timer_start
+            if elapsed < CLUE_SELECTION_TIMEOUT:
+                return
+
+            # Timeout reached — auto-pick a clue
+            board = self.game_instance.board if self.game_instance else None
+            if not self.question_manager or not board:
+                return
+
+            unused = self.question_manager.get_unused_clues(board)
+            if not unused:
+                return
+
+            category_name, value = random.choice(unused)
+            quip = random.choice(HURRY_UP_PHRASES)
+
+            logger.info(f"Auto-picking clue for idle player {controlling_player}: {category_name} ${value}")
+
+            await self.chat_processor.send_chat_message(quip)
+            if self.audio_manager and not os.environ.get("TEST_MODE"):
+                asyncio.create_task(self.audio_manager.synthesize_and_stream_speech(quip))
+
+            # Reset timer before displaying (display_question will trigger new question detection)
+            self.clue_selection_timer_start = None
+            await self.question_manager.display_question(category_name, value, game_id=self._get_game_id())
+
         except Exception as e:
             logger.error(f"Error checking for clue selection: {e}")
             import traceback
-            logger.error(traceback.format_exc()) 
+            logger.error(traceback.format_exc())

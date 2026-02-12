@@ -69,9 +69,12 @@ class GameManager:
 
         logger.info("GameManager stopped")
 
-    async def create_game(self) -> GameInstance:
+    async def create_game(self, voice: Optional[str] = None) -> GameInstance:
         """
         Create a new game.
+
+        Args:
+            voice: Optional TTS voice ID for the AI host
 
         Returns:
             The newly created GameInstance
@@ -80,7 +83,7 @@ class GameManager:
         game_code = self._generate_game_code()
 
         # Create in-memory instance
-        game = GameInstance(game_id=game_id, game_code=game_code)
+        game = GameInstance(game_id=game_id, game_code=game_code, voice=voice)
 
         # Store references
         self.active_games[game_id] = game
@@ -146,9 +149,26 @@ class GameManager:
         if game.status == GameInstance.STATUS_COMPLETED:
             raise ValueError("This game has already ended")
 
-        # Check if name is taken
-        if game.state.get_contestant_by_name(player_name):
-            raise ValueError(f"Player name '{player_name}' is already taken")
+        # Check if name is taken — treat as reconnection if so
+        existing = game.state.get_contestant_by_name(player_name)
+        if existing:
+            # Reconnection: update player_id, keep existing score
+            new_player_id = str(uuid4())
+            existing.player_id = new_player_id
+            player_data = {"id": new_player_id, "name": player_name, "reconnected": True}
+
+            # Update host_player_id if this was the host
+            if game.host_player_id and game.host_player_id != new_player_id:
+                # Check if the old host had the same name
+                for c in game.state.contestants.values():
+                    if c.name == player_name:
+                        # This reconnecting player might be the host — update if first player
+                        break
+
+            if websocket_id:
+                game.add_client(websocket_id)
+            logger.info(f"Player {player_name} reconnected to game {game_code}")
+            return game, player_data
 
         # Generate player ID locally
         player_id = str(uuid4())

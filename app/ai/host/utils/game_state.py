@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Question:
-    """Represents a Jeopardy question"""
+    """Represents a Big Head question"""
     text: str
     answer: str
     category: str

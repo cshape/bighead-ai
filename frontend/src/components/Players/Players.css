@@ -6,7 +6,7 @@
 }
 
 .player-score {
-  background-color: #3E3328;
+  background-color: var(--color-cell-bg);
   padding: 1rem 2rem;
   border-radius: 8px;
   text-align: center;
@@ -15,12 +15,33 @@
 .player-name {
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
-  color: #D4C5A9;
+  color: var(--color-parchment);
 }
 
 .score {
   font-size: 2rem;
-  color: #C9A84C;
+  color: var(--color-gold);
   font-weight: bold;
   font-family: var(--font-game-display);
+}
+
+/* ---- Mobile responsive ---- */
+@media (max-width: 768px) {
+  .player-scores {
+    gap: 1rem;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+  }
+
+  .player-score {
+    padding: 0.75rem 1rem;
+  }
+
+  .player-name {
+    font-size: 1rem;
+  }
+
+  .score {
+    font-size: 1.5rem;
+  }
 }

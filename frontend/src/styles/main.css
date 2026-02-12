@@ -8,8 +8,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #EFE6D8;
-  color: #2B2B2B;
+  background-color: var(--color-board-bg);
+  color: var(--color-light-text);
   overflow: hidden;
 }
 
@@ -19,6 +19,7 @@ body {
 
 #root {
   height: 100vh;
+  height: 100dvh;
 }
 
 .app-container {
@@ -36,21 +37,21 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(20, 17, 12, 0.92);
+  background-color: var(--color-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .modal-content {
-  background-color: #3E3328;
+  background-color: var(--color-cell-bg);
   padding: 3rem;
   border-radius: 10px;
   max-width: 80%;
   text-align: center;
-  border: 2px solid #5C4833;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 60px rgba(201, 168, 76, 0.08);
-  color: #EFE6D8;
+  border: 2px solid var(--color-border);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5), 0 0 60px var(--color-highlight-glow-md);
+  color: var(--color-light-text);
 }
 
 /* Admin controls styles moved to AdminControls.css */

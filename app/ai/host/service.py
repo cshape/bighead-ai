@@ -1,7 +1,7 @@
 """
-AI Host Service for Jeopardy
+AI Host Service for Big Head
 
-This module implements an AI host that interacts with the Jeopardy game
+This module implements an AI host that interacts with the Big Head game
 directly through the backend, eliminating the need for Selenium.
 """
 
@@ -25,25 +25,26 @@ logger = logging.getLogger(__name__)
 
 class AIHostService:
     """
-    AI host service that directly interacts with the Jeopardy game backend.
+    AI host service that directly interacts with the Big Head game backend.
     
     This host monitors player interactions, evaluates answers using LLM,
     and manages the game flow without using browser automation.
     """
     
-    def __init__(self, name: str):
+    def __init__(self, name: str, voice: str = "Clive"):
         """
         Initialize the AI host service.
-        
+
         Args:
             name: The name of the AI host
+            voice: The TTS voice ID for speech synthesis
         """
-        logger.info(f"Initializing AI Host Service with name: {name}")
+        logger.info(f"Initializing AI Host Service with name: {name}, voice: {voice}")
         self.name = name
-        
+
         # Initialize API keys
         self.inworld_api_key = os.environ.get("INWORLD_API_KEY")
-        self.tts_voice = "Timothy"
+        self.tts_voice = voice
         
         # Initialize component managers
         self.game_state_manager = GameStateManager()
@@ -146,7 +147,8 @@ class AIHostService:
             chat_processor=self.chat_processor,
             audio_manager=self.audio_manager,
             buzzer_manager=self.buzzer_manager,
-            board_manager=self.board_manager
+            board_manager=self.board_manager,
+            question_manager=self.question_manager,
         )
 
         # Pass game_instance to components that need it
@@ -171,7 +173,7 @@ class AIHostService:
             is_question_audio: Whether this is the audio for a question
             is_incorrect_answer_audio: Whether this is the audio for an incorrect answer
         """
-        return await self.audio_manager.synthesize_and_play_speech(text, is_question_audio, is_incorrect_answer_audio)
+        return await self.audio_manager.synthesize_and_stream_speech(text, is_question_audio, is_incorrect_answer_audio)
     
     async def monitor_game_state(self):
         """Monitor the game state and respond to changes."""

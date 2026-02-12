@@ -17,12 +17,12 @@ class Question(BaseModel):
     clue: Clue
     answer: Answer
     value: int
-    daily_double: bool = False
+    double_big_head: bool = False
     type: Literal["text", "image", "audio", "video"] = "text"
     used: bool = False
     
     def mark_as_used(self):
         self.used = True
     
-    def is_daily_double(self) -> bool:
-        return self.daily_double 
+    def is_double_big_head(self) -> bool:
+        return self.double_big_head 

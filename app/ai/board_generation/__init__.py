@@ -1,3 +1,3 @@
 """
-Board generation module for creating Jeopardy game data.
+Board generation module for creating Big Head game data.
 """ 

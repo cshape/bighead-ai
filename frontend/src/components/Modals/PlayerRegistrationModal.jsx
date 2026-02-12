@@ -11,7 +11,7 @@ export default function PlayerRegistrationModal() {
     e.preventDefault();
     if (!name.trim()) return;
     
-    sendMessage('com.sc2ctl.jeopardy.register_player', {
+    sendMessage('com.sc2ctl.bighead.register_player', {
       name: name.trim(),
       preferences: preferences.trim()
     });

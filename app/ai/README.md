@@ -1,6 +1,6 @@
-# AI Players for Jeopardy Game
+# AI Players for Big Head Game
 
-This module implements AI players that can participate in Jeopardy games alongside human players.
+This module implements AI players that can participate in Big Head games alongside human players.
 
 ## Overview
 
@@ -8,7 +8,7 @@ AI players use Large Language Models (LLMs) to make decisions in the game based 
 - Buzz in when they know the answer
 - Provide answers to questions
 - Choose categories and questions when it's their turn
-- Make wagers for Daily Doubles and Final Jeopardy
+- Make wagers for Double Big Heads and Final Big Head
 
 ## Game State Machine
 
@@ -82,7 +82,7 @@ if response["action"] == "buzz":
 ## Implementation Details
 
 1. The AI players use a system prompt that includes:
-   - Rules of Jeopardy
+   - Rules of Big Head
    - Personality traits specific to the AI player
    - Instructions to format responses as JSON
 

@@ -159,6 +159,8 @@
     border-top: 2px solid var(--color-border);
     min-height: 0;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   .admin-bar {

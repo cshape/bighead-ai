@@ -204,7 +204,7 @@ class AudioManager:
                 # 1. Broadcast stream start
                 await self.game_service.connection_manager.broadcast_message(
                     "com.sc2ctl.bighead.audio_stream_start",
-                    {"audio_id": audio_id, "encoding": "ogg_opus"},
+                    {"audio_id": audio_id, "encoding": "mp3"},
                     game_id=self.game_id
                 )
 

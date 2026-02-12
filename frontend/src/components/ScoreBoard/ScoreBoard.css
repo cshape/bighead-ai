@@ -56,6 +56,9 @@
 @media (max-width: 768px) {
   .score-board {
     padding: 10px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    max-height: 40%;
   }
 
   .score-board h2 {

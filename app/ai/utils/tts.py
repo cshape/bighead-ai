@@ -246,10 +246,10 @@ class TTSClient:
                                          model_id="inworld-tts-1-max",
                                          voice_name=None):
         """
-        Async generator that streams OGG_OPUS audio chunks from the Inworld TTS API.
+        Async generator that streams MP3 audio chunks from the Inworld TTS API.
 
         The streaming endpoint returns newline-delimited JSON. Each line contains
-        a JSON object with ``result.audioContent`` (base64-encoded OGG_OPUS data).
+        a JSON object with ``result.audioContent`` (base64-encoded MP3 data).
 
         Yields base64-encoded audio content strings (one per NDJSON line that
         contains audio data).
@@ -264,7 +264,7 @@ class TTSClient:
             "voiceId": voice_id,
             "modelId": model_id,
             "audioConfig": {
-                "audioEncoding": "OGG_OPUS",
+                "audioEncoding": "MP3",
             },
         }
 

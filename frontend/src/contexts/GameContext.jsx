@@ -841,7 +841,11 @@ export function GameProvider({ children }) {
               s.lastDecodedDuration = audioBuffer.duration;
             }
           } catch (e) {
-            // Not enough data to decode yet — will succeed with more chunks
+            // Not enough data to decode yet — will succeed with more chunks.
+            // Log non-trivially to help debug codec issues (e.g. Safari + OGG).
+            if (s.chunks.length > 3) {
+              console.warn(`Audio decode attempt failed after ${s.chunks.length} chunks:`, e.message);
+            }
           }
         });
         break;

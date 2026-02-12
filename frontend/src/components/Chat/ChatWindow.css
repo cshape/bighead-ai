@@ -109,6 +109,7 @@
     min-height: 0;
     flex: 1;
     margin: 5px;
+    overflow: hidden;
   }
 
   .chat-header {
@@ -123,6 +124,8 @@
   .chat-messages {
     padding: 8px;
     min-height: 0;
+    flex: 1;
+    overflow-y: auto;
   }
 
   .chat-input {

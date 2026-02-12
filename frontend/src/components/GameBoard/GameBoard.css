@@ -1,6 +1,7 @@
 .bighead-board {
   display: grid;
   grid-template-columns: repeat(5, 1fr); /* Exactly 5 columns for 5 categories */
+  grid-template-rows: auto repeat(5, 1fr); /* Category header row + 5 question rows */
   gap: 8px;
   height: 100%;
   width: 100%;
@@ -17,10 +18,9 @@
 }
 
 .category {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  height: 100%;
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 6; /* 1 category header + 5 question rows */
 }
 
 .category-title {
@@ -38,7 +38,6 @@
   box-sizing: border-box;
   word-wrap: break-word;
   hyphens: auto;
-  height: 100%;
   border: 1px solid var(--color-border);
   box-shadow: inset 0 1px 0 var(--color-inset-light), inset 0 -2px 0 var(--color-inset-dark);
 }

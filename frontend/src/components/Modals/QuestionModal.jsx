@@ -3,7 +3,7 @@ import { useGame } from '../../contexts/GameContext';
 import './Modal.css';
 
 export default function QuestionModal() {
-  const { state, sendMessage, submitAnswer } = useGame();
+  const { state, sendMessage, submitAnswer, unlockAudio } = useGame();
   const { currentQuestion, buzzerActive, lastBuzzer, answerTimer, answerSubmitted, players, incorrectPlayers } = state;
 
   // Get playerName from state OR localStorage as fallback (registration
@@ -229,6 +229,7 @@ export default function QuestionModal() {
   // Handle buzzer press
   const handleBuzz = () => {
     if (showActiveBuzzer) {
+      unlockAudio(); // Unlock AudioContext on user gesture for mobile TTS
       sendMessage('com.sc2ctl.bighead.buzzer', {
         contestant: playerName
       });

@@ -475,6 +475,28 @@ export function GameProvider({ children }) {
   // Track active audio streams for MSE/blob-based playback
   const audioStreamsRef = useRef({});
 
+  // Shared AudioContext for all audio playback (mobile browsers require user
+  // gesture to create/resume an AudioContext — reusing one avoids the restriction)
+  const audioContextRef = useRef(null);
+
+  const getAudioContext = useCallback(() => {
+    if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    // Resume if suspended (mobile Safari suspends by default)
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume();
+    }
+    return audioContextRef.current;
+  }, []);
+
+  // Call this on any user gesture (button click) to unlock audio for mobile.
+  // Creating or resuming an AudioContext during a user gesture allows subsequent
+  // programmatic playback without gesture requirements.
+  const unlockAudio = useCallback(() => {
+    getAudioContext();
+  }, [getAudioContext]);
+
   // Handle all WebSocket messages in a single callback function
   const handleWebSocketMessage = useCallback((message) => {
     console.log('Processing WebSocket message:', message);
@@ -644,21 +666,25 @@ export function GameProvider({ children }) {
           
           audio.addEventListener('error', (e) => {
             console.error(`Audio ${audioId} error:`, e.target.error);
+            // Still notify backend so the game doesn't freeze waiting for audio_complete
+            sendMessage('com.sc2ctl.bighead.audio_complete', { audio_id: audioId });
           });
-          
+
           // When audio completes, notify the backend via WebSocket using sendMessage
           audio.addEventListener('ended', () => {
             console.log(`Audio ${audioId} playback COMPLETED, notifying backend`);
-            
+
             // Use the sendMessage function from our useWebSocket hook
             sendMessage('com.sc2ctl.bighead.audio_complete', { audio_id: audioId });
             console.log(`Audio completion for ${audioId} sent via sendMessage`);
           });
-          
+
           // Play the audio
           console.log(`Starting audio playback for ${audioId}`);
           audio.play().catch(err => {
             console.error(`Error playing audio ${audioId}:`, err);
+            // Notify backend on play failure so the game doesn't freeze
+            sendMessage('com.sc2ctl.bighead.audio_complete', { audio_id: audioId });
           });
         } catch (err) {
           console.error('Error setting up audio playback:', err);
@@ -735,7 +761,7 @@ export function GameProvider({ children }) {
         // Disable buzzer while audio streams
         dispatch({ type: 'SET_BUZZER_STATUS', payload: false });
 
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const audioContext = getAudioContext();
         audioStreamsRef.current[audio_id] = {
           audioContext,
           chunks: [],            // raw Uint8Array chunks accumulated
@@ -838,7 +864,7 @@ export function GameProvider({ children }) {
           const cleanup = () => {
             console.log(`Streaming audio ${audio_id} playback completed`);
             sendMessage('com.sc2ctl.bighead.audio_complete', { audio_id });
-            s.audioContext.close();
+            // Don't close the shared AudioContext — it's reused across streams
             delete audioStreamsRef.current[audio_id];
           };
 
@@ -856,7 +882,7 @@ export function GameProvider({ children }) {
       default:
         console.log('Unhandled message topic:', message.topic);
     }
-  }, [dispatch]);
+  }, [dispatch, getAudioContext]);
   
   // Get player name from session storage for HTTP-joined players
   const playerInfo = typeof window !== 'undefined'
@@ -951,6 +977,7 @@ export function GameProvider({ children }) {
         submitAnswer,
         setGameCode,
         isConnected,
+        unlockAudio,
       }}
     >
       {children}

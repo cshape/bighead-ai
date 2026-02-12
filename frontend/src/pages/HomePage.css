@@ -185,3 +185,25 @@
     font-size: 1rem;
   }
 }
+
+.home-footer {
+  position: fixed;
+  bottom: 16px;
+  right: 20px;
+  font-size: 0.8rem;
+}
+
+.home-footer a {
+  color: var(--color-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.home-footer a:hover {
+  color: var(--color-parchment);
+}
+
+.home-footer-sep {
+  color: var(--color-border);
+  margin: 0 8px;
+}

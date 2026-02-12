@@ -294,6 +294,12 @@ function HomePage() {
         {error && <div className="error-message">{error}</div>}
         <ThemeSelector />
       </div>
+
+      <div className="home-footer">
+        <a href="https://github.com/cshape/bighead-ai" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <span className="home-footer-sep">·</span>
+        <a href="https://render.com/deploy?repo=https://github.com/cshape/bighead-ai" target="_blank" rel="noopener noreferrer">Deploy on Render</a>
+      </div>
     </div>
   );
 }

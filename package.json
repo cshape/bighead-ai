@@ -1,5 +1,5 @@
 {
-  "name": "big-head-ai",
+  "name": "bighead-ai",
   "version": "1.0.0",
   "description": "AI-powered Big Head game with multi-game support",
   "scripts": {
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/big-head-ai.git"
+    "url": "https://github.com/cshape/bighead-ai.git"
   },
   "keywords": [
     "bighead",

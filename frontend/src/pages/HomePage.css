@@ -190,20 +190,65 @@
   position: fixed;
   bottom: 16px;
   right: 20px;
-  font-size: 0.8rem;
+  display: flex;
+  gap: 10px;
 }
 
-.home-footer a {
-  color: var(--color-muted);
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.home-footer a:hover {
+.floating-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: var(--color-cell-bg);
   color: var(--color-parchment);
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--color-border);
+  transition: all 0.2s;
+  white-space: nowrap;
 }
 
-.home-footer-sep {
-  color: var(--color-border);
-  margin: 0 8px;
+.floating-btn:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.floating-btn:active {
+  transform: translateY(0);
+}
+
+.floating-btn svg {
+  flex-shrink: 0;
+}
+
+.github-btn:hover {
+  background: var(--color-border);
+}
+
+.deploy-btn {
+  background: var(--color-accent);
+  color: var(--color-light-text);
+  border-color: var(--color-accent);
+}
+
+.deploy-btn:hover {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+@media (max-width: 480px) {
+  .floating-btn span {
+    display: none;
+  }
+
+  .floating-btn {
+    padding: 12px;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    justify-content: center;
+  }
 }

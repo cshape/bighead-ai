@@ -106,12 +106,14 @@
 /* ---- Mobile responsive ---- */
 @media (max-width: 768px) {
   .chat-window {
-    min-height: 150px;
+    min-height: 0;
+    flex: 1;
     margin: 5px;
   }
 
   .chat-header {
     padding: 8px;
+    flex-shrink: 0;
   }
 
   .chat-header h3 {
@@ -120,5 +122,10 @@
 
   .chat-messages {
     padding: 8px;
+    min-height: 0;
+  }
+
+  .chat-input {
+    flex-shrink: 0;
   }
 }

@@ -138,28 +138,27 @@
 @media (max-width: 768px) {
   .main-content {
     flex-direction: column;
-    overflow-y: auto;
-    height: auto;
-    min-height: calc(100vh - 50px);
-    min-height: calc(100dvh - 50px);
+    overflow: hidden;
+    height: calc(100vh - 50px);
+    height: calc(100dvh - 50px);
   }
 
   .board-container {
     flex: none;
     height: auto;
     min-height: 60vw;
-    overflow: visible;
+    overflow: auto;
   }
 
   .score-container {
-    flex: none;
+    flex: 1;
     min-width: 0;
     max-width: none;
     width: 100%;
     border-left: none;
     border-top: 2px solid var(--color-border);
-    height: auto;
-    overflow: visible;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .admin-bar {

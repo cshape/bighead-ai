@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getApiUrl, getWebSocketUrl } from '../config';
 import { useGame } from '../contexts/GameContext';
@@ -8,7 +8,9 @@ import './LobbyPage.css';
 function LobbyPage() {
   const { code } = useParams();
   const navigate = useNavigate();
-  const { setGameCode } = useGame();
+  const { setGameCode, unlockAudio } = useGame();
+
+  const audioUnlockedRef = useRef(false);
 
   // Set game code in GameContext so it connects to the correct WebSocket endpoint
   useEffect(() => {
@@ -16,6 +18,22 @@ function LobbyPage() {
       setGameCode(code, null);
     }
   }, [code, setGameCode]);
+
+  // Unlock AudioContext on first user interaction for mobile browsers
+  useEffect(() => {
+    const handleInteraction = () => {
+      if (!audioUnlockedRef.current) {
+        audioUnlockedRef.current = true;
+        unlockAudio();
+      }
+    };
+    document.addEventListener('click', handleInteraction, { once: true });
+    document.addEventListener('touchstart', handleInteraction, { once: true });
+    return () => {
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('touchstart', handleInteraction);
+    };
+  }, [unlockAudio]);
 
   const [gameState, setGameState] = useState(null);
   const [players, setPlayers] = useState([]);
@@ -124,6 +142,9 @@ function LobbyPage() {
   }, [code, navigate]);
 
   const handleStartGame = async () => {
+    // Unlock AudioContext on this user gesture so TTS plays on mobile
+    unlockAudio();
+
     // Read fresh from localStorage to avoid stale closure
     const currentPlayerInfo = JSON.parse(sessionStorage.getItem('bighead_playerInfo') || '{}');
     if (!currentPlayerInfo.playerId) {
